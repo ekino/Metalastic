@@ -29,6 +29,7 @@ This project is a library that provides a type-safe, fluent query builder for El
 - **Target**: Elasticsearch query generation
 - **Dependencies**: Spring Data Elasticsearch 5.2.5
 - **Annotation Processing**: KAPT/KSP for processing @Document annotations
+- **Testing**: JUnit 5, AssertK, MockK
 
 ## Development Notes
 

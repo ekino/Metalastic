@@ -109,7 +109,7 @@ object QAddress : ObjectFields() {
 ### Usage: Building Queries
 
 ```kotlin
-// Type-safe field access with path traversal
+// Type-safe field access with path traversal using AssertK
 val person = QPerson
 
 // Root level fields
