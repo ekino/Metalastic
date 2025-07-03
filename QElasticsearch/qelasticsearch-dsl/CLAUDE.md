@@ -4,15 +4,9 @@ A QueryDSL-like library for Elasticsearch in Kotlin, inspired by http://querydsl
 
 ## Project Overview
 
-This is a multi-module project that provides a type-safe, fluent query builder for Elasticsearch similar to QueryDSL's approach for SQL databases. The library includes an annotation processor that generates QIndex classes for all classes annotated with Spring Data Elasticsearch's @Document annotation.
+This project is a library that provides a type-safe, fluent query builder for Elasticsearch similar to QueryDSL's approach for SQL databases. The library includes an annotation processor that generates QIndex classes for all classes annotated with Spring Data Elasticsearch's @Document annotation.
 
 **End Goal**: Create a reusable library that can be integrated into other Java/Kotlin projects to automatically generate type-safe query builders from existing Spring Data Elasticsearch document classes.
-
-## Multi-Module Structure
-
-- **qelasticsearch-dsl**: Core DSL runtime library containing field definitions, index abstractions, and the DSL API
-- **qelasticsearch-processor**: Annotation processor that generates QIndex classes from @Document annotated classes
-- **qelasticsearch-test**: Integration tests that verify the annotation processor works correctly with real Spring Data Elasticsearch documents
 
 ## Goals
 
@@ -39,23 +33,15 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 
 ## Development Notes
 
-- Multi-module project structure using Gradle with Kotlin DSL
-- **qelasticsearch-dsl** module: Core DSL runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
-- **qelasticsearch-processor** module: Annotation processor implementation
-- **qelasticsearch-test** module: Integration tests for the entire library
+- Project structure follows standard Kotlin/Gradle conventions
+- Main source code in `src/main/kotlin/`
+- Tests in `src/test/kotlin/`
 - Annotation processor will scan for `@Document` annotations from Spring Data Elasticsearch
 - Generated QIndex classes will follow Q* naming convention (similar to QueryDSL)
 - Library will be published for consumption by other projects
 - Annotation processor runs at compile-time in consumer projects
 - Support for all Spring Data Elasticsearch FieldType values (Text, Keyword, Date, Long, Integer, Short, Byte, Double, Float, Boolean, Binary, Object, Nested, Ip, etc.)
 - Generate type-safe predicates for common Elasticsearch query types (term, match, range, etc.)
-
-## Build and Test
-
-- Build all modules: `./gradlew build`
-- Test DSL module: `./gradlew :qelasticsearch-dsl:test`
-- Test processor module: `./gradlew :qelasticsearch-processor:test`
-- Test integration: `./gradlew :qelasticsearch-test:test`
 
 ## Code Style Guidelines
 

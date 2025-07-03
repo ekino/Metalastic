@@ -1,31 +1,50 @@
 plugins {
-    kotlin("jvm") version "2.1.21"
+    kotlin("jvm") version "1.9.21" apply false
+    id("org.jetbrains.kotlin.kapt") version "1.9.21" apply false
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0" apply false
+    id("io.gitlab.arturbosch.detekt") version "1.23.4" apply false
 }
 
-group = "org.example"
-version = "1.0-SNAPSHOT"
+allprojects {
+    group = "com.qelasticsearch"
+    version = "1.0-SNAPSHOT"
 
-repositories {
-    mavenCentral()
+    repositories {
+        mavenCentral()
+    }
 }
 
-dependencies {
-    // Spring Data Elasticsearch for annotations
-    implementation("org.springframework.data:spring-data-elasticsearch:5.2.5")
-    
-    // Kotlin reflection for runtime inspection
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
-    
-    // Testing
-    testImplementation(kotlin("test"))
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation("com.willowtreeapps.assertk:assertk-jvm:0.28.1")
-    testImplementation("io.mockk:mockk:1.13.8")
-}
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    apply(plugin = "io.gitlab.arturbosch.detekt")
 
-tasks.test {
-    useJUnitPlatform()
-}
-kotlin {
-    jvmToolchain(21)
+    configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
+        jvmToolchain(21)
+    }
+
+    dependencies {
+        add("testImplementation", "org.junit.jupiter:junit-jupiter:5.10.1")
+        add("testImplementation", "com.willowtreeapps.assertk:assertk:0.28.0")
+        add("testImplementation", "org.jetbrains.kotlin:kotlin-test")
+    }
+
+    tasks.named<Test>("test") {
+        useJUnitPlatform()
+    }
+
+    configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
+        buildUponDefaultConfig = true
+        allRules = false
+    }
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set("1.0.1")
+        debug.set(true)
+        verbose.set(true)
+        android.set(false)
+        outputToConsole.set(true)
+        outputColorName.set("RED")
+        ignoreFailures.set(false)
+    }
 }

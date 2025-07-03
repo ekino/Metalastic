@@ -144,8 +144,8 @@ class SimpleModelTest {
         assertThat(person.age.path).isEqualTo("age")
         assertThat(person.bio.path).isEqualTo("bio")
 
-        // The nested field access should work
-         assertThat(person.address).isInstanceOf(ObjectField::class)
+        // The nested field access should work - it should return the ObjectFields instance directly
+        assertThat(person.address).isInstanceOf(ObjectFields::class)
     }
 
     @Test

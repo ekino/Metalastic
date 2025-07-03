@@ -8,6 +8,9 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/qelasticsearch-dsl" />
+            <option value="$PROJECT_DIR$/qelasticsearch-processor" />
+            <option value="$PROJECT_DIR$/qelasticsearch-test" />
           </set>
         </option>
       </GradleProjectSettings>

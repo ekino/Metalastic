@@ -212,6 +212,13 @@ cd qelasticsearch
 ./gradlew build
 ```
 
+### Building and Testing
+
+- **Build all modules**: `./gradlew build`
+- **Test DSL module**: `./gradlew :qelasticsearch-dsl:test`
+- **Test processor module**: `./gradlew :qelasticsearch-processor:test`
+- **Test integration**: `./gradlew :qelasticsearch-test:test`
+
 ## Code Quality
 
 This project follows strict code quality standards:
@@ -223,24 +230,27 @@ This project follows strict code quality standards:
 
 ## Architecture
 
-### Project Structure
+### Multi-Module Project Structure
 
 ```
-src/
-├── main/kotlin/
-│   ├── processor/          # Annotation processor implementation
-│   ├── dsl/               # DSL runtime classes (Index, ObjectFields, etc.)
-│   └── generators/        # Code generation logic
-└── test/kotlin/
-    ├── processor/         # Processor tests
-    └── integration/       # End-to-end tests
+QElasticsearch/
+├── build.gradle.kts              # Root build configuration
+├── settings.gradle.kts           # Multi-module settings
+├── qelasticsearch-dsl/          # Core DSL runtime
+│   ├── src/main/kotlin/         # DSL classes (Index, ObjectFields, etc.)
+│   └── src/test/kotlin/         # DSL unit tests
+├── qelasticsearch-processor/    # Annotation processor
+│   ├── src/main/kotlin/         # Processor implementation
+│   └── src/test/kotlin/         # Processor tests
+└── qelasticsearch-test/         # Integration tests
+    └── src/test/kotlin/         # End-to-end tests
 ```
 
 ### Key Components
 
-1. **Annotation Processor** - Scans `@Document` classes at compile time
-2. **Code Generator** - Creates type-safe Kotlin DSL classes
-3. **Runtime DSL** - Base classes for generated query builders
+1. **qelasticsearch-dsl** - Core DSL runtime with field definitions and base classes
+2. **qelasticsearch-processor** - Annotation processor that scans `@Document` classes
+3. **qelasticsearch-test** - Integration tests ensuring the processor works correctly
 4. **Path Traversal** - Dotted notation support for nested fields
 
 ## Contributing
@@ -256,11 +266,15 @@ src/
 
 ## Roadmap
 
+- [x] **Multi-module project structure** - Separate DSL runtime, processor, and integration tests
+- [x] **Core DSL runtime classes** - Index, ObjectFields, Field hierarchy with sealed classes
+- [x] **All field types support** - Complete implementation of all Elasticsearch field types
+- [x] **Path traversal implementation** - Dotted notation for nested field access
+- [x] **Object field traversal** - Direct access to nested object fields
+- [x] **Type-safe field system** - Sealed classes instead of string-based approach
 - [ ] Basic annotation processor implementation
-- [ ] Core DSL runtime classes
 - [ ] Code generation for all field types
 - [ ] Multi-field and nested object support
-- [ ] Path traversal implementation
 - [ ] Query building DSL
 - [ ] Integration with Elasticsearch clients
 - [ ] Performance optimizations
