@@ -1,5 +1,5 @@
 plugins {
-    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
+    id("com.google.devtools.ksp") version "2.1.21-2.0.2"
 }
 
 dependencies {
@@ -10,7 +10,7 @@ dependencies {
     implementation("org.springframework.data:spring-data-elasticsearch:5.2.5")
     
     // KSP API
-    implementation("com.google.devtools.ksp:symbol-processing-api:1.9.21-1.0.15")
+    implementation("com.google.devtools.ksp:symbol-processing-api:2.1.21-2.0.2")
     
     // Code generation
     implementation("com.squareup:kotlinpoet:1.15.3")

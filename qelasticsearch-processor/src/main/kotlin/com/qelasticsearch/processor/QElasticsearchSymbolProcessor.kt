@@ -77,9 +77,14 @@ class QElasticsearchSymbolProcessor(
             .superclass(ClassName("com.qelasticsearch.dsl", "Index"))
             .addSuperclassConstructorParameter("%S", indexName)
 
-        // Process all properties in the document class
+        // Process all properties in the document class, tracking names to avoid duplicates
+        val processedPropertyNames = mutableSetOf<String>()
         documentClass.getAllProperties().forEach { property ->
-            processProperty(property, objectBuilder, packageName)
+            val propertyName = property.simpleName.asString()
+            if (propertyName !in processedPropertyNames) {
+                processProperty(property, objectBuilder, packageName)
+                processedPropertyNames.add(propertyName)
+            }
         }
 
         return FileSpec.builder(packageName, qIndexClassName)
