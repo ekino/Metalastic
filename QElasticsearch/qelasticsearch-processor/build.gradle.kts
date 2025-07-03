@@ -1,18 +1,22 @@
 plugins {
-    kotlin("kapt")
+    id("com.google.devtools.ksp") version "1.9.21-1.0.15"
 }
 
 dependencies {
     // DSL runtime dependency
     implementation(project(":qelasticsearch-dsl"))
     
-    // Annotation processing
-    implementation("com.google.auto.service:auto-service:1.1.1")
-    kapt("com.google.auto.service:auto-service:1.1.1")
+    // Spring Data Elasticsearch for annotations
+    implementation("org.springframework.data:spring-data-elasticsearch:5.2.5")
+    
+    // KSP API
+    implementation("com.google.devtools.ksp:symbol-processing-api:1.9.21-1.0.15")
     
     // Code generation
     implementation("com.squareup:kotlinpoet:1.15.3")
+    implementation("com.squareup:kotlinpoet-ksp:1.15.3")
     
     // Testing annotation processing
     testImplementation("com.github.tschuchortdev:kotlin-compile-testing:1.5.0")
+    testImplementation("com.github.tschuchortdev:kotlin-compile-testing-ksp:1.5.0")
 }
