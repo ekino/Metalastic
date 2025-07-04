@@ -684,12 +684,6 @@ class QElasticsearchSymbolProcessor(
     }
 
     /**
-     * Extract the actual Kotlin type name for generic parameterization.
-     * Uses fully qualified names for robust type handling.
-     */
-    private fun extractActualKotlinType(fieldType: ProcessedFieldType): String = extractKotlinTypeRecursive(fieldType.kotlinType.resolve())
-
-    /**
      * Recursively extract Kotlin type names, handling nested generics like List<ParametrisedType<String>>.
      */
     private fun extractKotlinTypeRecursive(kotlinType: KSType): String {
@@ -718,15 +712,6 @@ class QElasticsearchSymbolProcessor(
         // This eliminates the need for manual type mapping and import handling
         return qualifiedName ?: declaration.simpleName.asString()
     }
-
-    /**
-     * Generate a generic delegate call with type parameter.
-     * e.g., "date<LocalDate>()" or "text<String>()"
-     */
-    private fun generateGenericDelegateCall(
-        methodName: String,
-        kotlinType: String,
-    ): String = "$methodName<$kotlinType>()"
 
     /**
      * Generate a generic delegate call directly from KSType.
@@ -766,6 +751,7 @@ class QElasticsearchSymbolProcessor(
                     }
                 }
 
+            @Suppress("SpreadOperator")
             return baseType.parameterizedBy(*typeArguments.toTypedArray())
         }
 
@@ -777,58 +763,6 @@ class QElasticsearchSymbolProcessor(
             ClassName(packageName, className)
         } else {
             ClassName("com.qelasticsearch.integration", qualifiedName ?: declaration.simpleName.asString())
-        }
-    }
-
-    /**
-     * Parse a fully qualified type name into a ClassName for KotlinPoet.
-     * Handles both simple types and parameterized types like List<String>.
-     */
-    private fun parseClassName(fullyQualifiedTypeName: String): com.squareup.kotlinpoet.TypeName {
-        // Handle parameterized types like "java.util.List<java.lang.String>"
-        if (fullyQualifiedTypeName.contains("<")) {
-            val baseTypeName = fullyQualifiedTypeName.substringBefore("<")
-            val typeArgumentsString = fullyQualifiedTypeName.substringAfter("<").substringBeforeLast(">")
-
-            // Parse base type
-            val baseType =
-                if (baseTypeName.contains(".")) {
-                    val parts = baseTypeName.split(".")
-                    val className = parts.last()
-                    val packageName = parts.dropLast(1).joinToString(".")
-                    ClassName(packageName, className)
-                } else {
-                    ClassName("com.qelasticsearch.integration", baseTypeName)
-                }
-
-            // Parse type arguments (handle simple case of single argument for now)
-            val typeArguments =
-                typeArgumentsString.split(",").map { arg ->
-                    val trimmedArg = arg.trim()
-                    if (trimmedArg.contains(".")) {
-                        val parts = trimmedArg.split(".")
-                        val className = parts.last()
-                        val packageName = parts.dropLast(1).joinToString(".")
-                        ClassName(packageName, className)
-                    } else {
-                        ClassName("com.qelasticsearch.integration", trimmedArg)
-                    }
-                }
-
-            @Suppress("SpreadOperator")
-            return baseType.parameterizedBy(*typeArguments.toTypedArray())
-        }
-
-        // Handle simple types
-        if (fullyQualifiedTypeName.contains(".")) {
-            val parts = fullyQualifiedTypeName.split(".")
-            val className = parts.last()
-            val packageName = parts.dropLast(1).joinToString(".")
-            return ClassName(packageName, className)
-        } else {
-            // For simple names without package, assume they're in the same package
-            // This handles enums and other classes in the same package
-            return ClassName("com.qelasticsearch.integration", fullyQualifiedTypeName)
         }
     }
 

@@ -1,0 +1,62 @@
+[versions]
+# Kotlin and JVM
+kotlin = "2.1.21"
+jvm = "21"
+
+# KSP and Code Generation
+ksp = "2.1.21-2.0.2"
+kotlinpoet = "1.15.3"
+
+# Spring Data Elasticsearch
+spring-data-elasticsearch = "5.2.5"
+
+# Code Quality
+ktlint-gradle = "12.1.0"
+ktlint = "1.6.0"
+detekt = "1.23.8"
+
+# Testing
+junit = "5.10.1"
+assertk = "0.28.0"
+mockk = "1.13.8"
+kotlin-compile-testing = "1.5.0"
+
+# Additional Dependencies
+lombok = "1.18.30"
+querydsl = "5.0.0"
+
+[libraries]
+# Kotlin
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
+
+# Spring Data Elasticsearch
+spring-data-elasticsearch = { module = "org.springframework.data:spring-data-elasticsearch", version.ref = "spring-data-elasticsearch" }
+
+# KSP and Code Generation
+ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
+
+# Testing
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+assertk = { module = "com.willowtreeapps.assertk:assertk", version.ref = "assertk" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotlin-compile-testing = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlin-compile-testing" }
+kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlin-compile-testing" }
+
+# Additional Dependencies
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+querydsl-core = { module = "com.querydsl:querydsl-core", version.ref = "querydsl" }
+
+[bundles]
+testing-common = ["junit-jupiter", "assertk", "kotlin-test"]
+testing-extended = ["junit-jupiter", "assertk", "kotlin-test", "mockk"]
+ksp-processor = ["ksp-api", "kotlinpoet", "kotlinpoet-ksp"]
+compile-testing = ["kotlin-compile-testing", "kotlin-compile-testing-ksp"]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
