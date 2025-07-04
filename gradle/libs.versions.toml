@@ -1,29 +1,28 @@
 [versions]
 # Kotlin and JVM
-kotlin = "2.1.21"
+kotlin = "2.2.0"
 jvm = "21"
 
 # KSP and Code Generation
-ksp = "2.1.21-2.0.2"
-kotlinpoet = "1.15.3"
+ksp = "2.2.0-2.0.2"
+kotlinpoet = "2.2.0"
 
 # Spring Data Elasticsearch
-spring-data-elasticsearch = "5.2.5"
+spring-data-elasticsearch = "5.5.1"
 
 # Code Quality
-ktlint-gradle = "12.1.0"
+ktlint-gradle = "12.3.0"
 ktlint = "1.6.0"
 detekt = "1.23.8"
 
 # Testing
-junit = "5.10.1"
-assertk = "0.28.0"
-mockk = "1.13.8"
-kotlin-compile-testing = "1.5.0"
+junit = "5.13.3"
+assertk = "0.28.1"
+mockk = "1.14.4"
+kotlin-compile-testing = "1.6.0"
 
 # Additional Dependencies
-lombok = "1.18.30"
-querydsl = "5.0.0"
+lombok = "1.18.38"
 
 [libraries]
 # Kotlin
@@ -47,7 +46,6 @@ kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile
 
 # Additional Dependencies
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
-querydsl-core = { module = "com.querydsl:querydsl-core", version.ref = "querydsl" }
 
 [bundles]
 testing-common = ["junit-jupiter", "assertk", "kotlin-test"]

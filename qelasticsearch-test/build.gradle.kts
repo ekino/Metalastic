@@ -19,9 +19,6 @@ dependencies {
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok)
 
-    // QueryDSL for comparison and compatibility testing
-    implementation(libs.querydsl.core)
-
     // Testing dependencies
     testImplementation(libs.kotlin.compile.testing)
     testImplementation(libs.kotlin.compile.testing.ksp)
