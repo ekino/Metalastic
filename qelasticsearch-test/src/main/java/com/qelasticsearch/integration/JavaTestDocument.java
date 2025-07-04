@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -26,25 +27,40 @@ import org.springframework.data.elasticsearch.annotations.MultiField;
 @AllArgsConstructor
 @Document(indexName = "java_test_document")
 public class JavaTestDocument {
-    
+
     @Id
     @Field(type = FieldType.Keyword)
     private String id;
 
+    @Field(type = FieldType.Keyword)
+    private List<String> aList;
+
+    @Field(type = FieldType.Keyword)
+    private List<ParametrisedType<String>> parametrisedTypeList;
+
+    @Field(type = FieldType.Keyword)
+    private ParametrisedType<String> someParametrisedType;
+
+    @Field(type = FieldType.Keyword)
+    private Map<String, Integer> mapField;
+
+    @Field(type = FieldType.Keyword)
+    private MultiArgType<String, Integer, Boolean> multiArgType;
+
     private String noAnnot;
-    
+
     @Field(type = FieldType.Text)
     private String title;
-    
+
     @Field(type = FieldType.Text, analyzer = "standard")
     private String description;
-    
+
     @Field(type = FieldType.Integer)
     private Integer priority;
-    
+
     @Field(type = FieldType.Boolean)
     private Boolean isActive;
-    
+
     @Field(type = FieldType.Date)
     private Date createdAt;
 
@@ -59,36 +75,42 @@ public class JavaTestDocument {
 
     @Field(type = FieldType.Date)
     private Instant instant;
-    
+
     @Field(type = FieldType.Double)
     private Double score;
-    
+
     @Field(type = FieldType.Keyword)
     private String category;
-    
+
     @Field(type = FieldType.Keyword)
     private TestStatus status;
-    
+
     @Field(type = FieldType.Keyword)
     private Priority priorityLevel;
-    
+
     @Field(type = FieldType.Object)
     private JavaAddress address;
-    
+
     @Field(type = FieldType.Nested)
     private List<com.qelasticsearch.integration.JavaTag> tags;
 
     @Field(type = FieldType.Nested)
     private List<JavaTag> tags2;
-    
+
     @MultiField(
-        mainField = @Field(type = FieldType.Text),
-        otherFields = {
-            @InnerField(suffix = "keyword", type = FieldType.Keyword),
-            @InnerField(suffix = "search", type = FieldType.Text, analyzer = "standard")
-        }
+            mainField = @Field(type = FieldType.Text),
+            otherFields = {
+                    @InnerField(suffix = "keyword", type = FieldType.Keyword),
+                    @InnerField(suffix = "search", type = FieldType.Text, analyzer = "standard")
+            }
     )
     private String multiFieldName;
+
+    @MultiField(
+            mainField = @Field(type = FieldType.Keyword),
+            otherFields = @InnerField(suffix = "SEARCH", type = FieldType.Text)
+    )
+    private String description2;
 
     @Data
     @NoArgsConstructor
@@ -108,16 +130,16 @@ public class JavaTestDocument {
 class JavaAddress {
     @Field(type = FieldType.Text)
     private String street;
-    
+
     @Field(type = FieldType.Text)
     private String city;
-    
+
     @Field(type = FieldType.Keyword)
     private String zipCode;
-    
+
     @Field(type = FieldType.Keyword)
     private String country;
-    
+
     @Field(type = FieldType.Keyword) // Simplified for test - would normally be geo_point
     private String location;
 }

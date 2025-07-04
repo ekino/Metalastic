@@ -192,9 +192,6 @@ class QElasticsearchSymbolProcessor(
         fieldType: ProcessedFieldType,
         usedImports: MutableSet<String> = mutableSetOf(),
     ) {
-        // Extract the actual Kotlin type for generic parameterization
-        val actualKotlinType = extractActualKotlinType(fieldType)
-
         // Handle special cases that need to delegate to other methods
         when (fieldType.elasticsearchType) {
             FieldType.Object -> {
@@ -225,22 +222,13 @@ class QElasticsearchSymbolProcessor(
         val fieldClass = getFieldClass(fieldType.elasticsearchType)
         val basicDelegate = getFieldDelegate(fieldType.elasticsearchType)
         val methodName = basicDelegate.substringBefore("()")
-        val delegateCall = generateGenericDelegateCall(methodName, actualKotlinType)
-        val parameterizedTypeName = "$fieldClass<$actualKotlinType>"
 
-        // For parameterized types, parse the type name to create proper ClassName
-        val finalTypeName =
-            if (parameterizedTypeName.contains("<")) {
-                // Parse parameterized type like "DateField<LocalDate>"
-                val baseType = parameterizedTypeName.substringBefore("<")
-                val typeParam = parameterizedTypeName.substringAfter("<").substringBefore(">")
-                ClassName("com.qelasticsearch.dsl", baseType).parameterizedBy(
-                    parseClassName(typeParam),
-                )
-            } else {
-                // Simple type
-                ClassName("com.qelasticsearch.dsl", parameterizedTypeName)
-            }
+        // Create KotlinPoet TypeName directly from KSType for better nested generic handling
+        val kotlinType = fieldType.kotlinType.resolve()
+        val typeParam = createKotlinPoetTypeName(kotlinType)
+        val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType)
+
+        val finalTypeName = ClassName("com.qelasticsearch.dsl", fieldClass).parameterizedBy(typeParam)
 
         objectBuilder.addProperty(
             PropertySpec
@@ -324,7 +312,14 @@ class QElasticsearchSymbolProcessor(
         usedImports: MutableSet<String> = mutableSetOf(),
     ) {
         val mainFieldAnnotation = multiFieldAnnotation.getArgumentValue<KSAnnotation>("mainField")
-        val innerFields = multiFieldAnnotation.getArgumentValue<List<KSAnnotation>>("otherFields") ?: emptyList()
+
+        // Handle both single @InnerField and array of @InnerField
+        val innerFields =
+            when (val otherFieldsValue = multiFieldAnnotation.arguments.find { it.name?.asString() == "otherFields" }?.value) {
+                is List<*> -> otherFieldsValue.filterIsInstance<KSAnnotation>()
+                is KSAnnotation -> listOf(otherFieldsValue)
+                else -> emptyList()
+            }
 
         val mainFieldType = extractFieldTypeFromAnnotation(mainFieldAnnotation)
         val mainFieldDelegate = getFieldDelegate(mainFieldType)
@@ -692,18 +687,31 @@ class QElasticsearchSymbolProcessor(
      * Extract the actual Kotlin type name for generic parameterization.
      * Uses fully qualified names for robust type handling.
      */
-    private fun extractActualKotlinType(fieldType: ProcessedFieldType): String {
-        val kotlinType = fieldType.kotlinType.resolve()
+    private fun extractActualKotlinType(fieldType: ProcessedFieldType): String = extractKotlinTypeRecursive(fieldType.kotlinType.resolve())
+
+    /**
+     * Recursively extract Kotlin type names, handling nested generics like List<ParametrisedType<String>>.
+     */
+    private fun extractKotlinTypeRecursive(kotlinType: KSType): String {
         val declaration = kotlinType.declaration
         val qualifiedName = declaration.qualifiedName?.asString()
 
-        // Handle collections - use Any as fallback for complex generic types
-        if (qualifiedName?.let { it.startsWith("kotlin.collections.") || it.startsWith("java.util.") } == true) {
-            // Exception: java.util.Date is not a collection, it's a date type
-            if (qualifiedName == "java.util.Date") {
-                return qualifiedName
+        // Handle parameterized types recursively
+        if (kotlinType.arguments.isNotEmpty()) {
+            val baseType = qualifiedName ?: declaration.simpleName.asString()
+            val typeArguments =
+                kotlinType.arguments.mapNotNull { typeArgument ->
+                    typeArgument.type?.resolve()?.let { resolvedType ->
+                        // Recursive call to handle nested generics
+                        extractKotlinTypeRecursive(resolvedType)
+                    }
+                }
+
+            return if (typeArguments.isNotEmpty()) {
+                "$baseType<${typeArguments.joinToString(", ")}>" // Preserve full parameterized type
+            } else {
+                baseType
             }
-            return "kotlin.Any"
         }
 
         // For all other types (primitives, enums, classes), use the fully qualified name
@@ -721,11 +729,97 @@ class QElasticsearchSymbolProcessor(
     ): String = "$methodName<$kotlinType>()"
 
     /**
+     * Generate a generic delegate call directly from KSType.
+     */
+    private fun generateGenericDelegateCallForKSType(
+        methodName: String,
+        kotlinType: KSType,
+    ): String {
+        val typeString = extractKotlinTypeRecursive(kotlinType)
+        return "$methodName<$typeString>()"
+    }
+
+    /**
+     * Create a KotlinPoet TypeName directly from KSType to handle nested generics properly.
+     */
+    private fun createKotlinPoetTypeName(kotlinType: KSType): com.squareup.kotlinpoet.TypeName {
+        val declaration = kotlinType.declaration
+        val qualifiedName = declaration.qualifiedName?.asString()
+
+        // Handle parameterized types recursively
+        if (kotlinType.arguments.isNotEmpty()) {
+            val baseType =
+                if (qualifiedName?.contains(".") == true) {
+                    val parts = qualifiedName.split(".")
+                    val className = parts.last()
+                    val packageName = parts.dropLast(1).joinToString(".")
+                    ClassName(packageName, className)
+                } else {
+                    ClassName("com.qelasticsearch.integration", qualifiedName ?: declaration.simpleName.asString())
+                }
+
+            val typeArguments =
+                kotlinType.arguments.mapNotNull { typeArgument ->
+                    typeArgument.type?.resolve()?.let { resolvedType ->
+                        // Recursive call to handle nested generics
+                        createKotlinPoetTypeName(resolvedType)
+                    }
+                }
+
+            return baseType.parameterizedBy(*typeArguments.toTypedArray())
+        }
+
+        // Handle simple types
+        return if (qualifiedName?.contains(".") == true) {
+            val parts = qualifiedName.split(".")
+            val className = parts.last()
+            val packageName = parts.dropLast(1).joinToString(".")
+            ClassName(packageName, className)
+        } else {
+            ClassName("com.qelasticsearch.integration", qualifiedName ?: declaration.simpleName.asString())
+        }
+    }
+
+    /**
      * Parse a fully qualified type name into a ClassName for KotlinPoet.
-     * Much simpler since we always use fully qualified names now.
+     * Handles both simple types and parameterized types like List<String>.
      */
     private fun parseClassName(fullyQualifiedTypeName: String): com.squareup.kotlinpoet.TypeName {
-        // For qualified names, split into package and class
+        // Handle parameterized types like "java.util.List<java.lang.String>"
+        if (fullyQualifiedTypeName.contains("<")) {
+            val baseTypeName = fullyQualifiedTypeName.substringBefore("<")
+            val typeArgumentsString = fullyQualifiedTypeName.substringAfter("<").substringBeforeLast(">")
+
+            // Parse base type
+            val baseType =
+                if (baseTypeName.contains(".")) {
+                    val parts = baseTypeName.split(".")
+                    val className = parts.last()
+                    val packageName = parts.dropLast(1).joinToString(".")
+                    ClassName(packageName, className)
+                } else {
+                    ClassName("com.qelasticsearch.integration", baseTypeName)
+                }
+
+            // Parse type arguments (handle simple case of single argument for now)
+            val typeArguments =
+                typeArgumentsString.split(",").map { arg ->
+                    val trimmedArg = arg.trim()
+                    if (trimmedArg.contains(".")) {
+                        val parts = trimmedArg.split(".")
+                        val className = parts.last()
+                        val packageName = parts.dropLast(1).joinToString(".")
+                        ClassName(packageName, className)
+                    } else {
+                        ClassName("com.qelasticsearch.integration", trimmedArg)
+                    }
+                }
+
+            @Suppress("SpreadOperator")
+            return baseType.parameterizedBy(*typeArguments.toTypedArray())
+        }
+
+        // Handle simple types
         if (fullyQualifiedTypeName.contains(".")) {
             val parts = fullyQualifiedTypeName.split(".")
             val className = parts.last()
