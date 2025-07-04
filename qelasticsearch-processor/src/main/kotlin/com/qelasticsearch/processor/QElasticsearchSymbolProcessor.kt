@@ -282,7 +282,21 @@ class QElasticsearchSymbolProcessor(
         fieldType: ProcessedFieldType,
         packageName: String,
     ) {
-        val objectFieldsClassName = "Q${fieldType.kotlinTypeName}"
+        // Find the actual class declaration to determine the correct Q-class name
+        val actualClassDeclaration = findActualClassDeclaration(fieldType)
+        if (actualClassDeclaration == null) {
+            logger.warn("Could not find class declaration for field type: ${fieldType.kotlinTypeName}")
+            return
+        }
+
+        val objectFieldKey = generateObjectFieldKey(actualClassDeclaration)
+        val objectFieldInfo = globalObjectFields[objectFieldKey]
+        if (objectFieldInfo == null) {
+            logger.warn("No ObjectField registered for key: $objectFieldKey (type: ${fieldType.kotlinTypeName})")
+            return
+        }
+
+        val objectFieldsClassName = objectFieldInfo.className
         val isNested = fieldType.elasticsearchType == FieldType.Nested
 
         val delegateCall =
@@ -292,8 +306,7 @@ class QElasticsearchSymbolProcessor(
                 "objectField($objectFieldsClassName)"
             }
 
-        // Use the actual package where the Q-class should be located
-        val targetPackage = determineTargetPackage(fieldType, packageName)
+        val targetPackage = objectFieldInfo.packageName
 
         objectBuilder.addProperty(
             PropertySpec
@@ -708,6 +721,7 @@ class QElasticsearchSymbolProcessor(
         val className: String,
         val packageName: String,
         val classDeclaration: KSClassDeclaration,
+        val qualifiedName: String, // Add qualified name for proper identification
     )
 
     private fun determineTargetPackage(
@@ -717,6 +731,53 @@ class QElasticsearchSymbolProcessor(
         // Check if we have a registered ObjectField for this type
         val objectFieldInfo = globalObjectFields[fieldType.kotlinTypeName]
         return objectFieldInfo?.packageName ?: currentPackage
+    }
+
+    /**
+     * Generate a unique Q-class name for a given class declaration.
+     * For nested classes, includes parent class name to avoid conflicts.
+     */
+    private fun generateUniqueQClassName(classDeclaration: KSClassDeclaration): String {
+        val simpleName = classDeclaration.simpleName.asString()
+        val parentClass = classDeclaration.parentDeclaration as? KSClassDeclaration
+        
+        return if (parentClass != null) {
+            // For nested classes: Q + ParentClassName + NestedClassName
+            "Q${parentClass.simpleName.asString()}$simpleName"
+        } else {
+            // For top-level classes: Q + ClassName
+            "Q$simpleName"
+        }
+    }
+
+    /**
+     * Generate a unique key for the globalObjectFields map using qualified names.
+     * This prevents collisions between nested and top-level classes with same simple name.
+     */
+    private fun generateObjectFieldKey(classDeclaration: KSClassDeclaration): String {
+        return classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString()
+    }
+
+    /**
+     * Find the actual class declaration for a field type.
+     * This handles both collection types and direct object types.
+     */
+    private fun findActualClassDeclaration(fieldType: ProcessedFieldType): KSClassDeclaration? {
+        val kotlinType = fieldType.kotlinType.resolve()
+        
+        return if (isCollectionType(getSimpleTypeName(fieldType.kotlinType))) {
+            // For collections, get the element type
+            val typeArguments = kotlinType.arguments
+            if (typeArguments.isNotEmpty()) {
+                val firstArg = typeArguments.first()
+                firstArg.type?.resolve()?.declaration as? KSClassDeclaration
+            } else {
+                null
+            }
+        } else {
+            // For direct object types
+            kotlinType.declaration as? KSClassDeclaration
+        }
     }
 
     private fun collectObjectFields(documentClass: KSClassDeclaration) {
@@ -742,13 +803,15 @@ class QElasticsearchSymbolProcessor(
                         return@forEach
                     }
 
-                    val className = "Q${fieldType.kotlinTypeName}"
+                    val className = generateUniqueQClassName(nestedClass)
+                    val objectFieldKey = generateObjectFieldKey(nestedClass)
 
-                    globalObjectFields[fieldType.kotlinTypeName] =
+                    globalObjectFields[objectFieldKey] =
                         ObjectFieldInfo(
                             className = className,
                             packageName = targetPackage,
                             classDeclaration = nestedClass,
+                            qualifiedName = nestedClass.qualifiedName?.asString() ?: nestedClass.simpleName.asString(),
                         )
 
                     logger.info("Registered ObjectField: ${fieldType.kotlinTypeName} -> $targetPackage.$className")
@@ -797,9 +860,10 @@ class QElasticsearchSymbolProcessor(
                         hasField || hasId || hasMultiField
                     }
 
+                val objectFieldKey = generateObjectFieldKey(classDeclaration)
                 val shouldRegister =
                     when {
-                        className in globalObjectFields -> {
+                        objectFieldKey in globalObjectFields -> {
                             logger.info("Class $className already registered, skipping")
                             false
                         }
@@ -816,11 +880,13 @@ class QElasticsearchSymbolProcessor(
                     }
 
                 if (shouldRegister) {
-                    globalObjectFields[className] =
+                    val uniqueClassName = generateUniqueQClassName(classDeclaration)
+                    globalObjectFields[objectFieldKey] =
                         ObjectFieldInfo(
-                            className = "Q$className",
+                            className = uniqueClassName,
                             packageName = packageName,
                             classDeclaration = classDeclaration,
+                            qualifiedName = classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString(),
                         )
                     logger.info("Registered ObjectField: $className -> $packageName.Q$className")
                 }
@@ -866,14 +932,16 @@ class QElasticsearchSymbolProcessor(
                         return@forEach
                     }
 
-                    val className = "Q${fieldType.kotlinTypeName}"
+                    val className = generateUniqueQClassName(nestedClass)
+                    val objectFieldKey = generateObjectFieldKey(nestedClass)
 
-                    if (fieldType.kotlinTypeName !in globalObjectFields) {
-                        globalObjectFields[fieldType.kotlinTypeName] =
+                    if (objectFieldKey !in globalObjectFields) {
+                        globalObjectFields[objectFieldKey] =
                             ObjectFieldInfo(
                                 className = className,
                                 packageName = targetPackage,
                                 classDeclaration = nestedClass,
+                                qualifiedName = nestedClass.qualifiedName?.asString() ?: nestedClass.simpleName.asString(),
                             )
 
                         logger.info("Registered nested ObjectField: ${fieldType.kotlinTypeName} -> $targetPackage.$className")

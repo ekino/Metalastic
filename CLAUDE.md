@@ -198,3 +198,8 @@ This allows for:
 - Nested object field path construction
 - Full dotted notation support for complex nested structures
 - Type-safe field path building for query construction
+```
+
+## Memories
+
+- remember to publish to mavenLocal when finish to implement a feature

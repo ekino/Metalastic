@@ -99,16 +99,3 @@ class JavaAddress {
     private String location;
 }
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-class JavaTag {
-    @Field(type = FieldType.Keyword)
-    private String name;
-    
-    @Field(type = FieldType.Integer)
-    private Integer weight;
-    
-    @Field(type = FieldType.Text)
-    private String description;
-}

@@ -32,7 +32,7 @@ class UnknownFieldsTest {
         val operationField = QNestedTestDocument.operation
 
         assertNotNull(operationField)
-        assertTrue(operationField is QOperation)
+        assertTrue(operationField is QNestedTestDocumentOperation)
     }
 
     @Test
