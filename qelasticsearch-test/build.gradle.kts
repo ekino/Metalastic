@@ -2,6 +2,11 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+// Disable ktlint for test module that contains generated code
+tasks.matching { it.name.startsWith("ktlint") }.configureEach {
+    enabled = false
+}
+
 dependencies {
     // DSL runtime needed for generated code
     implementation(project(":qelasticsearch-dsl"))

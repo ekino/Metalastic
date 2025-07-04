@@ -48,6 +48,9 @@ subprojects {
         outputToConsole.set(true)
         outputColorName.set("RED")
         ignoreFailures.set(false)
+        filter {
+            exclude("**/build/**")
+        }
     }
 
     configure<PublishingExtension> {

@@ -158,7 +158,12 @@ class QElasticsearchSymbolProcessor(
         val idAnnotation = property.findAnnotation(Id::class)
 
         val propertyName = property.simpleName.asString()
-        val fieldType = determineFieldType(property, fieldAnnotation, idAnnotation)
+
+        // Skip fields with no annotations at all
+        if (fieldAnnotation == null && multiFieldAnnotation == null && idAnnotation == null) {
+            logger.info("Property $propertyName has no annotations, ignoring field")
+            return
+        }
 
         when {
             multiFieldAnnotation != null -> {
@@ -166,14 +171,17 @@ class QElasticsearchSymbolProcessor(
                 generateMultiFieldProperty(objectBuilder, propertyName, multiFieldAnnotation, usedImports)
             }
 
-            fieldType.isObjectType -> {
-                // Handle object/nested field
-                generateObjectFieldProperty(objectBuilder, propertyName, fieldType, packageName)
-            }
-
             else -> {
-                // Handle simple field
-                generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, usedImports)
+                // Handle simple or object field
+                val fieldType = determineFieldType(property, fieldAnnotation, idAnnotation)
+
+                if (fieldType.isObjectType) {
+                    // Handle object/nested field
+                    generateObjectFieldProperty(objectBuilder, propertyName, fieldType, packageName)
+                } else {
+                    // Handle simple field
+                    generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, usedImports)
+                }
             }
         }
     }
@@ -207,6 +215,7 @@ class QElasticsearchSymbolProcessor(
                 )
                 return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, usedImports)
             }
+
             else -> {
                 // Continue with normal field generation
             }
@@ -501,65 +510,8 @@ class QElasticsearchSymbolProcessor(
             )
         }
 
-        // Auto-detect field type based on Kotlin type
-        logger.info("Property $propertyName has no annotations, auto-detecting type")
-        return autoDetectFieldType(property)
-    }
-
-    private fun autoDetectFieldType(property: KSPropertyDeclaration): ProcessedFieldType {
-        val kotlinType = property.type
-        val typeName =
-            kotlinType
-                .resolve()
-                .declaration.simpleName
-                .asString()
-
-        val elasticsearchType =
-            when (typeName) {
-                "String" -> FieldType.Text
-                "Long" -> FieldType.Long
-                "Int", "Integer" -> FieldType.Integer
-                "Short" -> FieldType.Short
-                "Byte" -> FieldType.Byte
-                "Double" -> FieldType.Double
-                "Float" -> FieldType.Float
-                "Boolean" -> FieldType.Boolean
-                "Date", "LocalDate", "LocalDateTime", "ZonedDateTime" -> FieldType.Date
-                "BigDecimal" -> FieldType.Double
-                else -> {
-                    // Skip collection types
-                    if (isCollectionType(typeName)) {
-                        return ProcessedFieldType(
-                            elasticsearchType = FieldType.Object,
-                            kotlinType = kotlinType,
-                            kotlinTypeName = typeName,
-                            isObjectType = false, // Don't generate ObjectFields for collections
-                        )
-                    }
-
-                    // If it's a custom class (not enum), treat as object
-                    val typeDeclaration = kotlinType.resolve().declaration
-                    if (typeDeclaration is KSClassDeclaration &&
-                        typeDeclaration.classKind == ClassKind.CLASS &&
-                        !isStandardLibraryType(typeDeclaration.packageName.asString())
-                    ) {
-                        return ProcessedFieldType(
-                            elasticsearchType = FieldType.Object,
-                            kotlinType = kotlinType,
-                            kotlinTypeName = getSimpleTypeName(kotlinType),
-                            isObjectType = true,
-                        )
-                    }
-                    FieldType.Keyword // Default fallback
-                }
-            }
-
-        return ProcessedFieldType(
-            elasticsearchType = elasticsearchType,
-            kotlinType = kotlinType,
-            kotlinTypeName = getSimpleTypeName(kotlinType),
-            isObjectType = false,
-        )
+        // This should not happen since we check for annotations before calling this function
+        error("Property $propertyName has neither @Field nor @Id annotation")
     }
 
     private fun isCollectionType(typeName: String): Boolean =
@@ -789,7 +741,12 @@ class QElasticsearchSymbolProcessor(
     private fun collectObjectFields(documentClass: KSClassDeclaration) {
         documentClass.getAllProperties().forEach { property ->
             val fieldAnnotation = property.findAnnotation(Field::class)
-            val fieldType = determineFieldType(property, fieldAnnotation, null)
+            val idAnnotation = property.findAnnotation(Id::class)
+            // Skip fields with no relevant annotations
+            if (fieldAnnotation == null && idAnnotation == null) {
+                return@forEach
+            }
+            val fieldType = determineFieldType(property, fieldAnnotation, idAnnotation)
 
             if (fieldType.isObjectType) {
                 // For collections, get the element type directly
@@ -892,7 +849,9 @@ class QElasticsearchSymbolProcessor(
                             className = uniqueClassName,
                             packageName = packageName,
                             classDeclaration = classDeclaration,
-                            qualifiedName = classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString(),
+                            qualifiedName =
+                                classDeclaration.qualifiedName?.asString()
+                                    ?: classDeclaration.simpleName.asString(),
                         )
                     logger.info("Registered ObjectField: $className -> $packageName.Q$className")
                 }
@@ -925,7 +884,13 @@ class QElasticsearchSymbolProcessor(
     private fun collectObjectFieldsFromClass(classDeclaration: KSClassDeclaration) {
         classDeclaration.getAllProperties().forEach { property ->
             val fieldAnnotation = property.findAnnotation(Field::class)
-            val fieldType = determineFieldType(property, fieldAnnotation, null)
+            val idAnnotation = property.findAnnotation(Id::class)
+
+            // Skip fields with no relevant annotations
+            if (fieldAnnotation == null && idAnnotation == null) {
+                return@forEach
+            }
+            val fieldType = determineFieldType(property, fieldAnnotation, idAnnotation)
 
             if (fieldType.isObjectType) {
                 val nestedClass = findNestedClass(property, fieldType)
@@ -947,7 +912,9 @@ class QElasticsearchSymbolProcessor(
                                 className = className,
                                 packageName = targetPackage,
                                 classDeclaration = nestedClass,
-                                qualifiedName = nestedClass.qualifiedName?.asString() ?: nestedClass.simpleName.asString(),
+                                qualifiedName =
+                                    nestedClass.qualifiedName?.asString()
+                                        ?: nestedClass.simpleName.asString(),
                             )
 
                         logger.info("Registered nested ObjectField: ${fieldType.kotlinTypeName} -> $targetPackage.$className")
