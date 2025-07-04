@@ -44,8 +44,8 @@ class JavaInteroperabilityTest {
         assertThat(QJavaTestDocument.createdAt.path).isEqualTo("createdAt")
         assertThat(QJavaTestDocument.score.path).isEqualTo("score")
         assertThat(QJavaTestDocument.category.path).isEqualTo("category")
-        assertThat(QJavaTestDocument.address.path).isEqualTo("address")
-        assertThat(QJavaTestDocument.tags.path).isEqualTo("tags")
+        assertThat(QJavaTestDocument.address.city.path).isEqualTo("address.city")
+        assertThat(QJavaTestDocument.tags.name.path).isEqualTo("tags.name")
         assertThat(QJavaTestDocument.multiFieldName.path).isEqualTo("multiFieldName")
     }
 

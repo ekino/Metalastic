@@ -33,8 +33,8 @@ class GeneratedCodeTest {
         assertThat(QTestDocument.age.path).isEqualTo("age")
         assertThat(QTestDocument.active.path).isEqualTo("active")
         assertThat(QTestDocument.createdDate.path).isEqualTo("createdDate")
-        assertThat(QTestDocument.address.path).isEqualTo("address")
-        assertThat(QTestDocument.tags.path).isEqualTo("tags")
+        assertThat(QTestDocument.address.city.path).isEqualTo("address.city")
+        assertThat(QTestDocument.tags.name.path).isEqualTo("tags.name")
     }
 
     @Test

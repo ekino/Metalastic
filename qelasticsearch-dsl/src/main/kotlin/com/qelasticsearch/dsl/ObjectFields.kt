@@ -96,6 +96,15 @@ abstract class ObjectFields {
             builder.configure()
             MultiField(name, parentPath, mainField, builder.build())
         }
+    
+    // Multi-field proxy delegate that allows .search, .keyword access
+    protected fun <T : Field> multiFieldProxy(mainField: T, configure: MultiFieldBuilder.() -> Unit = {}) = 
+        MultiFieldProxyDelegate { name ->
+            val builder = MultiFieldBuilder()
+            builder.configure()
+            val multiField = MultiField(name, parentPath, mainField, builder.build())
+            MultiFieldProxy(multiField)
+        }
 }
 
 /**
@@ -113,6 +122,20 @@ class FieldDelegate<T : Field>(private val fieldFactory: (String) -> T) : ReadOn
             }
         }
         return field!!
+    }
+}
+
+/**
+ * Property delegate for MultiFieldProxy creation
+ */
+class MultiFieldProxyDelegate(private val proxyFactory: (String) -> MultiFieldProxy) : ReadOnlyProperty<Any?, MultiFieldProxy> {
+    private var proxy: MultiFieldProxy? = null
+    
+    override fun getValue(thisRef: Any?, property: KProperty<*>): MultiFieldProxy {
+        if (proxy == null) {
+            proxy = proxyFactory(property.name)
+        }
+        return proxy!!
     }
 }
 
@@ -142,6 +165,10 @@ class ObjectFieldDelegate<T : ObjectFields>(
  */
 class MultiFieldBuilder {
     private val innerFields = mutableMapOf<String, Field>()
+    
+    fun field(suffix: String, fieldFactory: () -> Field) {
+        innerFields[suffix] = fieldFactory()
+    }
     
     fun field(suffix: String, field: Field) {
         innerFields[suffix] = field
