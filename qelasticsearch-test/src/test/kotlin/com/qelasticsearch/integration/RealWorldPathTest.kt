@@ -19,10 +19,10 @@ class RealWorldPathTest {
         assertThat(QJavaTestDocument.address.city.fieldPath.isNested).isFalse()
 
         // Test nested field paths
-        assertThat(QJavaTestDocument.tags.name.path).isEqualTo("tags.name")
-        assertThat(QJavaTestDocument.tags.name.fieldPath.isNested).isTrue()
-        assertThat(QJavaTestDocument.tags.name.fieldPath.nestedSegments).containsExactly("tags")
-        assertThat(QJavaTestDocument.tags.name.fieldPath.rootNestedPath).isEqualTo("tags")
+        assertThat(QJavaTestDocument.tags.tagName.path).isEqualTo("tags.tagName")
+        assertThat(QJavaTestDocument.tags.tagName.fieldPath.isNested).isTrue()
+        assertThat(QJavaTestDocument.tags.tagName.fieldPath.nestedSegments).containsExactly("tags")
+        assertThat(QJavaTestDocument.tags.tagName.fieldPath.rootNestedPath).isEqualTo("tags")
     }
 
     @Test

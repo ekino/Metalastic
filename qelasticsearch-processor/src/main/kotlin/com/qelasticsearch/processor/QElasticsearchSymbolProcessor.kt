@@ -12,6 +12,33 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
+import com.qelasticsearch.dsl.BinaryField
+import com.qelasticsearch.dsl.BooleanField
+import com.qelasticsearch.dsl.ByteField
+import com.qelasticsearch.dsl.ConstantKeywordField
+import com.qelasticsearch.dsl.DateField
+import com.qelasticsearch.dsl.DateNanosField
+import com.qelasticsearch.dsl.DateRangeField
+import com.qelasticsearch.dsl.DoubleField
+import com.qelasticsearch.dsl.DoubleRangeField
+import com.qelasticsearch.dsl.FlattenedField
+import com.qelasticsearch.dsl.FloatField
+import com.qelasticsearch.dsl.FloatRangeField
+import com.qelasticsearch.dsl.HalfFloatField
+import com.qelasticsearch.dsl.IntegerField
+import com.qelasticsearch.dsl.IntegerRangeField
+import com.qelasticsearch.dsl.IpField
+import com.qelasticsearch.dsl.IpRangeField
+import com.qelasticsearch.dsl.KeywordField
+import com.qelasticsearch.dsl.LongField
+import com.qelasticsearch.dsl.LongRangeField
+import com.qelasticsearch.dsl.PercolatorField
+import com.qelasticsearch.dsl.RankFeatureField
+import com.qelasticsearch.dsl.ScaledFloatField
+import com.qelasticsearch.dsl.ShortField
+import com.qelasticsearch.dsl.TextField
+import com.qelasticsearch.dsl.TokenCountField
+import com.qelasticsearch.dsl.WildcardField
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -164,10 +191,12 @@ class QElasticsearchSymbolProcessor(
                 // Handle multi-field
                 generateMultiFieldProperty(objectBuilder, propertyName, multiFieldAnnotation, usedImports)
             }
+
             fieldType.isObjectType -> {
                 // Handle object/nested field
                 generateObjectFieldProperty(objectBuilder, propertyName, fieldType, packageName)
             }
+
             else -> {
                 // Handle simple field
                 generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, usedImports)
@@ -181,55 +210,67 @@ class QElasticsearchSymbolProcessor(
         fieldType: ProcessedFieldType,
         usedImports: MutableSet<String> = mutableSetOf(),
     ) {
-        val delegateCall =
+        val (fieldClass, delegateCall) =
             when (fieldType.elasticsearchType) {
-                FieldType.Text -> "text()"
-                FieldType.Keyword -> "keyword()"
-                FieldType.Long -> "long()"
-                FieldType.Integer -> "integer()"
-                FieldType.Short -> "short()"
-                FieldType.Byte -> "byte()"
-                FieldType.Double -> "double()"
-                FieldType.Float -> "float()"
-                FieldType.Half_Float -> "halfFloat()"
-                FieldType.Scaled_Float -> "scaledFloat()"
-                FieldType.Date -> "date()"
-                FieldType.Date_Nanos -> "dateNanos()"
-                FieldType.Boolean -> "boolean()"
-                FieldType.Binary -> "binary()"
-                FieldType.Ip -> "ip()"
-                FieldType.TokenCount -> "tokenCount()"
-                FieldType.Percolator -> "percolator()"
-                FieldType.Flattened -> "flattened()"
-                FieldType.Rank_Feature -> "rankFeature()"
-                FieldType.Rank_Features -> "rankFeatures()"
-                FieldType.Wildcard -> "wildcard()"
-                FieldType.Constant_Keyword -> "constantKeyword()"
-                FieldType.Integer_Range -> "integerRange()"
-                FieldType.Float_Range -> "floatRange()"
-                FieldType.Long_Range -> "longRange()"
-                FieldType.Double_Range -> "doubleRange()"
-                FieldType.Date_Range -> "dateRange()"
-                FieldType.Ip_Range -> "ipRange()"
+                FieldType.Text -> TextField::class to "text()"
+                FieldType.Keyword -> KeywordField::class to "keyword()"
+                FieldType.Long -> LongField::class to "long()"
+                FieldType.Integer -> IntegerField::class to "integer()"
+                FieldType.Short -> ShortField::class to "short()"
+                FieldType.Byte -> ByteField::class to "byte()"
+                FieldType.Double -> DoubleField::class to "double()"
+                FieldType.Float -> FloatField::class to "float()"
+                FieldType.Half_Float -> HalfFloatField::class to "halfFloat()"
+                FieldType.Scaled_Float -> ScaledFloatField::class to "scaledFloat()"
+                FieldType.Date -> DateField::class to "date()"
+                FieldType.Date_Nanos -> DateNanosField::class to "dateNanos()"
+                FieldType.Boolean -> BooleanField::class to "boolean()"
+                FieldType.Binary -> BinaryField::class to "binary()"
+                FieldType.Ip -> IpField::class to "ip()"
+                FieldType.TokenCount -> TokenCountField::class to "tokenCount()"
+                FieldType.Percolator -> PercolatorField::class to "percolator()"
+                FieldType.Flattened -> FlattenedField::class to "flattened()"
+                FieldType.Rank_Feature -> RankFeatureField::class to "rankFeature()"
+                FieldType.Rank_Features -> RankFeatureField::class to "rankFeatures()"
+                FieldType.Wildcard -> WildcardField::class to "wildcard()"
+                FieldType.Constant_Keyword -> ConstantKeywordField::class to "constantKeyword()"
+                FieldType.Integer_Range -> IntegerRangeField::class to "integerRange()"
+                FieldType.Float_Range -> FloatRangeField::class to "floatRange()"
+                FieldType.Long_Range -> LongRangeField::class to "longRange()"
+                FieldType.Double_Range -> DoubleRangeField::class to "doubleRange()"
+                FieldType.Date_Range -> DateRangeField::class to "dateRange()"
+                FieldType.Ip_Range -> IpRangeField::class to "ipRange()"
                 FieldType.Object -> {
                     logger.info(
                         "Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownObjectFields",
                     )
-                    return generateUnknownObjectFieldProperty(objectBuilder, propertyName, false, usedImports)
+                    return generateUnknownObjectFieldProperty(
+                        objectBuilder,
+                        propertyName,
+                        false,
+                        usedImports,
+                    )
                 }
+
                 FieldType.Nested -> {
                     logger.info(
                         "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownNestedFields",
                     )
                     return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, usedImports)
                 }
-                else -> "keyword()" // Default fallback
+
+                else -> KeywordField::class to "keyword()" // Default fallback
             }
 
         objectBuilder.addProperty(
             PropertySpec
-                .builder(propertyName, ClassName("com.qelasticsearch.dsl", "Field"))
-                .addModifiers() // Explicit empty modifiers to prevent default public
+                .builder(
+                    propertyName,
+                    ClassName(
+                        fieldClass.qualifiedName.orEmpty().removeSuffix(".${fieldClass.simpleName}"),
+                        fieldClass.simpleName!!,
+                    ),
+                ).addModifiers() // Explicit empty modifiers to prevent default public
                 .delegate(delegateCall)
                 .build(),
         )
@@ -316,13 +357,16 @@ class QElasticsearchSymbolProcessor(
             usedImports.add("MultiFieldProxy")
 
             val innerFieldsCode =
-                innerFields.joinToString(separator = "; ") { innerFieldAnnotation ->
-                    val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
-                    val innerFieldType = extractFieldTypeFromAnnotation(innerFieldAnnotation)
-                    val innerFieldClass = getFieldClass(innerFieldType)
-                    usedImports.add(innerFieldClass)
-                    "field(\"$suffix\") { $innerFieldClass(\"$suffix\") }"
-                }.let { " $it " }
+                " " +
+                    innerFields
+                        .joinToString(separator = "; ") { innerFieldAnnotation ->
+                            val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
+                            val innerFieldType = extractFieldTypeFromAnnotation(innerFieldAnnotation)
+                            val innerFieldClass = getFieldClass(innerFieldType)
+                            usedImports.add(innerFieldClass)
+                            "field(\"$suffix\") { $innerFieldClass(\"$suffix\") }"
+                        } +
+                    " "
 
             objectBuilder.addProperty(
                 PropertySpec
@@ -459,6 +503,7 @@ class QElasticsearchSymbolProcessor(
                                 !isStandardLibraryType(typeDeclaration.packageName.asString())
                         }
                     }
+
                     else -> false
                 }
 
@@ -758,10 +803,12 @@ class QElasticsearchSymbolProcessor(
                             logger.info("Class $className already registered, skipping")
                             false
                         }
+
                         hasElasticsearchAnnotations -> {
                             logger.info("Class $className has Elasticsearch annotations, will register")
                             true
                         }
+
                         else -> {
                             // Check specifically for the missing classes
                             false
@@ -881,7 +928,8 @@ class QElasticsearchSymbolProcessor(
             FileSpec
                 .builder(objectFieldInfo.packageName, objectFieldInfo.className)
                 .addType(objectBuilder.build())
-                .addImport("com.qelasticsearch.dsl", "ObjectFields").indent("    ") // Use 4-space indentation for ktlint compliance
+                .addImport("com.qelasticsearch.dsl", "ObjectFields")
+                .indent("    ") // Use 4-space indentation for ktlint compliance
 
         // Add only the imports that are actually used
         usedImports.forEach { className ->
@@ -922,6 +970,7 @@ class QElasticsearchSymbolProcessor(
                     logger.info("Found KSType enum value: $enumName")
                     FieldType.entries.find { it.name == enumName }
                 }
+
                 is String -> {
                     // Handle string representation
                     logger.info("Found String enum value: $value")

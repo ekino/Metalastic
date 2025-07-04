@@ -45,7 +45,7 @@ class MultiFieldTest {
         val mainField = QJavaTestDocument.multiFieldName.main()
         assertThat(mainField).isNotNull()
         assertThat(mainField.path).isEqualTo("multiFieldName")
-        
+
         // The main field should be the primary field (in this case, TextField)
         assertThat(mainField).isNotNull()
     }

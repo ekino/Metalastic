@@ -275,12 +275,11 @@ class MultiField(
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
     val mainField: Field,
-    val innerFields: Map<String, Field> = emptyMap(),
+    private val innerFields: Map<String, Field> = emptyMap(),
 ) : Field(name, parentPath, parentNestedSegments) {
-    
-    // Access to the main field itself  
+    // Access to the main field itself
     fun main(): Field = mainField
-    
+
     // Dynamic property access for inner fields with correct parent path
     operator fun get(suffix: String): Field? =
         innerFields[suffix]?.let { field ->
@@ -325,7 +324,7 @@ class MultiFieldProxy(
 ) : Field(multiField.name, multiField.parentPath, multiField.parentNestedSegments) {
     // Delegate to main field for path access
     override val path: String = multiField.path
-    
+
     // Access to the main field
     fun main(): Field = multiField.main()
 

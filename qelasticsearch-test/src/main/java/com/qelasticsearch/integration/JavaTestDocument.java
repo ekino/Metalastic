@@ -1,13 +1,17 @@
 package com.qelasticsearch.integration;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.*;
-
 import java.util.Date;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.InnerField;
+import org.springframework.data.elasticsearch.annotations.MultiField;
 
 /**
  * Java document class using Lombok annotations to test interoperability
@@ -49,7 +53,10 @@ public class JavaTestDocument {
     private JavaAddress address;
     
     @Field(type = FieldType.Nested)
-    private List<JavaTag> tags;
+    private List<com.qelasticsearch.integration.JavaTag> tags;
+
+    @Field(type = FieldType.Nested)
+    private List<JavaTag> tags2;
     
     @MultiField(
         mainField = @Field(type = FieldType.Text),
@@ -59,6 +66,17 @@ public class JavaTestDocument {
         }
     )
     private String multiFieldName;
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class JavaTag {
+        @Field(type = FieldType.Keyword)
+        private String tagName;
+
+        @Field(type = FieldType.Integer)
+        private Integer size;
+    }
 }
 
 @Data

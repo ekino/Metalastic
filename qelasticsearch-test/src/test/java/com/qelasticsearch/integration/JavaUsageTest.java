@@ -41,7 +41,7 @@ public class JavaUsageTest {
         assertEquals("score", QJavaTestDocument.INSTANCE.getScore().getPath());
         assertEquals("category", QJavaTestDocument.INSTANCE.getCategory().getPath());
         assertEquals("address.city", QJavaTestDocument.INSTANCE.getAddress().getCity().getPath());
-        assertEquals("tags.name", QJavaTestDocument.INSTANCE.getTags().getName().getPath());
+        assertEquals("tags.tagName", QJavaTestDocument.INSTANCE.getTags().getTagName().getPath());
         assertEquals("multiFieldName", QJavaTestDocument.INSTANCE.getMultiFieldName().getPath());
     }
 
