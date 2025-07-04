@@ -8,8 +8,8 @@ import kotlin.reflect.KProperty
  * Used for both nested objects and the root index.
  */
 abstract class ObjectFields {
-    private var parentPath: String = ""
-    private var parentNestedSegments: List<String> = emptyList()
+    var parentPath: String = ""
+    var parentNestedSegments: List<String> = emptyList()
 
     /**
      * Updates the parent path for all fields in this object.
@@ -37,35 +37,35 @@ abstract class ObjectFields {
     }
 
     // Text field delegates
-    protected fun text() = FieldDelegate { name -> TextField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> text() = FieldDelegate { name -> TextField<T>(name, parentPath, parentNestedSegments) }
 
     // Keyword field delegates
-    protected fun keyword() = FieldDelegate { name -> KeywordField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> keyword() = FieldDelegate { name -> KeywordField<T>(name, parentPath, parentNestedSegments) }
 
     // Numeric field delegates
-    protected fun long() = FieldDelegate { name -> LongField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> long() = FieldDelegate { name -> LongField<T>(name, parentPath, parentNestedSegments) }
 
-    protected fun integer() = FieldDelegate { name -> IntegerField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> integer() = FieldDelegate { name -> IntegerField<T>(name, parentPath, parentNestedSegments) }
 
-    protected fun short() = FieldDelegate { name -> ShortField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> short() = FieldDelegate { name -> ShortField<T>(name, parentPath, parentNestedSegments) }
 
-    protected fun byte() = FieldDelegate { name -> ByteField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> byte() = FieldDelegate { name -> ByteField<T>(name, parentPath, parentNestedSegments) }
 
-    protected fun double() = FieldDelegate { name -> DoubleField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> double() = FieldDelegate { name -> DoubleField<T>(name, parentPath, parentNestedSegments) }
 
-    protected fun float() = FieldDelegate { name -> FloatField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> float() = FieldDelegate { name -> FloatField<T>(name, parentPath, parentNestedSegments) }
 
     protected fun halfFloat() = FieldDelegate { name -> HalfFloatField(name, parentPath, parentNestedSegments) }
 
     protected fun scaledFloat() = FieldDelegate { name -> ScaledFloatField(name, parentPath, parentNestedSegments) }
 
     // Date field delegates
-    protected fun date() = FieldDelegate { name -> DateField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> date() = FieldDelegate { name -> DateField<T>(name, parentPath, parentNestedSegments) }
 
     protected fun dateNanos() = FieldDelegate { name -> DateNanosField(name, parentPath, parentNestedSegments) }
 
     // Boolean field delegate
-    protected fun boolean() = FieldDelegate { name -> BooleanField(name, parentPath, parentNestedSegments) }
+    protected inline fun <reified T> boolean() = FieldDelegate { name -> BooleanField<T>(name, parentPath, parentNestedSegments) }
 
     // Binary field delegate
     protected fun binary() = FieldDelegate { name -> BinaryField(name, parentPath, parentNestedSegments) }
@@ -200,8 +200,8 @@ class ObjectFieldDelegate<T : ObjectFields>(
     private val objectFields: T,
     private val nested: Boolean = false,
 ) : ReadOnlyProperty<Any?, T> {
-    private var parentPath: String = ""
-    private var parentNestedSegments: List<String> = emptyList()
+    var parentPath: String = ""
+    var parentNestedSegments: List<String> = emptyList()
 
     override fun getValue(
         thisRef: Any?,

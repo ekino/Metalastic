@@ -31,50 +31,50 @@ sealed class Field(
 }
 
 // Text fields
-class TextField(
+class TextField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
-class KeywordField(
+class KeywordField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
 // Numeric fields
-class LongField(
+class LongField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
-class IntegerField(
+class IntegerField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
-class ShortField(
+class ShortField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
-class ByteField(
+class ByteField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
-class DoubleField(
+class DoubleField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
 ) : Field(name, parentPath, parentNestedSegments)
 
-class FloatField(
+class FloatField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
@@ -93,7 +93,7 @@ class ScaledFloatField(
 ) : Field(name, parentPath, parentNestedSegments)
 
 // Date fields
-class DateField(
+class DateField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
@@ -106,7 +106,7 @@ class DateNanosField(
 ) : Field(name, parentPath, parentNestedSegments)
 
 // Boolean field
-class BooleanField(
+class BooleanField<T>(
     name: String,
     parentPath: String = "",
     parentNestedSegments: List<String> = emptyList(),
@@ -285,19 +285,19 @@ class MultiField(
         innerFields[suffix]?.let { field ->
             // Create a new field with the correct parent path
             when (field) {
-                is TextField -> TextField(field.name, this.path, this.parentNestedSegments)
-                is KeywordField -> KeywordField(field.name, this.path, this.parentNestedSegments)
-                is LongField -> LongField(field.name, this.path, this.parentNestedSegments)
-                is IntegerField -> IntegerField(field.name, this.path, this.parentNestedSegments)
-                is ShortField -> ShortField(field.name, this.path, this.parentNestedSegments)
-                is ByteField -> ByteField(field.name, this.path, this.parentNestedSegments)
-                is DoubleField -> DoubleField(field.name, this.path, this.parentNestedSegments)
-                is FloatField -> FloatField(field.name, this.path, this.parentNestedSegments)
+                is TextField<*> -> TextField<Any>(field.name, this.path, this.parentNestedSegments)
+                is KeywordField<*> -> KeywordField<Any>(field.name, this.path, this.parentNestedSegments)
+                is LongField<*> -> LongField<Any>(field.name, this.path, this.parentNestedSegments)
+                is IntegerField<*> -> IntegerField<Any>(field.name, this.path, this.parentNestedSegments)
+                is ShortField<*> -> ShortField<Any>(field.name, this.path, this.parentNestedSegments)
+                is ByteField<*> -> ByteField<Any>(field.name, this.path, this.parentNestedSegments)
+                is DoubleField<*> -> DoubleField<Any>(field.name, this.path, this.parentNestedSegments)
+                is FloatField<*> -> FloatField<Any>(field.name, this.path, this.parentNestedSegments)
                 is HalfFloatField -> HalfFloatField(field.name, this.path, this.parentNestedSegments)
                 is ScaledFloatField -> ScaledFloatField(field.name, this.path, this.parentNestedSegments)
-                is DateField -> DateField(field.name, this.path, this.parentNestedSegments)
+                is DateField<*> -> DateField<Any>(field.name, this.path, this.parentNestedSegments)
                 is DateNanosField -> DateNanosField(field.name, this.path, this.parentNestedSegments)
-                is BooleanField -> BooleanField(field.name, this.path, this.parentNestedSegments)
+                is BooleanField<*> -> BooleanField<Any>(field.name, this.path, this.parentNestedSegments)
                 is BinaryField -> BinaryField(field.name, this.path, this.parentNestedSegments)
                 is IpField -> IpField(field.name, this.path, this.parentNestedSegments)
                 is TokenCountField -> TokenCountField(field.name, this.path, this.parentNestedSegments)
@@ -329,9 +329,9 @@ class MultiFieldProxy(
     fun main(): Field = multiField.main()
 
     // Dynamic property access - non-nullable, creates default fields if not defined
-    val search: Field get() = multiField["search"] ?: TextField("search", multiField.path, multiField.parentNestedSegments)
-    val keyword: Field get() = multiField["keyword"] ?: KeywordField("keyword", multiField.path, multiField.parentNestedSegments)
-    val raw: Field get() = multiField["raw"] ?: KeywordField("raw", multiField.path, multiField.parentNestedSegments)
+    val search: Field get() = multiField["search"] ?: TextField<String>("search", multiField.path, multiField.parentNestedSegments)
+    val keyword: Field get() = multiField["keyword"] ?: KeywordField<String>("keyword", multiField.path, multiField.parentNestedSegments)
+    val raw: Field get() = multiField["raw"] ?: KeywordField<String>("raw", multiField.path, multiField.parentNestedSegments)
 
     // Allow custom suffix access - nullable for dynamic access
     operator fun get(suffix: String): Field? = multiField[suffix]

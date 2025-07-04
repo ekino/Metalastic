@@ -12,36 +12,10 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
-import com.qelasticsearch.dsl.BinaryField
-import com.qelasticsearch.dsl.BooleanField
-import com.qelasticsearch.dsl.ByteField
-import com.qelasticsearch.dsl.ConstantKeywordField
-import com.qelasticsearch.dsl.DateField
-import com.qelasticsearch.dsl.DateNanosField
-import com.qelasticsearch.dsl.DateRangeField
-import com.qelasticsearch.dsl.DoubleField
-import com.qelasticsearch.dsl.DoubleRangeField
-import com.qelasticsearch.dsl.FlattenedField
-import com.qelasticsearch.dsl.FloatField
-import com.qelasticsearch.dsl.FloatRangeField
-import com.qelasticsearch.dsl.HalfFloatField
-import com.qelasticsearch.dsl.IntegerField
-import com.qelasticsearch.dsl.IntegerRangeField
-import com.qelasticsearch.dsl.IpField
-import com.qelasticsearch.dsl.IpRangeField
-import com.qelasticsearch.dsl.KeywordField
-import com.qelasticsearch.dsl.LongField
-import com.qelasticsearch.dsl.LongRangeField
-import com.qelasticsearch.dsl.PercolatorField
-import com.qelasticsearch.dsl.RankFeatureField
-import com.qelasticsearch.dsl.ScaledFloatField
-import com.qelasticsearch.dsl.ShortField
-import com.qelasticsearch.dsl.TextField
-import com.qelasticsearch.dsl.TokenCountField
-import com.qelasticsearch.dsl.WildcardField
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import org.springframework.data.annotation.Id
@@ -210,67 +184,59 @@ class QElasticsearchSymbolProcessor(
         fieldType: ProcessedFieldType,
         usedImports: MutableSet<String> = mutableSetOf(),
     ) {
-        val (fieldClass, delegateCall) =
-            when (fieldType.elasticsearchType) {
-                FieldType.Text -> TextField::class to "text()"
-                FieldType.Keyword -> KeywordField::class to "keyword()"
-                FieldType.Long -> LongField::class to "long()"
-                FieldType.Integer -> IntegerField::class to "integer()"
-                FieldType.Short -> ShortField::class to "short()"
-                FieldType.Byte -> ByteField::class to "byte()"
-                FieldType.Double -> DoubleField::class to "double()"
-                FieldType.Float -> FloatField::class to "float()"
-                FieldType.Half_Float -> HalfFloatField::class to "halfFloat()"
-                FieldType.Scaled_Float -> ScaledFloatField::class to "scaledFloat()"
-                FieldType.Date -> DateField::class to "date()"
-                FieldType.Date_Nanos -> DateNanosField::class to "dateNanos()"
-                FieldType.Boolean -> BooleanField::class to "boolean()"
-                FieldType.Binary -> BinaryField::class to "binary()"
-                FieldType.Ip -> IpField::class to "ip()"
-                FieldType.TokenCount -> TokenCountField::class to "tokenCount()"
-                FieldType.Percolator -> PercolatorField::class to "percolator()"
-                FieldType.Flattened -> FlattenedField::class to "flattened()"
-                FieldType.Rank_Feature -> RankFeatureField::class to "rankFeature()"
-                FieldType.Rank_Features -> RankFeatureField::class to "rankFeatures()"
-                FieldType.Wildcard -> WildcardField::class to "wildcard()"
-                FieldType.Constant_Keyword -> ConstantKeywordField::class to "constantKeyword()"
-                FieldType.Integer_Range -> IntegerRangeField::class to "integerRange()"
-                FieldType.Float_Range -> FloatRangeField::class to "floatRange()"
-                FieldType.Long_Range -> LongRangeField::class to "longRange()"
-                FieldType.Double_Range -> DoubleRangeField::class to "doubleRange()"
-                FieldType.Date_Range -> DateRangeField::class to "dateRange()"
-                FieldType.Ip_Range -> IpRangeField::class to "ipRange()"
-                FieldType.Object -> {
-                    logger.info(
-                        "Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownObjectFields",
-                    )
-                    return generateUnknownObjectFieldProperty(
-                        objectBuilder,
-                        propertyName,
-                        false,
-                        usedImports,
-                    )
-                }
+        // Extract the actual Kotlin type for generic parameterization
+        val actualKotlinType = extractActualKotlinType(fieldType)
 
-                FieldType.Nested -> {
-                    logger.info(
-                        "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownNestedFields",
-                    )
-                    return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, usedImports)
-                }
+        // Handle special cases that need to delegate to other methods
+        when (fieldType.elasticsearchType) {
+            FieldType.Object -> {
+                logger.info(
+                    "Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownObjectFields",
+                )
+                return generateUnknownObjectFieldProperty(
+                    objectBuilder,
+                    propertyName,
+                    false,
+                    usedImports,
+                )
+            }
 
-                else -> KeywordField::class to "keyword()" // Default fallback
+            FieldType.Nested -> {
+                logger.info(
+                    "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownNestedFields",
+                )
+                return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, usedImports)
+            }
+            else -> {
+                // Continue with normal field generation
+            }
+        }
+
+        // Use existing helper functions to get field info
+        val fieldClass = getFieldClass(fieldType.elasticsearchType)
+        val basicDelegate = getFieldDelegate(fieldType.elasticsearchType)
+        val methodName = basicDelegate.substringBefore("()")
+        val delegateCall = generateGenericDelegateCall(methodName, actualKotlinType)
+        val parameterizedTypeName = "$fieldClass<$actualKotlinType>"
+
+        // For parameterized types, parse the type name to create proper ClassName
+        val finalTypeName =
+            if (parameterizedTypeName.contains("<")) {
+                // Parse parameterized type like "DateField<LocalDate>"
+                val baseType = parameterizedTypeName.substringBefore("<")
+                val typeParam = parameterizedTypeName.substringAfter("<").substringBefore(">")
+                ClassName("com.qelasticsearch.dsl", baseType).parameterizedBy(
+                    parseClassName(typeParam),
+                )
+            } else {
+                // Simple type
+                ClassName("com.qelasticsearch.dsl", parameterizedTypeName)
             }
 
         objectBuilder.addProperty(
             PropertySpec
-                .builder(
-                    propertyName,
-                    ClassName(
-                        fieldClass.qualifiedName.orEmpty().removeSuffix(".${fieldClass.simpleName}"),
-                        fieldClass.simpleName!!,
-                    ),
-                ).addModifiers() // Explicit empty modifiers to prevent default public
+                .builder(propertyName, finalTypeName)
+                .addModifiers() // Explicit empty modifiers to prevent default public
                 .delegate(delegateCall)
                 .build(),
         )
@@ -370,22 +336,22 @@ class QElasticsearchSymbolProcessor(
             usedImports.add("MultiFieldProxy")
 
             val innerFieldsCode =
-                " " +
+                "\n        " +
                     innerFields
-                        .joinToString(separator = "; ") { innerFieldAnnotation ->
+                        .joinToString(separator = "\n        ") { innerFieldAnnotation ->
                             val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
                             val innerFieldType = extractFieldTypeFromAnnotation(innerFieldAnnotation)
                             val innerFieldClass = getFieldClass(innerFieldType)
                             usedImports.add(innerFieldClass)
-                            "field(\"$suffix\") { $innerFieldClass(\"$suffix\") }"
+                            "field(\"$suffix\") { $innerFieldClass<String>(\"$suffix\") }"
                         } +
-                    " "
+                    "\n    "
 
             objectBuilder.addProperty(
                 PropertySpec
                     .builder(propertyName, ClassName("com.qelasticsearch.dsl", "MultiFieldProxy"))
                     .addModifiers() // Explicit empty modifiers to prevent default public
-                    .delegate("multiFieldProxy($mainFieldClass(\"$propertyName\")) {$innerFieldsCode}")
+                    .delegate("multiFieldProxy($mainFieldClass<String>(\"$propertyName\")) {$innerFieldsCode}")
                     .build(),
             )
         }
@@ -724,15 +690,6 @@ class QElasticsearchSymbolProcessor(
         val qualifiedName: String, // Add qualified name for proper identification
     )
 
-    private fun determineTargetPackage(
-        fieldType: ProcessedFieldType,
-        currentPackage: String,
-    ): String {
-        // Check if we have a registered ObjectField for this type
-        val objectFieldInfo = globalObjectFields[fieldType.kotlinTypeName]
-        return objectFieldInfo?.packageName ?: currentPackage
-    }
-
     /**
      * Generate a unique Q-class name for a given class declaration.
      * For nested classes, includes parent class name to avoid conflicts.
@@ -740,7 +697,7 @@ class QElasticsearchSymbolProcessor(
     private fun generateUniqueQClassName(classDeclaration: KSClassDeclaration): String {
         val simpleName = classDeclaration.simpleName.asString()
         val parentClass = classDeclaration.parentDeclaration as? KSClassDeclaration
-        
+
         return if (parentClass != null) {
             // For nested classes: Q + ParentClassName + NestedClassName
             "Q${parentClass.simpleName.asString()}$simpleName"
@@ -754,9 +711,8 @@ class QElasticsearchSymbolProcessor(
      * Generate a unique key for the globalObjectFields map using qualified names.
      * This prevents collisions between nested and top-level classes with same simple name.
      */
-    private fun generateObjectFieldKey(classDeclaration: KSClassDeclaration): String {
-        return classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString()
-    }
+    private fun generateObjectFieldKey(classDeclaration: KSClassDeclaration): String =
+        classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString()
 
     /**
      * Find the actual class declaration for a field type.
@@ -764,7 +720,7 @@ class QElasticsearchSymbolProcessor(
      */
     private fun findActualClassDeclaration(fieldType: ProcessedFieldType): KSClassDeclaration? {
         val kotlinType = fieldType.kotlinType.resolve()
-        
+
         return if (isCollectionType(getSimpleTypeName(fieldType.kotlinType))) {
             // For collections, get the element type
             val typeArguments = kotlinType.arguments
@@ -777,6 +733,56 @@ class QElasticsearchSymbolProcessor(
         } else {
             // For direct object types
             kotlinType.declaration as? KSClassDeclaration
+        }
+    }
+
+    /**
+     * Extract the actual Kotlin type name for generic parameterization.
+     * Uses fully qualified names for robust type handling.
+     */
+    private fun extractActualKotlinType(fieldType: ProcessedFieldType): String {
+        val kotlinType = fieldType.kotlinType.resolve()
+        val declaration = kotlinType.declaration
+        val qualifiedName = declaration.qualifiedName?.asString()
+
+        // Handle collections - use Any as fallback for complex generic types
+        if (qualifiedName?.let { it.startsWith("kotlin.collections.") || it.startsWith("java.util.") } == true) {
+            // Exception: java.util.Date is not a collection, it's a date type
+            if (qualifiedName == "java.util.Date") {
+                return qualifiedName
+            }
+            return "kotlin.Any"
+        }
+
+        // For all other types (primitives, enums, classes), use the fully qualified name
+        // This eliminates the need for manual type mapping and import handling
+        return qualifiedName ?: declaration.simpleName.asString()
+    }
+
+    /**
+     * Generate a generic delegate call with type parameter.
+     * e.g., "date<LocalDate>()" or "text<String>()"
+     */
+    private fun generateGenericDelegateCall(
+        methodName: String,
+        kotlinType: String,
+    ): String = "$methodName<$kotlinType>()"
+
+    /**
+     * Parse a fully qualified type name into a ClassName for KotlinPoet.
+     * Much simpler since we always use fully qualified names now.
+     */
+    private fun parseClassName(fullyQualifiedTypeName: String): com.squareup.kotlinpoet.TypeName {
+        // For qualified names, split into package and class
+        if (fullyQualifiedTypeName.contains(".")) {
+            val parts = fullyQualifiedTypeName.split(".")
+            val className = parts.last()
+            val packageName = parts.dropLast(1).joinToString(".")
+            return ClassName(packageName, className)
+        } else {
+            // For simple names without package, assume they're in the same package
+            // This handles enums and other classes in the same package
+            return ClassName("com.qelasticsearch.integration", fullyQualifiedTypeName)
         }
     }
 

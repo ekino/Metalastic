@@ -10,21 +10,21 @@ class ObjectTraversalTest {
     fun `should enable direct field traversal through object fields`() {
         // Given - Nested object structure
         class AddressFields : ObjectFields() {
-            val street by text()
-            val city by text()
-            val country by keyword()
-            val zipCode by keyword()
+            val street by text<String>()
+            val city by text<String>()
+            val country by keyword<String>()
+            val zipCode by keyword<String>()
         }
 
         class CompanyFields : ObjectFields() {
-            val name by text()
+            val name by text<String>()
             val address by objectField(AddressFields())
         }
 
         val person =
             object : Index("person") {
-                val name by text()
-                val age by integer()
+                val name by text<String>()
+                val age by integer<Int>()
                 val address by objectField(AddressFields())
                 val company by nestedField(CompanyFields())
             }
@@ -68,13 +68,13 @@ class ObjectTraversalTest {
     fun `should support the exact syntax from user requirements`() {
         // Given - User's exact test case
         class AddressFields : ObjectFields() {
-            val city by text()
-            val country by keyword()
+            val city by text<String>()
+            val country by keyword<String>()
         }
 
         class Job : ObjectFields() {
-            val title by text()
-            val salary by double()
+            val title by text<String>()
+            val salary by double<Double>()
         }
 
         val addressFields = AddressFields()
@@ -82,9 +82,9 @@ class ObjectTraversalTest {
 
         val person =
             object : Index("person") {
-                val name by text()
-                val age by integer()
-                val bio by text()
+                val name by text<String>()
+                val age by integer<Int>()
+                val bio by text<String>()
                 val address by objectField(addressFields)
                 val job by objectField(jobFields, nested = true)
             }
@@ -102,15 +102,15 @@ class ObjectTraversalTest {
     fun `should maintain type safety with direct traversal`() {
         // Given - Complex nested structure
         class MetricsFields : ObjectFields() {
-            val views by long()
-            val score by double()
-            val active by boolean()
+            val views by long<Long>()
+            val score by double<Double>()
+            val active by boolean<Boolean>()
         }
 
         class ProductFields : ObjectFields() {
-            val name by text()
-            val price by double()
-            val category by keyword()
+            val name by text<String>()
+            val price by double<Double>()
+            val category by keyword<String>()
             val metrics by objectField(MetricsFields())
         }
 

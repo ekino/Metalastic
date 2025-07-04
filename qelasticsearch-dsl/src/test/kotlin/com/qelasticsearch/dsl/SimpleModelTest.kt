@@ -9,7 +9,7 @@ class SimpleModelTest {
     @Test
     fun `simple field should have correct name and path`() {
         // Given
-        val field = TextField("name", "")
+        val field = TextField<String>("name", "")
 
         // Then
         assertThat(field.name).isEqualTo("name")
@@ -19,7 +19,7 @@ class SimpleModelTest {
     @Test
     fun `simple field with parent path should have dotted path`() {
         // Given
-        val field = TextField("city", "address")
+        val field = TextField<String>("city", "address")
 
         // Then
         assertThat(field.name).isEqualTo("city")
@@ -31,8 +31,8 @@ class SimpleModelTest {
         // Given
         val index =
             object : Index("test-index") {
-                val name by text()
-                val age by integer()
+                val name by text<String>()
+                val age by integer<Int>()
             }
 
         // Then
@@ -51,19 +51,19 @@ class SimpleModelTest {
         // Given
         val index =
             object : Index("test") {
-                val textField by text()
-                val keywordField by keyword()
-                val longField by long()
-                val intField by integer()
-                val shortField by short()
-                val byteField by byte()
-                val doubleField by double()
-                val floatField by float()
+                val textField by text<String>()
+                val keywordField by keyword<String>()
+                val longField by long<Long>()
+                val intField by integer<Int>()
+                val shortField by short<Short>()
+                val byteField by byte<Byte>()
+                val doubleField by double<Double>()
+                val floatField by float<Float>()
                 val halfFloatField by halfFloat()
                 val scaledFloatField by scaledFloat()
-                val dateField by date()
+                val dateField by date<java.util.Date>()
                 val dateNanosField by dateNanos()
-                val booleanField by boolean()
+                val booleanField by boolean<Boolean>()
                 val binaryField by binary()
                 val ipField by ip()
                 val geoPointField by geoPoint()
@@ -126,17 +126,17 @@ class SimpleModelTest {
     fun `basic path traversal should work as specified`() {
         // Given - Recreate the exact scenario from requirements
         class AddressFields : ObjectFields() {
-            val city by text()
-            val country by keyword()
+            val city by text<String>()
+            val country by keyword<String>()
         }
 
         val addressFields = AddressFields()
 
         val person =
             object : Index("person") {
-                val name by text()
-                val age by integer()
-                val bio by text()
+                val name by text<String>()
+                val age by integer<Int>()
+                val bio by text<String>()
                 val address by objectField(addressFields)
             }
 
@@ -153,13 +153,13 @@ class SimpleModelTest {
     @Test
     fun `should be able to travers object and nested objects`() {
         class AddressFields : ObjectFields() {
-            val city by text()
-            val country by keyword()
+            val city by text<String>()
+            val country by keyword<String>()
         }
 
         class Job : ObjectFields() {
-            val title by text()
-            val salary by double()
+            val title by text<String>()
+            val salary by double<Double>()
         }
 
         val addressFields = AddressFields()
@@ -167,9 +167,9 @@ class SimpleModelTest {
 
         val person =
             object : Index("person") {
-                val name by text()
-                val age by integer()
-                val bio by text()
+                val name by text<String>()
+                val age by integer<Int>()
+                val bio by text<String>()
                 val address by objectField(addressFields)
                 val job by objectField(jobFields, nested = true)
             }

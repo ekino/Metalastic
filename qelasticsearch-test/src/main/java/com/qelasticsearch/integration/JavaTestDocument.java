@@ -1,5 +1,8 @@
 package com.qelasticsearch.integration;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -27,6 +30,8 @@ public class JavaTestDocument {
     @Id
     @Field(type = FieldType.Keyword)
     private String id;
+
+    private String noAnnot;
     
     @Field(type = FieldType.Text)
     private String title;
@@ -42,12 +47,30 @@ public class JavaTestDocument {
     
     @Field(type = FieldType.Date)
     private Date createdAt;
+
+    @Field(type = FieldType.Date)
+    private Date date;
+
+    @Field(type = FieldType.Date)
+    private LocalDate localDate;
+
+    @Field(type = FieldType.Date)
+    private LocalDateTime localDateTime;
+
+    @Field(type = FieldType.Date)
+    private Instant instant;
     
     @Field(type = FieldType.Double)
     private Double score;
     
     @Field(type = FieldType.Keyword)
     private String category;
+    
+    @Field(type = FieldType.Keyword)
+    private TestStatus status;
+    
+    @Field(type = FieldType.Keyword)
+    private Priority priorityLevel;
     
     @Field(type = FieldType.Object)
     private JavaAddress address;
