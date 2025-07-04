@@ -28,6 +28,14 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField
 
 /**
+ * Context for import management during code generation.
+ */
+private data class ImportContext(
+    val usedImports: MutableSet<String> = mutableSetOf(),
+    val typeImports: MutableSet<String> = mutableSetOf(),
+)
+
+/**
  * KSP-based annotation processor that generates type-safe Elasticsearch DSL classes
  * from Spring Data Elasticsearch @Document annotated classes.
  */
@@ -96,7 +104,7 @@ class QElasticsearchSymbolProcessor(
         packageName: String,
     ): FileSpec {
         val qIndexClassName = "Q$className"
-        val usedImports = mutableSetOf<String>()
+        val importContext = ImportContext()
 
         // Create TypeParameterResolver for better generic type handling
         val typeParameterResolver = documentClass.typeParameters.toTypeParameterResolver()
@@ -129,7 +137,7 @@ class QElasticsearchSymbolProcessor(
         documentClass.getAllProperties().forEach { property ->
             val propertyName = property.simpleName.asString()
             if (propertyName !in processedPropertyNames) {
-                processProperty(property, objectBuilder, packageName, usedImports, typeParameterResolver)
+                processProperty(property, objectBuilder, importContext, typeParameterResolver)
                 processedPropertyNames.add(propertyName)
             }
         }
@@ -147,8 +155,18 @@ class QElasticsearchSymbolProcessor(
                 ).indent("    ") // Use 4-space indentation for ktlint compliance
 
         // Add only the imports that are actually used
-        usedImports.forEach { className ->
+        importContext.usedImports.forEach { className ->
             fileBuilder.addImport("com.qelasticsearch.dsl", className)
+        }
+
+        // Add type imports (full qualified names like "com.example.ParametrisedType")
+        importContext.typeImports.forEach { qualifiedName ->
+            if (qualifiedName.contains('.')) {
+                val parts = qualifiedName.split('.')
+                val className = parts.last()
+                val packageName = parts.dropLast(1).joinToString(".")
+                fileBuilder.addImport(packageName, className)
+            }
         }
 
         return fileBuilder.build()
@@ -157,9 +175,8 @@ class QElasticsearchSymbolProcessor(
     private fun processProperty(
         property: KSPropertyDeclaration,
         objectBuilder: TypeSpec.Builder,
-        packageName: String,
-        usedImports: MutableSet<String> = mutableSetOf(),
-        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
+        importContext: ImportContext,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
     ) {
         val fieldAnnotation = property.findAnnotation(Field::class)
         val multiFieldAnnotation = property.findAnnotation(MultiField::class)
@@ -176,7 +193,7 @@ class QElasticsearchSymbolProcessor(
         when {
             multiFieldAnnotation != null -> {
                 // Handle multi-field
-                generateMultiFieldProperty(objectBuilder, propertyName, multiFieldAnnotation, usedImports)
+                generateMultiFieldProperty(objectBuilder, propertyName, multiFieldAnnotation, importContext.usedImports)
             }
 
             else -> {
@@ -185,10 +202,10 @@ class QElasticsearchSymbolProcessor(
 
                 if (fieldType.isObjectType) {
                     // Handle object/nested field
-                    generateObjectFieldProperty(objectBuilder, propertyName, fieldType, packageName)
+                    generateObjectFieldProperty(objectBuilder, propertyName, fieldType)
                 } else {
                     // Handle simple field
-                    generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, usedImports, typeParameterResolver)
+                    generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, importContext, typeParameterResolver)
                 }
             }
         }
@@ -198,8 +215,8 @@ class QElasticsearchSymbolProcessor(
         objectBuilder: TypeSpec.Builder,
         propertyName: String,
         fieldType: ProcessedFieldType,
-        usedImports: MutableSet<String> = mutableSetOf(),
-        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
+        importContext: ImportContext,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
     ) {
         // Handle special cases that need to delegate to other methods
         when (fieldType.elasticsearchType) {
@@ -211,7 +228,7 @@ class QElasticsearchSymbolProcessor(
                     objectBuilder,
                     propertyName,
                     false,
-                    usedImports,
+                    importContext.usedImports,
                 )
             }
 
@@ -219,7 +236,7 @@ class QElasticsearchSymbolProcessor(
                 logger.info(
                     "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownNestedFields",
                 )
-                return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, usedImports)
+                return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, importContext.usedImports)
             }
 
             else -> {
@@ -235,7 +252,7 @@ class QElasticsearchSymbolProcessor(
         // Create KotlinPoet TypeName directly from KSType for better nested generic handling
         val kotlinType = fieldType.kotlinType.resolve()
         val typeParam = createKotlinPoetTypeName(kotlinType, typeParameterResolver)
-        val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType, typeParameterResolver)
+        val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType, typeParameterResolver, importContext.typeImports)
 
         val finalTypeName = ClassName("com.qelasticsearch.dsl", fieldClass).parameterizedBy(typeParam)
 
@@ -252,7 +269,6 @@ class QElasticsearchSymbolProcessor(
         objectBuilder: TypeSpec.Builder,
         propertyName: String,
         fieldType: ProcessedFieldType,
-        packageName: String,
     ) {
         // Find the actual class declaration to determine the correct Q-class name
         val actualClassDeclaration = findActualClassDeclaration(fieldType)
@@ -701,30 +717,59 @@ class QElasticsearchSymbolProcessor(
     private fun generateGenericDelegateCallForKSType(
         methodName: String,
         kotlinType: KSType,
-        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
+        usedImports: MutableSet<String> = mutableSetOf(),
     ): String {
-        val typeName =
-            if (typeParameterResolver != null) {
-                kotlinType.toTypeName(typeParameterResolver)
-            } else {
-                kotlinType.toTypeName()
-            }
-        return "$methodName<$typeName>()"
+        val typeName = kotlinType.toTypeName(typeParameterResolver)
+
+        // Extract imports and create simplified type string
+        val simplifiedTypeString = extractImportsAndSimplifyTypeName(typeName, usedImports)
+        return "$methodName<$simplifiedTypeString>()"
     }
+
+    /**
+     * Extract necessary imports from TypeName and return simplified type string.
+     */
+    private fun extractImportsAndSimplifyTypeName(
+        typeName: com.squareup.kotlinpoet.TypeName,
+        usedImports: MutableSet<String>,
+    ): String =
+        when (typeName) {
+            is ClassName -> {
+                // Add import for this class and return simple name
+                // Skip kotlin.* and java.lang.* packages as they don't need imports
+                if (typeName.packageName.isNotEmpty() &&
+                    !typeName.packageName.startsWith("kotlin") &&
+                    !typeName.packageName.startsWith("java.lang")
+                ) {
+                    usedImports.add("${typeName.packageName}.${typeName.simpleName}")
+                }
+                typeName.simpleName
+            }
+            is com.squareup.kotlinpoet.ParameterizedTypeName -> {
+                // Handle parameterized types recursively
+                val baseSimpleName = extractImportsAndSimplifyTypeName(typeName.rawType, usedImports)
+                val typeArgs =
+                    typeName.typeArguments.joinToString(", ") { arg ->
+                        extractImportsAndSimplifyTypeName(arg, usedImports)
+                    }
+                "$baseSimpleName<$typeArgs>"
+            }
+            else -> {
+                // For other types, use the string representation
+                typeName.toString()
+            }
+        }
 
     /**
      * Create a KotlinPoet TypeName directly from KSType using KotlinPoet KSP interop utilities.
      */
     private fun createKotlinPoetTypeName(
         kotlinType: KSType,
-        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
     ): com.squareup.kotlinpoet.TypeName {
         // Use KotlinPoet KSP interop utility for seamless type conversion with TypeParameterResolver
-        return if (typeParameterResolver != null) {
-            kotlinType.toTypeName(typeParameterResolver)
-        } else {
-            kotlinType.toTypeName()
-        }
+        return kotlinType.toTypeName(typeParameterResolver)
     }
 
     private fun collectObjectFields(documentClass: KSClassDeclaration) {
@@ -924,7 +969,7 @@ class QElasticsearchSymbolProcessor(
     }
 
     private fun generateObjectFieldsClassFromInfo(objectFieldInfo: ObjectFieldInfo): FileSpec {
-        val usedImports = mutableSetOf<String>()
+        val importContext = ImportContext()
 
         // Create TypeParameterResolver for ObjectFields class
         val typeParameterResolver = objectFieldInfo.classDeclaration.typeParameters.toTypeParameterResolver()
@@ -954,7 +999,7 @@ class QElasticsearchSymbolProcessor(
         objectFieldInfo.classDeclaration.getAllProperties().forEach { property ->
             val propertyName = property.simpleName.asString()
             if (propertyName !in processedPropertyNames) {
-                processProperty(property, objectBuilder, objectFieldInfo.packageName, usedImports, typeParameterResolver)
+                processProperty(property, objectBuilder, importContext, typeParameterResolver)
                 processedPropertyNames.add(propertyName)
             }
         }
@@ -967,8 +1012,18 @@ class QElasticsearchSymbolProcessor(
                 .indent("    ") // Use 4-space indentation for ktlint compliance
 
         // Add only the imports that are actually used
-        usedImports.forEach { className ->
+        importContext.usedImports.forEach { className ->
             fileBuilder.addImport("com.qelasticsearch.dsl", className)
+        }
+
+        // Add type imports (full qualified names like "com.example.ParametrisedType")
+        importContext.typeImports.forEach { qualifiedName ->
+            if (qualifiedName.contains('.')) {
+                val parts = qualifiedName.split('.')
+                val className = parts.last()
+                val packageName = parts.dropLast(1).joinToString(".")
+                fileBuilder.addImport(packageName, className)
+            }
         }
 
         return fileBuilder.build()
