@@ -156,6 +156,20 @@ class QElasticsearchSymbolProcessor(
             FieldType.Double_Range -> "doubleRange()"
             FieldType.Date_Range -> "dateRange()"
             FieldType.Ip_Range -> "ipRange()"
+            FieldType.Object -> {
+                if (isCollectionType(fieldType.kotlinTypeName)) {
+                    "keyword()" // Collections with @Field(type = Object) become simple fields
+                } else {
+                    "keyword()" // Single objects without ObjectFields become simple fields
+                }
+            }
+            FieldType.Nested -> {
+                if (isCollectionType(fieldType.kotlinTypeName)) {
+                    "keyword()" // Collections with @Field(type = Nested) become simple fields
+                } else {
+                    "keyword()" // Single nested objects without ObjectFields become simple fields
+                }
+            }
             else -> "keyword()" // Default fallback
         }
 
@@ -255,14 +269,20 @@ class QElasticsearchSymbolProcessor(
         packageName: String
     ): Map<String, FileSpec> {
         val objectFieldsClasses = mutableMapOf<String, FileSpec>()
+        val processedTypes = mutableSetOf<String>()
 
         documentClass.getAllProperties().forEach { property ->
             val fieldAnnotation = property.findAnnotation(Field::class)
             val fieldType = determineFieldType(property, fieldAnnotation, null)
 
             if (fieldType.isObjectType) {
-                val objectFieldsClass = generateObjectFieldsClass(property, fieldType, packageName)
-                objectFieldsClasses[objectFieldsClass.name] = objectFieldsClass
+                val typeName = fieldType.kotlinTypeName
+                // Skip collection types and already processed types
+                if (!isCollectionType(typeName) && typeName !in processedTypes) {
+                    val objectFieldsClass = generateObjectFieldsClass(property, fieldType, packageName)
+                    objectFieldsClasses[objectFieldsClass.name] = objectFieldsClass
+                    processedTypes.add(typeName)
+                }
             }
         }
 
@@ -294,8 +314,11 @@ class QElasticsearchSymbolProcessor(
         fieldAnnotation: KSAnnotation?,
         idAnnotation: KSAnnotation?
     ): ProcessedFieldType {
+        val propertyName = property.simpleName.asString()
+        
         // If property has @Id annotation, treat as keyword by default
         if (idAnnotation != null) {
+            logger.info("Property $propertyName has @Id annotation, using Keyword type")
             return ProcessedFieldType(
                 elasticsearchType = FieldType.Keyword,
                 kotlinType = property.type,
@@ -306,16 +329,23 @@ class QElasticsearchSymbolProcessor(
 
         // If property has @Field annotation, use the specified type
         if (fieldAnnotation != null) {
-            val fieldType = fieldAnnotation.getArgumentValue<FieldType>("type") ?: FieldType.Auto
+            val fieldType = extractFieldType(fieldAnnotation) ?: FieldType.Auto
+            logger.info("Property $propertyName has @Field annotation with type: $fieldType")
+            
+            // For nested/object collections, don't generate ObjectFields
+            val isObjectType = (fieldType == FieldType.Object || fieldType == FieldType.Nested) && 
+                              !isCollectionType(getSimpleTypeName(property.type))
+            
             return ProcessedFieldType(
                 elasticsearchType = fieldType,
                 kotlinType = property.type,
                 kotlinTypeName = getSimpleTypeName(property.type),
-                isObjectType = fieldType == FieldType.Object || fieldType == FieldType.Nested
+                isObjectType = isObjectType
             )
         }
 
         // Auto-detect field type based on Kotlin type
+        logger.info("Property $propertyName has no annotations, auto-detecting type")
         return autoDetectFieldType(property)
     }
 
@@ -326,14 +356,25 @@ class QElasticsearchSymbolProcessor(
         val elasticsearchType = when (typeName) {
             "String" -> FieldType.Text
             "Long" -> FieldType.Long
-            "Int" -> FieldType.Integer
+            "Int", "Integer" -> FieldType.Integer
             "Short" -> FieldType.Short
             "Byte" -> FieldType.Byte
             "Double" -> FieldType.Double
             "Float" -> FieldType.Float
             "Boolean" -> FieldType.Boolean
-            "Date", "LocalDate", "LocalDateTime" -> FieldType.Date
+            "Date", "LocalDate", "LocalDateTime", "ZonedDateTime" -> FieldType.Date
+            "BigDecimal" -> FieldType.Double
             else -> {
+                // Skip collection types
+                if (isCollectionType(typeName)) {
+                    return ProcessedFieldType(
+                        elasticsearchType = FieldType.Object,
+                        kotlinType = kotlinType,
+                        kotlinTypeName = typeName,
+                        isObjectType = false // Don't generate ObjectFields for collections
+                    )
+                }
+                
                 // If it's a custom class, treat as object
                 val typeDeclaration = kotlinType.resolve().declaration
                 if (typeDeclaration is KSClassDeclaration && typeDeclaration.classKind == ClassKind.CLASS) {
@@ -356,12 +397,29 @@ class QElasticsearchSymbolProcessor(
         )
     }
 
+    private fun isCollectionType(typeName: String): Boolean {
+        return typeName in setOf(
+            "List", "MutableList", "ArrayList", "LinkedList",
+            "Set", "MutableSet", "HashSet", "LinkedHashSet",
+            "Collection", "MutableCollection",
+            "Array"
+        )
+    }
+
     private fun getSimpleTypeName(type: KSTypeReference): String {
         return type.resolve().declaration.simpleName.asString()
     }
 
+    private val generatedFiles = mutableSetOf<String>()
+
     private fun writeGeneratedFile(fileSpec: FileSpec, packageName: String, className: String) {
         try {
+            val fileKey = "$packageName.$className"
+            if (fileKey in generatedFiles) {
+                logger.info("Skipping duplicate file generation for: $fileKey")
+                return
+            }
+            
             val outputFile = codeGenerator.createNewFile(
                 dependencies = Dependencies(false), // No specific dependencies for now
                 packageName = packageName,
@@ -372,6 +430,7 @@ class QElasticsearchSymbolProcessor(
                 fileSpec.writeTo(writer)
             }
             
+            generatedFiles.add(fileKey)
             logger.info("Generated file: $packageName.$className")
         } catch (e: Exception) {
             logger.error("Error writing file $className: ${e.message}")
@@ -395,6 +454,49 @@ class QElasticsearchSymbolProcessor(
     private fun KSPropertyDeclaration.findAnnotation(annotationClass: kotlin.reflect.KClass<*>): KSAnnotation? {
         return annotations.find { 
             it.annotationType.resolve().declaration.qualifiedName?.asString() == annotationClass.qualifiedName 
+        }
+    }
+
+    private fun extractFieldType(fieldAnnotation: KSAnnotation): FieldType? {
+        return try {
+            val typeArgument = fieldAnnotation.arguments.find { it.name?.asString() == "type" }
+            val value = typeArgument?.value
+            
+            logger.info("Extracting FieldType from argument: $value (type: ${value?.javaClass?.simpleName})")
+            
+            when (value) {
+                is KSType -> {
+                    // Handle enum reference - this is usually how enums are represented in KSP
+                    val enumName = value.declaration.simpleName.asString()
+                    logger.info("Found KSType enum value: $enumName")
+                    FieldType.values().find { it.name == enumName }
+                }
+                is String -> {
+                    // Handle string representation
+                    logger.info("Found String enum value: $value")
+                    FieldType.values().find { it.name == value }
+                }
+                // Handle KSP's representation of enum constants
+                else -> {
+                    // Try to get the enum value by looking at the qualified name
+                    val valueStr = value.toString()
+                    logger.info("Trying to parse enum from string representation: $valueStr")
+                    
+                    // Extract enum name from patterns like "FieldType.Text" or just "Text"
+                    val enumName = when {
+                        valueStr.contains("FieldType.") -> valueStr.substringAfter("FieldType.")
+                        valueStr.contains(".") -> valueStr.substringAfterLast(".")
+                        else -> valueStr
+                    }
+                    
+                    logger.info("Extracted enum name: $enumName")
+                    FieldType.values().find { it.name == enumName }
+                }
+            }
+        } catch (e: Exception) {
+            logger.error("Error extracting FieldType: ${e.message}")
+            e.printStackTrace()
+            null
         }
     }
 
