@@ -18,6 +18,9 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
+import com.squareup.kotlinpoet.ksp.toTypeName
+import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
@@ -95,6 +98,9 @@ class QElasticsearchSymbolProcessor(
         val qIndexClassName = "Q$className"
         val usedImports = mutableSetOf<String>()
 
+        // Create TypeParameterResolver for better generic type handling
+        val typeParameterResolver = documentClass.typeParameters.toTypeParameterResolver()
+
         // Create the object declaration with JavaDoc
         val objectBuilder =
             TypeSpec
@@ -116,13 +122,14 @@ class QElasticsearchSymbolProcessor(
                 ).addModifiers()
                 .superclass(ClassName("com.qelasticsearch.dsl", "Index"))
                 .addSuperclassConstructorParameter("%S", indexName)
+                .addOriginatingKSFile(documentClass.containingFile!!)
 
         // Process all properties in the document class, tracking names to avoid duplicates
         val processedPropertyNames = mutableSetOf<String>()
         documentClass.getAllProperties().forEach { property ->
             val propertyName = property.simpleName.asString()
             if (propertyName !in processedPropertyNames) {
-                processProperty(property, objectBuilder, packageName, usedImports)
+                processProperty(property, objectBuilder, packageName, usedImports, typeParameterResolver)
                 processedPropertyNames.add(propertyName)
             }
         }
@@ -152,6 +159,7 @@ class QElasticsearchSymbolProcessor(
         objectBuilder: TypeSpec.Builder,
         packageName: String,
         usedImports: MutableSet<String> = mutableSetOf(),
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
     ) {
         val fieldAnnotation = property.findAnnotation(Field::class)
         val multiFieldAnnotation = property.findAnnotation(MultiField::class)
@@ -180,7 +188,7 @@ class QElasticsearchSymbolProcessor(
                     generateObjectFieldProperty(objectBuilder, propertyName, fieldType, packageName)
                 } else {
                     // Handle simple field
-                    generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, usedImports)
+                    generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, usedImports, typeParameterResolver)
                 }
             }
         }
@@ -191,6 +199,7 @@ class QElasticsearchSymbolProcessor(
         propertyName: String,
         fieldType: ProcessedFieldType,
         usedImports: MutableSet<String> = mutableSetOf(),
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
     ) {
         // Handle special cases that need to delegate to other methods
         when (fieldType.elasticsearchType) {
@@ -225,8 +234,8 @@ class QElasticsearchSymbolProcessor(
 
         // Create KotlinPoet TypeName directly from KSType for better nested generic handling
         val kotlinType = fieldType.kotlinType.resolve()
-        val typeParam = createKotlinPoetTypeName(kotlinType)
-        val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType)
+        val typeParam = createKotlinPoetTypeName(kotlinType, typeParameterResolver)
+        val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType, typeParameterResolver)
 
         val finalTypeName = ClassName("com.qelasticsearch.dsl", fieldClass).parameterizedBy(typeParam)
 
@@ -687,85 +696,34 @@ class QElasticsearchSymbolProcessor(
     }
 
     /**
-     * Recursively extract Kotlin type names, handling nested generics like List<ParametrisedType<String>>.
-     */
-    private fun extractKotlinTypeRecursive(kotlinType: KSType): String {
-        val declaration = kotlinType.declaration
-        val qualifiedName = declaration.qualifiedName?.asString()
-
-        // Handle parameterized types recursively
-        if (kotlinType.arguments.isNotEmpty()) {
-            val baseType = qualifiedName ?: declaration.simpleName.asString()
-            val typeArguments =
-                kotlinType.arguments.mapNotNull { typeArgument ->
-                    typeArgument.type?.resolve()?.let { resolvedType ->
-                        // Recursive call to handle nested generics
-                        extractKotlinTypeRecursive(resolvedType)
-                    }
-                }
-
-            return if (typeArguments.isNotEmpty()) {
-                "$baseType<${typeArguments.joinToString(", ")}>" // Preserve full parameterized type
-            } else {
-                baseType
-            }
-        }
-
-        // For all other types (primitives, enums, classes), use the fully qualified name
-        // This eliminates the need for manual type mapping and import handling
-        return qualifiedName ?: declaration.simpleName.asString()
-    }
-
-    /**
-     * Generate a generic delegate call directly from KSType.
+     * Generate a generic delegate call directly from KSType using KotlinPoet KSP interop.
      */
     private fun generateGenericDelegateCallForKSType(
         methodName: String,
         kotlinType: KSType,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
     ): String {
-        val typeString = extractKotlinTypeRecursive(kotlinType)
-        return "$methodName<$typeString>()"
+        val typeName =
+            if (typeParameterResolver != null) {
+                kotlinType.toTypeName(typeParameterResolver)
+            } else {
+                kotlinType.toTypeName()
+            }
+        return "$methodName<$typeName>()"
     }
 
     /**
-     * Create a KotlinPoet TypeName directly from KSType to handle nested generics properly.
+     * Create a KotlinPoet TypeName directly from KSType using KotlinPoet KSP interop utilities.
      */
-    private fun createKotlinPoetTypeName(kotlinType: KSType): com.squareup.kotlinpoet.TypeName {
-        val declaration = kotlinType.declaration
-        val qualifiedName = declaration.qualifiedName?.asString()
-
-        // Handle parameterized types recursively
-        if (kotlinType.arguments.isNotEmpty()) {
-            val baseType =
-                if (qualifiedName?.contains(".") == true) {
-                    val parts = qualifiedName.split(".")
-                    val className = parts.last()
-                    val packageName = parts.dropLast(1).joinToString(".")
-                    ClassName(packageName, className)
-                } else {
-                    ClassName("com.qelasticsearch.integration", qualifiedName ?: declaration.simpleName.asString())
-                }
-
-            val typeArguments =
-                kotlinType.arguments.mapNotNull { typeArgument ->
-                    typeArgument.type?.resolve()?.let { resolvedType ->
-                        // Recursive call to handle nested generics
-                        createKotlinPoetTypeName(resolvedType)
-                    }
-                }
-
-            @Suppress("SpreadOperator")
-            return baseType.parameterizedBy(*typeArguments.toTypedArray())
-        }
-
-        // Handle simple types
-        return if (qualifiedName?.contains(".") == true) {
-            val parts = qualifiedName.split(".")
-            val className = parts.last()
-            val packageName = parts.dropLast(1).joinToString(".")
-            ClassName(packageName, className)
+    private fun createKotlinPoetTypeName(
+        kotlinType: KSType,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver? = null,
+    ): com.squareup.kotlinpoet.TypeName {
+        // Use KotlinPoet KSP interop utility for seamless type conversion with TypeParameterResolver
+        return if (typeParameterResolver != null) {
+            kotlinType.toTypeName(typeParameterResolver)
         } else {
-            ClassName("com.qelasticsearch.integration", qualifiedName ?: declaration.simpleName.asString())
+            kotlinType.toTypeName()
         }
     }
 
@@ -967,6 +925,10 @@ class QElasticsearchSymbolProcessor(
 
     private fun generateObjectFieldsClassFromInfo(objectFieldInfo: ObjectFieldInfo): FileSpec {
         val usedImports = mutableSetOf<String>()
+
+        // Create TypeParameterResolver for ObjectFields class
+        val typeParameterResolver = objectFieldInfo.classDeclaration.typeParameters.toTypeParameterResolver()
+
         val objectBuilder =
             TypeSpec
                 .objectBuilder(objectFieldInfo.className)
@@ -986,12 +948,13 @@ class QElasticsearchSymbolProcessor(
                     """.trimIndent(),
                 ).addModifiers()
                 .superclass(ClassName("com.qelasticsearch.dsl", "ObjectFields"))
+                .addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
 
         val processedPropertyNames = mutableSetOf<String>()
         objectFieldInfo.classDeclaration.getAllProperties().forEach { property ->
             val propertyName = property.simpleName.asString()
             if (propertyName !in processedPropertyNames) {
-                processProperty(property, objectBuilder, objectFieldInfo.packageName, usedImports)
+                processProperty(property, objectBuilder, objectFieldInfo.packageName, usedImports, typeParameterResolver)
                 processedPropertyNames.add(propertyName)
             }
         }
