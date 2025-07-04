@@ -1,0 +1,25 @@
+complexity:
+  TooManyFunctions:
+    thresholdInClasses: 50
+  CyclomaticComplexMethod:
+    threshold: 35
+  LongMethod:
+    threshold: 80
+  LargeClass:
+    threshold: 1000
+  NestedBlockDepth:
+    threshold: 7
+
+style:
+  ReturnCount:
+    max: 5
+  MaxLineLength:
+    maxLineLength: 190
+  UnusedParameter:
+    allowedNames: 'usedImports|fieldType'
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+  PrintStackTrace:
+    active: false

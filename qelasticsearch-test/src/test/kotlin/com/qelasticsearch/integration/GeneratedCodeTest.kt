@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
  * Test that demonstrates the generated QTestDocument class works correctly
  */
 class GeneratedCodeTest {
-
     @Test
     fun `generated QTestDocument should have correct index name`() {
         assertThat(QTestDocument.indexName).isEqualTo("test_document")

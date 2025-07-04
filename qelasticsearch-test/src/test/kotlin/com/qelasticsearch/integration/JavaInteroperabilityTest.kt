@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
  * Test Java interoperability with Lombok and QueryDSL style usage patterns
  */
 class JavaInteroperabilityTest {
-
     @Test
     fun `should generate QJavaTestDocument from Java Lombok class`() {
         // Verify that KSP can process Java classes with Lombok annotations
@@ -54,7 +53,7 @@ class JavaInteroperabilityTest {
         // Verify Q-class naming follows QueryDSL pattern
         val className = QJavaTestDocument::class.simpleName
         assertThat(className).isEqualTo("QJavaTestDocument")
-        
+
         // Verify package structure
         val packageName = QJavaTestDocument::class.java.packageName
         assertThat(packageName).isEqualTo("com.qelasticsearch.integration")
@@ -64,7 +63,7 @@ class JavaInteroperabilityTest {
     fun `generated code should be Java-friendly with proper annotations`() {
         // The generated file should have @file:JvmName annotation for Java interop
         // This is tested by the fact that we can access it from Java code
-        
+
         // Verify object is accessible from Java perspective
         val javaClassName = QJavaTestDocument::class.java.simpleName
         assertThat(javaClassName).isEqualTo("QJavaTestDocument")

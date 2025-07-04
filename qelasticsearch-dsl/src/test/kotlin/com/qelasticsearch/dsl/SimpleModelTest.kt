@@ -6,7 +6,6 @@ import assertk.assertions.isInstanceOf
 import org.junit.jupiter.api.Test
 
 class SimpleModelTest {
-
     @Test
     fun `simple field should have correct name and path`() {
         // Given
@@ -30,10 +29,11 @@ class SimpleModelTest {
     @Test
     fun `index should have correct name and empty path`() {
         // Given
-        val index = object : Index("test-index") {
-            val name by text()
-            val age by integer()
-        }
+        val index =
+            object : Index("test-index") {
+                val name by text()
+                val age by integer()
+            }
 
         // Then
         assertThat(index.indexName).isEqualTo("test-index")
@@ -49,41 +49,42 @@ class SimpleModelTest {
     @Test
     fun `all field types should be created correctly`() {
         // Given
-        val index = object : Index("test") {
-            val textField by text()
-            val keywordField by keyword()
-            val longField by long()
-            val intField by integer()
-            val shortField by short()
-            val byteField by byte()
-            val doubleField by double()
-            val floatField by float()
-            val halfFloatField by halfFloat()
-            val scaledFloatField by scaledFloat()
-            val dateField by date()
-            val dateNanosField by dateNanos()
-            val booleanField by boolean()
-            val binaryField by binary()
-            val ipField by ip()
-            val geoPointField by geoPoint()
-            val geoShapeField by geoShape()
-            val completionField by completion()
-            val tokenCountField by tokenCount()
-            val percolatorField by percolator()
-            val rankFeatureField by rankFeature()
-            val rankFeaturesField by rankFeatures()
-            val flattenedField by flattened()
-            val shapeField by shape()
-            val pointField by point()
-            val constantKeywordField by constantKeyword()
-            val wildcardField by wildcard()
-            val integerRangeField by integerRange()
-            val floatRangeField by floatRange()
-            val longRangeField by longRange()
-            val doubleRangeField by doubleRange()
-            val dateRangeField by dateRange()
-            val ipRangeField by ipRange()
-        }
+        val index =
+            object : Index("test") {
+                val textField by text()
+                val keywordField by keyword()
+                val longField by long()
+                val intField by integer()
+                val shortField by short()
+                val byteField by byte()
+                val doubleField by double()
+                val floatField by float()
+                val halfFloatField by halfFloat()
+                val scaledFloatField by scaledFloat()
+                val dateField by date()
+                val dateNanosField by dateNanos()
+                val booleanField by boolean()
+                val binaryField by binary()
+                val ipField by ip()
+                val geoPointField by geoPoint()
+                val geoShapeField by geoShape()
+                val completionField by completion()
+                val tokenCountField by tokenCount()
+                val percolatorField by percolator()
+                val rankFeatureField by rankFeature()
+                val rankFeaturesField by rankFeatures()
+                val flattenedField by flattened()
+                val shapeField by shape()
+                val pointField by point()
+                val constantKeywordField by constantKeyword()
+                val wildcardField by wildcard()
+                val integerRangeField by integerRange()
+                val floatRangeField by floatRange()
+                val longRangeField by longRange()
+                val doubleRangeField by doubleRange()
+                val dateRangeField by dateRange()
+                val ipRangeField by ipRange()
+            }
 
         // Then - Check field types using instance checks
         assertThat(index.textField).isInstanceOf(TextField::class)
@@ -131,12 +132,13 @@ class SimpleModelTest {
 
         val addressFields = AddressFields()
 
-        val person = object : Index("person") {
-            val name by text()
-            val age by integer()
-            val bio by text()
-            val address by objectField(addressFields)
-        }
+        val person =
+            object : Index("person") {
+                val name by text()
+                val age by integer()
+                val bio by text()
+                val address by objectField(addressFields)
+            }
 
         // Then - Test exact requirements
         assertThat(person.path).isEqualTo("")
@@ -163,13 +165,14 @@ class SimpleModelTest {
         val addressFields = AddressFields()
         val jobFields = Job()
 
-        val person = object : Index("person") {
-            val name by text()
-            val age by integer()
-            val bio by text()
-            val address by objectField(addressFields)
-            val job by objectField(jobFields, nested = true)
-        }
+        val person =
+            object : Index("person") {
+                val name by text()
+                val age by integer()
+                val bio by text()
+                val address by objectField(addressFields)
+                val job by objectField(jobFields, nested = true)
+            }
 
         assertThat(person.address.city.path).isEqualTo("address.city")
         assertThat(person.job.title.path).isEqualTo("job.title")

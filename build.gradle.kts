@@ -2,7 +2,7 @@ plugins {
     kotlin("jvm") version "2.1.21" apply false
     id("com.google.devtools.ksp") version "2.1.21-2.0.2" apply false
     id("org.jlleitschuh.gradle.ktlint") version "12.1.0" apply false
-    id("io.gitlab.arturbosch.detekt") version "1.23.4" apply false
+    id("io.gitlab.arturbosch.detekt") version "1.23.8" apply false
 }
 
 allprojects {
@@ -37,10 +37,11 @@ subprojects {
     configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
         buildUponDefaultConfig = true
         allRules = false
+        config.setFrom(rootProject.file("detekt.yml"))
     }
 
     configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        version.set("1.0.1")
+        version.set("1.6.0")
         debug.set(true)
         verbose.set(true)
         android.set(false)
