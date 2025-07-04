@@ -34,7 +34,7 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 - **Build Tool**: Gradle with Kotlin DSL
 - **Target**: Elasticsearch query generation
 - **Dependencies**: Spring Data Elasticsearch 5.2.5
-- **Annotation Processing**: KAPT/KSP for processing @Document annotations
+- **Annotation Processing**: KSP (Kotlin Symbol Processing) for processing @Document annotations
 - **Testing**: JUnit 5, AssertK, MockK
 
 ## Development Notes
@@ -69,14 +69,14 @@ The annotation processor will generate DSL objects that follow this pattern:
 
 ```kotlin
 // For nested/object fields
-object Address : ObjectFields() {
+object QAddress : ObjectFields() {
     val city by keyword()
     val street by text()
     val zipCode by keyword()
 }
 
 // For document indexes
-object AllTypesIndex : Index("alltypes") {
+object QAllTypesDocument : Index("alltypes") {
     val longField by long()
     val floatField by float()
     val doubleField by double()
@@ -106,7 +106,8 @@ object AllTypesIndex : Index("alltypes") {
     val doubleRangeField by doubleRange()
     val dateRangeField by dateRange()
     val ipRangeField by ipRange()
-    val address by objectField(Address, nested = true)
+    val address by objectField(QAddress)
+    val activities by nestedField(QActivity)
 }
 ```
 
@@ -123,7 +124,7 @@ public class IndexModulePath implements ElasticsearchIdentifiable<ModulePath> {
     private TypedId<ModulePath> id;
     
     @MultiField(mainField = @Field(type = FieldType.Long), otherFields = {
-        @InnerField(suffix = FieldsConstants.SEARCH_SUFFIX_FIELD, type = FieldType.Text)
+        @InnerField(suffix = "search", type = FieldType.Text)
     })
     private Long longCode;
     
@@ -146,24 +147,24 @@ public class IndexModulePath implements ElasticsearchIdentifiable<ModulePath> {
 Into a type-safe Kotlin DSL:
 
 ```kotlin
-object IndexModulePathFields : Index("module_path_iperia") {
+object QIndexModulePath : Index("module_path_iperia") {
     val id by keyword()
     val longCode by multiField(long()) {
         field("search", text())
     }
-    val trainingAgency by objectField(IndexTrainingAgencyFields)
-    val addresses by nestedField(IndexAddressFields)
-    val lastUpdatedDate by date(DateFormat.date_time_no_millis)
+    val trainingAgency by objectField(QIndexTrainingAgency)
+    val addresses by nestedField(QIndexAddress)
+    val lastUpdatedDate by date()
     val trainingAgencyAssociation by boolean()
     // ... other fields
 }
 
-object IndexTrainingAgencyFields : ObjectFields() {
+object QIndexTrainingAgency : ObjectFields() {
     val id by keyword()
-    val legalPerson by objectField(IndexLegalPersonFields)
+    val legalPerson by objectField(QIndexLegalPerson)
 }
 
-object IndexAddressFields : ObjectFields() {
+object QIndexAddress : ObjectFields() {
     val id by keyword()
     val city by text()
     val departmentCode by keyword()
@@ -177,15 +178,19 @@ object IndexAddressFields : ObjectFields() {
 The generated DSL should support dotted notation path traversal to obtain the full field path:
 
 ```kotlin
-val person: Index
+val document = QIndexModulePath
 
 // Path traversal examples
-assertThat(person.path).isEqualTo("")
-assertThat(person.name.path).isEqualTo("name")
-assertThat(person.age.path).isEqualTo("age")
-assertThat(person.bio.path).isEqualTo("bio")
-assertThat(person.address.city.path).isEqualTo("address.city")
-assertThat(person.address.country.path).isEqualTo("address.country")
+assertThat(document.path).isEqualTo("")
+assertThat(document.id.path).isEqualTo("id")
+assertThat(document.longCode.path).isEqualTo("longCode")
+assertThat(document.trainingAgency.id.path).isEqualTo("trainingAgency.id")
+assertThat(document.addresses.city.path).isEqualTo("addresses.city")
+
+// Enhanced path information with nested detection
+assertThat(document.trainingAgency.id.fieldPath.isNested).isFalse()
+assertThat(document.addresses.city.fieldPath.isNested).isTrue()
+assertThat(document.addresses.city.fieldPath.nestedSegments).containsExactly("addresses")
 ```
 
 This allows for:

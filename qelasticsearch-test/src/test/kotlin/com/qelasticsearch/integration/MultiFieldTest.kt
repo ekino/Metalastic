@@ -28,8 +28,7 @@ class MultiFieldTest {
     @Test
     fun `should be able to traverse multifield search path like user requested`() {
         // This is the exact syntax the user wanted:
-        // QIndexTrainingDeparture.employer.physicalPerson.lastName.search.path
-        
+
         // We can simulate this with our test document - now returns full path!
         val searchFieldPath = QJavaTestDocument.multiFieldName.search.path
         assertThat(searchFieldPath).isEqualTo("multiFieldName.search")
@@ -37,9 +36,5 @@ class MultiFieldTest {
         // Test that dynamic property access works and is non-nullable
         assertThat(QJavaTestDocument.multiFieldName.search).isNotNull()
         assertThat(QJavaTestDocument.multiFieldName.keyword).isNotNull()
-        
-        // Test for nested object traversal with multifield (simulating user's case)
-        // address.city would be like employer.physicalPerson.lastName
-        // if address.city were a MultiFieldProxy, then address.city.search.path would be "address.city.search"
     }
 }

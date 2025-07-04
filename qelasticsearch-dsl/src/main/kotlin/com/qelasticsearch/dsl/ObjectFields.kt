@@ -9,13 +9,15 @@ import kotlin.reflect.KProperty
  */
 abstract class ObjectFields {
     private var parentPath: String = ""
+    private var parentNestedSegments: List<String> = emptyList()
     
     /**
      * Updates the parent path for all fields in this object.
      * This is used when this object is nested within another object.
      */
-    internal fun updateParentPath(newParentPath: String) {
+    internal fun updateParentPath(newParentPath: String, nestedSegments: List<String> = emptyList()) {
         parentPath = newParentPath
+        parentNestedSegments = nestedSegments
         // Update parent path for any object field delegates
         updateObjectFieldDelegates()
     }
@@ -26,61 +28,61 @@ abstract class ObjectFields {
             field.isAccessible = true
             val delegate = field.get(this)
             if (delegate is ObjectFieldDelegate<*>) {
-                delegate.setParentPath(parentPath)
+                delegate.setParentPath(parentPath, parentNestedSegments)
             }
         }
     }
     
     // Text field delegates
-    protected fun text() = FieldDelegate { name -> TextField(name, parentPath) }
+    protected fun text() = FieldDelegate { name -> TextField(name, parentPath, parentNestedSegments) }
     
     // Keyword field delegates
-    protected fun keyword() = FieldDelegate { name -> KeywordField(name, parentPath) }
+    protected fun keyword() = FieldDelegate { name -> KeywordField(name, parentPath, parentNestedSegments) }
     
     // Numeric field delegates
-    protected fun long() = FieldDelegate { name -> LongField(name, parentPath) }
-    protected fun integer() = FieldDelegate { name -> IntegerField(name, parentPath) }
-    protected fun short() = FieldDelegate { name -> ShortField(name, parentPath) }
-    protected fun byte() = FieldDelegate { name -> ByteField(name, parentPath) }
-    protected fun double() = FieldDelegate { name -> DoubleField(name, parentPath) }
-    protected fun float() = FieldDelegate { name -> FloatField(name, parentPath) }
-    protected fun halfFloat() = FieldDelegate { name -> HalfFloatField(name, parentPath) }
-    protected fun scaledFloat() = FieldDelegate { name -> ScaledFloatField(name, parentPath) }
+    protected fun long() = FieldDelegate { name -> LongField(name, parentPath, parentNestedSegments) }
+    protected fun integer() = FieldDelegate { name -> IntegerField(name, parentPath, parentNestedSegments) }
+    protected fun short() = FieldDelegate { name -> ShortField(name, parentPath, parentNestedSegments) }
+    protected fun byte() = FieldDelegate { name -> ByteField(name, parentPath, parentNestedSegments) }
+    protected fun double() = FieldDelegate { name -> DoubleField(name, parentPath, parentNestedSegments) }
+    protected fun float() = FieldDelegate { name -> FloatField(name, parentPath, parentNestedSegments) }
+    protected fun halfFloat() = FieldDelegate { name -> HalfFloatField(name, parentPath, parentNestedSegments) }
+    protected fun scaledFloat() = FieldDelegate { name -> ScaledFloatField(name, parentPath, parentNestedSegments) }
     
     // Date field delegates
-    protected fun date() = FieldDelegate { name -> DateField(name, parentPath) }
-    protected fun dateNanos() = FieldDelegate { name -> DateNanosField(name, parentPath) }
+    protected fun date() = FieldDelegate { name -> DateField(name, parentPath, parentNestedSegments) }
+    protected fun dateNanos() = FieldDelegate { name -> DateNanosField(name, parentPath, parentNestedSegments) }
     
     // Boolean field delegate
-    protected fun boolean() = FieldDelegate { name -> BooleanField(name, parentPath) }
+    protected fun boolean() = FieldDelegate { name -> BooleanField(name, parentPath, parentNestedSegments) }
     
     // Binary field delegate
-    protected fun binary() = FieldDelegate { name -> BinaryField(name, parentPath) }
+    protected fun binary() = FieldDelegate { name -> BinaryField(name, parentPath, parentNestedSegments) }
     
     // Geo field delegates
-    protected fun ip() = FieldDelegate { name -> IpField(name, parentPath) }
-    protected fun geoPoint() = FieldDelegate { name -> GeoPointField(name, parentPath) }
-    protected fun geoShape() = FieldDelegate { name -> GeoShapeField(name, parentPath) }
+    protected fun ip() = FieldDelegate { name -> IpField(name, parentPath, parentNestedSegments) }
+    protected fun geoPoint() = FieldDelegate { name -> GeoPointField(name, parentPath, parentNestedSegments) }
+    protected fun geoShape() = FieldDelegate { name -> GeoShapeField(name, parentPath, parentNestedSegments) }
     
     // Specialized field delegates
-    protected fun completion() = FieldDelegate { name -> CompletionField(name, parentPath) }
-    protected fun tokenCount() = FieldDelegate { name -> TokenCountField(name, parentPath) }
-    protected fun percolator() = FieldDelegate { name -> PercolatorField(name, parentPath) }
-    protected fun rankFeature() = FieldDelegate { name -> RankFeatureField(name, parentPath) }
-    protected fun rankFeatures() = FieldDelegate { name -> RankFeaturesField(name, parentPath) }
-    protected fun flattened() = FieldDelegate { name -> FlattenedField(name, parentPath) }
-    protected fun shape() = FieldDelegate { name -> ShapeField(name, parentPath) }
-    protected fun point() = FieldDelegate { name -> PointField(name, parentPath) }
-    protected fun constantKeyword() = FieldDelegate { name -> ConstantKeywordField(name, parentPath) }
-    protected fun wildcard() = FieldDelegate { name -> WildcardField(name, parentPath) }
+    protected fun completion() = FieldDelegate { name -> CompletionField(name, parentPath, parentNestedSegments) }
+    protected fun tokenCount() = FieldDelegate { name -> TokenCountField(name, parentPath, parentNestedSegments) }
+    protected fun percolator() = FieldDelegate { name -> PercolatorField(name, parentPath, parentNestedSegments) }
+    protected fun rankFeature() = FieldDelegate { name -> RankFeatureField(name, parentPath, parentNestedSegments) }
+    protected fun rankFeatures() = FieldDelegate { name -> RankFeaturesField(name, parentPath, parentNestedSegments) }
+    protected fun flattened() = FieldDelegate { name -> FlattenedField(name, parentPath, parentNestedSegments) }
+    protected fun shape() = FieldDelegate { name -> ShapeField(name, parentPath, parentNestedSegments) }
+    protected fun point() = FieldDelegate { name -> PointField(name, parentPath, parentNestedSegments) }
+    protected fun constantKeyword() = FieldDelegate { name -> ConstantKeywordField(name, parentPath, parentNestedSegments) }
+    protected fun wildcard() = FieldDelegate { name -> WildcardField(name, parentPath, parentNestedSegments) }
     
     // Range field delegates
-    protected fun integerRange() = FieldDelegate { name -> IntegerRangeField(name, parentPath) }
-    protected fun floatRange() = FieldDelegate { name -> FloatRangeField(name, parentPath) }
-    protected fun longRange() = FieldDelegate { name -> LongRangeField(name, parentPath) }
-    protected fun doubleRange() = FieldDelegate { name -> DoubleRangeField(name, parentPath) }
-    protected fun dateRange() = FieldDelegate { name -> DateRangeField(name, parentPath) }
-    protected fun ipRange() = FieldDelegate { name -> IpRangeField(name, parentPath) }
+    protected fun integerRange() = FieldDelegate { name -> IntegerRangeField(name, parentPath, parentNestedSegments) }
+    protected fun floatRange() = FieldDelegate { name -> FloatRangeField(name, parentPath, parentNestedSegments) }
+    protected fun longRange() = FieldDelegate { name -> LongRangeField(name, parentPath, parentNestedSegments) }
+    protected fun doubleRange() = FieldDelegate { name -> DoubleRangeField(name, parentPath, parentNestedSegments) }
+    protected fun dateRange() = FieldDelegate { name -> DateRangeField(name, parentPath, parentNestedSegments) }
+    protected fun ipRange() = FieldDelegate { name -> IpRangeField(name, parentPath, parentNestedSegments) }
     
     // Object field delegates
     protected fun <T : ObjectFields> objectField(objectFields: T, nested: Boolean = false) = 
@@ -94,7 +96,7 @@ abstract class ObjectFields {
         FieldDelegate { name ->
             val builder = MultiFieldBuilder()
             builder.configure()
-            MultiField(name, parentPath, mainField, builder.build())
+            MultiField(name, parentPath, parentNestedSegments, mainField, builder.build())
         }
     
     // Multi-field proxy delegate that allows .search, .keyword access
@@ -102,7 +104,7 @@ abstract class ObjectFields {
         MultiFieldProxyDelegate { name ->
             val builder = MultiFieldBuilder()
             builder.configure()
-            val multiField = MultiField(name, parentPath, mainField, builder.build())
+            val multiField = MultiField(name, parentPath, parentNestedSegments, mainField, builder.build())
             MultiFieldProxy(multiField)
         }
 }
@@ -148,15 +150,22 @@ class ObjectFieldDelegate<T : ObjectFields>(
     private val nested: Boolean = false
 ) : ReadOnlyProperty<Any?, T> {
     private var parentPath: String = ""
+    private var parentNestedSegments: List<String> = emptyList()
     
     override fun getValue(thisRef: Any?, property: KProperty<*>): T {
         val currentPath = if (parentPath.isEmpty()) property.name else "$parentPath.${property.name}"
-        objectFields.updateParentPath(currentPath)
+        val currentNestedSegments = if (nested) {
+            parentNestedSegments + currentPath
+        } else {
+            parentNestedSegments
+        }
+        objectFields.updateParentPath(currentPath, currentNestedSegments)
         return objectFields
     }
     
-    fun setParentPath(path: String) {
+    fun setParentPath(path: String, nestedSegments: List<String> = emptyList()) {
         parentPath = path
+        parentNestedSegments = nestedSegments
     }
 }
 

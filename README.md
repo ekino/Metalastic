@@ -106,10 +106,10 @@ object QAddress : ObjectFields() {
 }
 ```
 
-### Usage: Building Queries
+### Usage: Type-safe Field Access
 
 ```kotlin
-// Type-safe field access with path traversal using AssertK
+// Type-safe field access with path traversal
 val person = QPerson
 
 // Root level fields
@@ -121,10 +121,21 @@ assertThat(person.age.path).isEqualTo("age")
 assertThat(person.address.city.path).isEqualTo("address.city")
 assertThat(person.address.country.path).isEqualTo("address.country")
 
-// Query building (future implementation)
-val query = person.name.eq("John")
-    .and(person.age.gte(18))
-    .and(person.address.city.eq("Paris"))
+// Enhanced path information with nested detection
+assertThat(person.address.city.fieldPath.isNested).isFalse() // object field
+assertThat(person.activities.name.fieldPath.isNested).isTrue() // nested field
+
+// Use in Elasticsearch queries
+val searchRequest = SearchRequest()
+    .indices(person.indexName)
+    .source(
+        SearchSourceBuilder()
+            .query(
+                QueryBuilders.boolQuery()
+                    .must(QueryBuilders.termQuery(person.name.path, "John"))
+                    .filter(QueryBuilders.rangeQuery(person.age.path).gte(18))
+            )
+    )
 ```
 
 ## Supported Field Types
@@ -195,9 +206,6 @@ Add the dependency to your `build.gradle.kts`:
 ```kotlin
 dependencies {
     implementation("com.yourorg:qelasticsearch-runtime:1.0.0")
-    kapt("com.yourorg:qelasticsearch-processor:1.0.0")
-    
-    // Or for KSP
     ksp("com.yourorg:qelasticsearch-processor:1.0.0")
 }
 ```
@@ -269,13 +277,16 @@ QElasticsearch/
 - [x] **Multi-module project structure** - Separate DSL runtime, processor, and integration tests
 - [x] **Core DSL runtime classes** - Index, ObjectFields, Field hierarchy with sealed classes
 - [x] **All field types support** - Complete implementation of all Elasticsearch field types
-- [x] **Path traversal implementation** - Dotted notation for nested field access
+- [x] **Path traversal implementation** - Dotted notation for nested field access with enhanced FieldPath
 - [x] **Object field traversal** - Direct access to nested object fields
 - [x] **Type-safe field system** - Sealed classes instead of string-based approach
-- [ ] Basic annotation processor implementation
-- [ ] Code generation for all field types
-- [ ] Multi-field and nested object support
-- [ ] Query building DSL
-- [ ] Integration with Elasticsearch clients
-- [ ] Performance optimizations
-- [ ] Documentation and examples
+- [x] **Annotation processor implementation** - KSP-based processor for @Document classes
+- [x] **Code generation for all field types** - Complete field type mapping and generation
+- [x] **Multi-field and nested object support** - @MultiField and nested object handling
+- [x] **Nested field detection** - Enhanced path system with nested segment tracking
+- [x] **Generated class documentation** - JavaDoc comments with source class references
+- [x] **Semantic placeholders** - UnknownObjectFields/UnknownNestedFields for incomplete mappings
+- [ ] Query building DSL - Fluent query construction API
+- [ ] Integration with Elasticsearch clients - Direct query execution
+- [ ] Performance optimizations - Processor and runtime optimizations
+- [ ] Enhanced documentation and examples - Comprehensive usage guides

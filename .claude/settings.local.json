@@ -14,7 +14,9 @@
       "WebFetch(domain:docs.spring.io)",
       "Bash(find:*)",
       "Bash(jar:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(rg:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
