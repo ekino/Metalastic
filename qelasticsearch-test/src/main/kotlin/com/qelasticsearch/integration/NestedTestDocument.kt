@@ -7,6 +7,14 @@ enum class TestStatus {
     ACTIVE, INACTIVE, PENDING
 }
 
+interface TestActivity {
+    fun getActivityType(): String
+}
+
+interface TestMetadata {
+    fun getVersion(): String
+}
+
 @Document(indexName = "nested_test_document")
 class NestedTestDocument {
     @Id
@@ -24,6 +32,12 @@ class NestedTestDocument {
     
     @Field(type = FieldType.Object)
     var operation: Operation = Operation()
+    
+    @Field(type = FieldType.Nested)
+    var activities: List<TestActivity> = emptyList()
+    
+    @Field(type = FieldType.Object)
+    var metadata: TestMetadata? = null
     
     // Nested static class - similar to IndexMandateOperation
     class Operation {

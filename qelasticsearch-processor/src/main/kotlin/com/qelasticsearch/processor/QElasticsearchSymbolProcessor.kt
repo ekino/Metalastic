@@ -170,22 +170,12 @@ class QElasticsearchSymbolProcessor(
             FieldType.Date_Range -> "dateRange()"
             FieldType.Ip_Range -> "ipRange()"
             FieldType.Object -> {
-                if (isCollectionType(fieldType.kotlinTypeName)) {
-                    logger.warn("Object collection field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, falling back to keyword()")
-                    "keyword()" // Collections with @Field(type = Object) become simple fields
-                } else {
-                    logger.warn("Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, falling back to keyword()")
-                    "keyword()" // Single objects without ObjectFields become simple fields
-                }
+                logger.info("Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownObjectFields")
+                return generateUnknownObjectFieldProperty(objectBuilder, propertyName, fieldType, false, usedImports)
             }
             FieldType.Nested -> {
-                if (isCollectionType(fieldType.kotlinTypeName)) {
-                    logger.warn("Nested collection field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, falling back to keyword()")
-                    "keyword()" // Collections with @Field(type = Nested) become simple fields
-                } else {
-                    logger.warn("Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, falling back to keyword()")
-                    "keyword()" // Single nested objects without ObjectFields become simple fields
-                }
+                logger.info("Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownNestedFields")
+                return generateUnknownObjectFieldProperty(objectBuilder, propertyName, fieldType, true, usedImports)
             }
             else -> "keyword()" // Default fallback
         }
@@ -218,6 +208,29 @@ class QElasticsearchSymbolProcessor(
 
         objectBuilder.addProperty(
             PropertySpec.builder(propertyName, ClassName(targetPackage, objectFieldsClassName))
+                .delegate(delegateCall)
+                .build()
+        )
+    }
+    
+    private fun generateUnknownObjectFieldProperty(
+        objectBuilder: TypeSpec.Builder,
+        propertyName: String,
+        fieldType: ProcessedFieldType,
+        isNested: Boolean,
+        usedImports: MutableSet<String> = mutableSetOf()
+    ) {
+        val className = if (isNested) "UnknownNestedFields" else "UnknownObjectFields"
+        val delegateCall = if (isNested) {
+            "nestedField($className)"
+        } else {
+            "objectField($className)"
+        }
+        
+        usedImports.add(className)
+
+        objectBuilder.addProperty(
+            PropertySpec.builder(propertyName, ClassName("com.qelasticsearch.dsl", className))
                 .delegate(delegateCall)
                 .build()
         )
