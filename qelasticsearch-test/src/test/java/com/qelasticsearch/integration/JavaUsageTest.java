@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Demonstrates usage of QElasticsearch from Java code,
- * showcasing interoperability with Java + Lombok + QueryDSL patterns
+ * showcasing interoperability with Java + QueryDSL patterns
  */
 public class JavaUsageTest {
 
@@ -67,22 +67,22 @@ public class JavaUsageTest {
     }
 
     @Test
-    public void shouldWorkWithLombokGeneratedClasses() {
+    public void shouldWorkWithJavaClasses() {
         // The fact that this test compiles and runs proves that KSP
-        // can process Lombok-generated getters/setters correctly
+        // can process plain Java getters/setters correctly
         
-        // Create a test document (this uses Lombok-generated constructors)
+        // Create a test document (this uses standard Java constructors)
         var testDoc = new JavaTestDocument();
         testDoc.setId("test-123");
         testDoc.setTitle("Test Document");
         testDoc.setIsActive(true);
         
-        // Verify Lombok generated methods work
+        // Verify standard Java methods work
         assertEquals("test-123", testDoc.getId());
         assertEquals("Test Document", testDoc.getTitle());
         assertTrue(testDoc.getIsActive());
         
-        // And our Q-class was generated from this Lombok class
+        // And our Q-class was generated from this Java class
         assertNotNull(QJavaTestDocument.INSTANCE);
     }
 }

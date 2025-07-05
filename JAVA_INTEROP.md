@@ -1,25 +1,19 @@
 # QElasticsearch Java Interoperability Guide
 
-QElasticsearch is designed to work seamlessly in mixed Java/Kotlin projects, especially those using Lombok and QueryDSL. This guide demonstrates how to use QElasticsearch in Java projects.
+QElasticsearch is designed to work seamlessly in mixed Java/Kotlin projects, especially those using QueryDSL. This guide demonstrates how to use QElasticsearch in Java projects.
 
 ## Overview
 
 QElasticsearch generates Q-classes that follow QueryDSL naming conventions and are fully compatible with Java code. The generated classes use proper `@JvmName` annotations for optimal Java interoperability.
 
-## Java + Lombok Integration
+## Java Integration
 
 ### Example Document Class
 
 ```java
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.*;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 @Document(indexName = "product")
 public class Product {
     
@@ -56,6 +50,50 @@ public class Product {
         }
     )
     private String searchableTitle;
+    
+    // Constructors
+    public Product() {}
+    
+    public Product(String id, String name, String description, Integer price, Boolean isActive, 
+                   Date createdAt, Category category, List<Tag> tags, String searchableTitle) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.isActive = isActive;
+        this.createdAt = createdAt;
+        this.category = category;
+        this.tags = tags;
+        this.searchableTitle = searchableTitle;
+    }
+    
+    // Getters and Setters
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    
+    public Integer getPrice() { return price; }
+    public void setPrice(Integer price) { this.price = price; }
+    
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
+    
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    
+    public Category getCategory() { return category; }
+    public void setCategory(Category category) { this.category = category; }
+    
+    public List<Tag> getTags() { return tags; }
+    public void setTags(List<Tag> tags) { this.tags = tags; }
+    
+    public String getSearchableTitle() { return searchableTitle; }
+    public void setSearchableTitle(String searchableTitle) { this.searchableTitle = searchableTitle; }
 }
 ```
 
@@ -105,9 +143,6 @@ dependencies {
     // Spring Data Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     
-    // Lombok
-    compileOnly 'org.projectlombok:lombok'
-    annotationProcessor 'org.projectlombok:lombok'
     
     // QueryDSL (if using alongside QElasticsearch)
     implementation 'com.querydsl:querydsl-core:5.0.0'
@@ -134,12 +169,6 @@ dependencies {
         <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
     </dependency>
     
-    <!-- Lombok -->
-    <dependency>
-        <groupId>org.projectlombok</groupId>
-        <artifactId>lombok</artifactId>
-        <optional>true</optional>
-    </dependency>
 </dependencies>
 
 <build>
@@ -224,19 +253,33 @@ QElasticsearch follows Java naming conventions when generating accessors:
 | `private Boolean enabled` | `getEnabled()` | `"enabled"` |
 | `private Date createdAt` | `getCreatedAt()` | `"createdAt"` |
 
-### Lombok Integration
+### Java POJO Integration
 
-QElasticsearch automatically detects Lombok-generated getters and setters:
+QElasticsearch automatically detects standard Java getters and setters:
 
 ```java
-@Data  // Lombok generates getters/setters
 @Document(indexName = "user")
 public class User {
     @Field(type = FieldType.Keyword)
-    private String username;  // Lombok generates getUsername()
+    private String username;
     
     @Field(type = FieldType.Boolean)
-    private Boolean isActive; // Lombok generates getIsActive()
+    private Boolean isActive;
+    
+    // Standard Java constructors
+    public User() {}
+    
+    public User(String username, Boolean isActive) {
+        this.username = username;
+        this.isActive = isActive;
+    }
+    
+    // Standard Java getters and setters
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public Boolean getIsActive() { return isActive; }
+    public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 }
 
 // Generated QUser provides:
@@ -326,7 +369,7 @@ public class SearchService {
 
 1. **Generated classes not found**: Ensure KSP is properly configured in your build tool
 2. **Boolean accessor naming**: Use `isXxx()` for boolean properties, not `getIsXxx()`
-3. **Lombok conflicts**: Ensure annotation processing order is correct (Lombok before KSP)
+3. **Missing getters/setters**: Ensure all fields have proper getter and setter methods
 
 ### Debugging
 

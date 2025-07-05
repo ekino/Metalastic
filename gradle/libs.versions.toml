@@ -24,9 +24,6 @@ kotest = "5.9.1"
 # Logging
 kotlin-logging = "7.0.0"
 
-# Additional Dependencies
-lombok = "1.18.38"
-
 [libraries]
 # Kotlin
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
@@ -54,9 +51,6 @@ kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", ve
 
 # Logging
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
-
-# Additional Dependencies
-lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 [bundles]
 testing-common = ["junit-jupiter", "kotlin-test"]

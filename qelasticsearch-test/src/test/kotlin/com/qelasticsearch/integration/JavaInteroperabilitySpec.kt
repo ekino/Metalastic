@@ -5,13 +5,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
 /**
- * Test Java interoperability with Lombok and QueryDSL style usage patterns
+ * Test Java interoperability with QueryDSL style usage patterns
  */
 class JavaInteroperabilitySpec :
     ShouldSpec({
 
-        should("generate QJavaTestDocument from Java Lombok class") {
-            // Verify that KSP can process Java classes with Lombok annotations
+        should("generate QJavaTestDocument from Java class") {
+            // Verify that KSP can process plain Java classes
             QJavaTestDocument.indexName shouldBe "java_test_document"
             QJavaTestDocument.path shouldBe ""
         }
