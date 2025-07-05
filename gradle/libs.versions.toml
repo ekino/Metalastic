@@ -20,6 +20,7 @@ junit = "5.13.3"
 assertk = "0.28.1"
 mockk = "1.14.4"
 kotlin-compile-testing = "1.6.0"
+kotest = "5.9.1"
 
 # Additional Dependencies
 lombok = "1.18.38"
@@ -44,12 +45,20 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 kotlin-compile-testing = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlin-compile-testing" }
 kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlin-compile-testing" }
 
+# Kotest
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+
 # Additional Dependencies
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
 
 [bundles]
 testing-common = ["junit-jupiter", "assertk", "kotlin-test"]
 testing-extended = ["junit-jupiter", "assertk", "kotlin-test", "mockk"]
+kotest-common = ["kotest-runner-junit5", "kotest-assertions-core", "kotlin-test"]
+kotest-extended = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property", "kotest-framework-datatest", "kotlin-test"]
 ksp-processor = ["ksp-api", "kotlinpoet", "kotlinpoet-ksp"]
 compile-testing = ["kotlin-compile-testing", "kotlin-compile-testing-ksp"]
 

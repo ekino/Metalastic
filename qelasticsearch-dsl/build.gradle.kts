@@ -5,6 +5,9 @@ dependencies {
     // Kotlin reflection for runtime inspection
     implementation(libs.kotlin.reflect)
 
-    // Additional testing for DSL module
+    // Additional testing for DSL module  
     testImplementation(libs.mockk)
+    
+    // Kotest testing framework
+    testImplementation(libs.bundles.kotest.extended)
 }
