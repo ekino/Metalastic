@@ -17,4 +17,7 @@ dependencies {
     // Testing annotation processing
     testImplementation(libs.kotlin.compile.testing)
     testImplementation(libs.kotlin.compile.testing.ksp)
+    
+    // Kotest testing framework
+    testImplementation(libs.bundles.kotest.extended)
 }
