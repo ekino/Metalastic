@@ -15,6 +15,7 @@ import com.google.devtools.ksp.symbol.KSTypeReference
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
@@ -36,6 +37,27 @@ private data class ImportContext(
 )
 
 /**
+ * Field type mapping for generating DSL methods and classes.
+ */
+private data class FieldTypeMapping(
+    val delegate: String,
+    val className: String,
+)
+
+/**
+ * Constants for DSL generation.
+ */
+private object DSLConstants {
+    const val DSL_PACKAGE = "com.qelasticsearch.dsl"
+    const val Q_PREFIX = "Q"
+    const val INDEX_CLASS = "Index"
+    const val OBJECT_FIELDS_CLASS = "ObjectFields"
+    const val UNKNOWN_OBJECT_FIELDS = "UnknownObjectFields"
+    const val UNKNOWN_NESTED_FIELDS = "UnknownNestedFields"
+    const val MULTI_FIELD_PROXY = "MultiFieldProxy"
+}
+
+/**
  * KSP-based annotation processor that generates type-safe Elasticsearch DSL classes
  * from Spring Data Elasticsearch @Document annotated classes.
  */
@@ -43,6 +65,102 @@ class QElasticsearchSymbolProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
 ) : SymbolProcessor {
+    /**
+     * Unified mapping of FieldType to DSL method and class names.
+     * Eliminates duplication between getFieldDelegate() and getFieldClass().
+     * Uses runtime detection to support different Spring Data Elasticsearch versions.
+     */
+    private val fieldTypeMappings: Map<FieldType, FieldTypeMapping> by lazy {
+        buildFieldTypeMappings()
+    }
+
+    /**
+     * Builds field type mappings with runtime detection for version compatibility.
+     * Only includes FieldType enum values that exist in the current Spring Data Elasticsearch version.
+     */
+    private fun buildFieldTypeMappings(): Map<FieldType, FieldTypeMapping> {
+        val mappings = mutableMapOf<FieldType, FieldTypeMapping>()
+
+        // Core field types - available in all versions
+        safeAddMapping(mappings, "Text", "text()", "TextField")
+        safeAddMapping(mappings, "Keyword", "keyword()", "KeywordField")
+        safeAddMapping(mappings, "Binary", "binary()", "BinaryField")
+
+        // Numeric field types - available in all versions
+        safeAddMapping(mappings, "Long", "long()", "LongField")
+        safeAddMapping(mappings, "Integer", "integer()", "IntegerField")
+        safeAddMapping(mappings, "Short", "short()", "ShortField")
+        safeAddMapping(mappings, "Byte", "byte()", "ByteField")
+        safeAddMapping(mappings, "Double", "double()", "DoubleField")
+        safeAddMapping(mappings, "Float", "float()", "FloatField")
+        safeAddMapping(mappings, "Half_Float", "halfFloat()", "HalfFloatField")
+        safeAddMapping(mappings, "Scaled_Float", "scaledFloat()", "ScaledFloatField")
+
+        // Date/time field types
+        safeAddMapping(mappings, "Date", "date()", "DateField")
+        safeAddMapping(mappings, "Date_Nanos", "dateNanos()", "DateNanosField")
+
+        // Boolean field type
+        safeAddMapping(mappings, "Boolean", "boolean()", "BooleanField")
+
+        // Range field types
+        safeAddMapping(mappings, "Integer_Range", "integerRange()", "IntegerRangeField")
+        safeAddMapping(mappings, "Float_Range", "floatRange()", "FloatRangeField")
+        safeAddMapping(mappings, "Long_Range", "longRange()", "LongRangeField")
+        safeAddMapping(mappings, "Double_Range", "doubleRange()", "DoubleRangeField")
+        safeAddMapping(mappings, "Date_Range", "dateRange()", "DateRangeField")
+        safeAddMapping(mappings, "Ip_Range", "ipRange()", "IpRangeField")
+
+        // Specialized field types
+        safeAddMapping(mappings, "Object", "objectField()", "ObjectField")
+        safeAddMapping(mappings, "Nested", "nestedField()", "NestedField")
+        safeAddMapping(mappings, "Ip", "ip()", "IpField")
+        safeAddMapping(mappings, "TokenCount", "tokenCount()", "TokenCountField")
+        safeAddMapping(mappings, "Percolator", "percolator()", "PercolatorField")
+        safeAddMapping(mappings, "Flattened", "flattened()", "FlattenedField")
+        safeAddMapping(mappings, "Search_As_You_Type", "searchAsYouType()", "SearchAsYouTypeField")
+
+        // Geo types
+        safeAddMapping(mappings, "Geo_Point", "geoPoint()", "GeoPointField")
+        safeAddMapping(mappings, "Geo_Shape", "geoShape()", "GeoShapeField")
+
+        // Advanced field types - may not exist in older versions
+        safeAddMapping(mappings, "Auto", "auto()", "AutoField")
+        safeAddMapping(mappings, "Rank_Feature", "rankFeature()", "RankFeatureField")
+        safeAddMapping(mappings, "Rank_Features", "rankFeatures()", "RankFeaturesField")
+        safeAddMapping(mappings, "Wildcard", "wildcard()", "WildcardField")
+        safeAddMapping(mappings, "Dense_Vector", "denseVector()", "DenseVectorField")
+        safeAddMapping(mappings, "Sparse_Vector", "sparseVector()", "SparseVectorField")
+        safeAddMapping(mappings, "Constant_Keyword", "constantKeyword()", "ConstantKeywordField")
+        safeAddMapping(mappings, "Alias", "alias()", "AliasField")
+        safeAddMapping(mappings, "Version", "version()", "VersionField")
+        safeAddMapping(mappings, "Murmur3", "murmur3()", "Murmur3Field")
+        safeAddMapping(mappings, "Match_Only_Text", "matchOnlyText()", "MatchOnlyTextField")
+        safeAddMapping(mappings, "Annotated_Text", "annotatedText()", "AnnotatedTextField")
+        safeAddMapping(mappings, "Completion", "completion()", "CompletionField")
+        safeAddMapping(mappings, "Join", "join()", "JoinField")
+
+        return mappings.toMap()
+    }
+
+    /**
+     * Safely adds a FieldType mapping if the enum value exists in the current version.
+     */
+    private fun safeAddMapping(
+        mappings: MutableMap<FieldType, FieldTypeMapping>,
+        fieldTypeName: String,
+        delegate: String,
+        className: String,
+    ) {
+        try {
+            val fieldType = FieldType.valueOf(fieldTypeName)
+            mappings[fieldType] = FieldTypeMapping(delegate, className)
+        } catch (e: IllegalArgumentException) {
+            // FieldType enum value doesn't exist in this version - skip it
+            logger.info("Skipping unsupported FieldType: $fieldTypeName (${e.message})")
+        }
+    }
+
     override fun process(resolver: Resolver): List<KSAnnotated> {
         try {
             // Find all classes annotated with @Document
@@ -103,36 +221,54 @@ class QElasticsearchSymbolProcessor(
         className: String,
         packageName: String,
     ): FileSpec {
-        val qIndexClassName = "Q$className"
+        val qIndexClassName = "${DSLConstants.Q_PREFIX}$className"
         val importContext = ImportContext()
-
-        // Create TypeParameterResolver for better generic type handling
         val typeParameterResolver = documentClass.typeParameters.toTypeParameterResolver()
 
-        // Create the object declaration with JavaDoc
-        val objectBuilder =
-            TypeSpec
-                .objectBuilder(qIndexClassName)
-                .addKdoc(
-                    """
-                    Query DSL object for Elasticsearch index '$indexName'.
-                    
-                    This class was automatically generated by QElasticsearch annotation processor
-                    from the source class [${documentClass.qualifiedName?.asString()}].
-                    
-                    **Do not modify this file directly.** Any changes will be overwritten
-                    during the next compilation. To modify the DSL structure, update the
-                    annotations on the source document class.
-                    
-                    @see ${documentClass.qualifiedName?.asString()}
-                    @generated by QElasticsearch annotation processor
-                    """.trimIndent(),
-                ).addModifiers()
-                .superclass(ClassName("com.qelasticsearch.dsl", "Index"))
-                .addSuperclassConstructorParameter("%S", indexName)
-                .addOriginatingKSFile(documentClass.containingFile!!)
+        val objectBuilder = createQIndexObjectBuilder(documentClass, qIndexClassName, indexName)
+        addPropertiesToObjectBuilder(documentClass, objectBuilder, importContext, typeParameterResolver)
 
-        // Process all properties in the document class, tracking names to avoid duplicates
+        return createQIndexFileSpec(packageName, qIndexClassName, objectBuilder, importContext)
+    }
+
+    /**
+     * Creates the TypeSpec.Builder for a QIndex class with KDoc and basic setup.
+     */
+    private fun createQIndexObjectBuilder(
+        documentClass: KSClassDeclaration,
+        qIndexClassName: String,
+        indexName: String,
+    ): TypeSpec.Builder =
+        TypeSpec
+            .objectBuilder(qIndexClassName)
+            .addKdoc(
+                """
+                Query DSL object for Elasticsearch index '$indexName'.
+                
+                This class was automatically generated by QElasticsearch annotation processor
+                from the source class [${documentClass.qualifiedName?.asString()}].
+                
+                **Do not modify this file directly.** Any changes will be overwritten
+                during the next compilation. To modify the DSL structure, update the
+                annotations on the source document class.
+                
+                @see ${documentClass.qualifiedName?.asString()}
+                @generated by QElasticsearch annotation processor
+                """.trimIndent(),
+            ).addModifiers(KModifier.DATA)
+            .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.INDEX_CLASS))
+            .addSuperclassConstructorParameter("%S", indexName)
+            .addOriginatingKSFile(documentClass.containingFile!!)
+
+    /**
+     * Processes all properties in the document class and adds them to the object builder.
+     */
+    private fun addPropertiesToObjectBuilder(
+        documentClass: KSClassDeclaration,
+        objectBuilder: TypeSpec.Builder,
+        importContext: ImportContext,
+        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
+    ) {
         val processedPropertyNames = mutableSetOf<String>()
         documentClass.getAllProperties().forEach { property ->
             val propertyName = property.simpleName.asString()
@@ -141,12 +277,22 @@ class QElasticsearchSymbolProcessor(
                 processedPropertyNames.add(propertyName)
             }
         }
+    }
 
+    /**
+     * Creates the final FileSpec with all imports and annotations.
+     */
+    private fun createQIndexFileSpec(
+        packageName: String,
+        qIndexClassName: String,
+        objectBuilder: TypeSpec.Builder,
+        importContext: ImportContext,
+    ): FileSpec {
         val fileBuilder =
             FileSpec
                 .builder(packageName, qIndexClassName)
                 .addType(objectBuilder.build())
-                .addImport("com.qelasticsearch.dsl", "Index")
+                .addImport(DSLConstants.DSL_PACKAGE, DSLConstants.INDEX_CLASS)
                 .addAnnotation(
                     AnnotationSpec
                         .builder(JvmName::class)
@@ -154,9 +300,20 @@ class QElasticsearchSymbolProcessor(
                         .build(),
                 ).indent("    ") // Use 4-space indentation for ktlint compliance
 
-        // Add only the imports that are actually used
+        addImportsToFileBuilder(fileBuilder, importContext)
+        return fileBuilder.build()
+    }
+
+    /**
+     * Adds DSL and type imports to the FileSpec builder.
+     */
+    private fun addImportsToFileBuilder(
+        fileBuilder: FileSpec.Builder,
+        importContext: ImportContext,
+    ) {
+        // Add DSL imports
         importContext.usedImports.forEach { className ->
-            fileBuilder.addImport("com.qelasticsearch.dsl", className)
+            fileBuilder.addImport(DSLConstants.DSL_PACKAGE, className)
         }
 
         // Add type imports (full qualified names like "com.example.ParametrisedType")
@@ -168,8 +325,6 @@ class QElasticsearchSymbolProcessor(
                 fileBuilder.addImport(packageName, className)
             }
         }
-
-        return fileBuilder.build()
     }
 
     private fun processProperty(
@@ -222,7 +377,7 @@ class QElasticsearchSymbolProcessor(
         when (fieldType.elasticsearchType) {
             FieldType.Object -> {
                 logger.info(
-                    "Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownObjectFields",
+                    "Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using ${DSLConstants.UNKNOWN_OBJECT_FIELDS}",
                 )
                 return generateUnknownObjectFieldProperty(
                     objectBuilder,
@@ -234,7 +389,7 @@ class QElasticsearchSymbolProcessor(
 
             FieldType.Nested -> {
                 logger.info(
-                    "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using UnknownNestedFields",
+                    "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using ${DSLConstants.UNKNOWN_NESTED_FIELDS}",
                 )
                 return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, importContext.usedImports)
             }
@@ -254,7 +409,7 @@ class QElasticsearchSymbolProcessor(
         val typeParam = createKotlinPoetTypeName(kotlinType, typeParameterResolver)
         val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType, typeParameterResolver, importContext.typeImports)
 
-        val finalTypeName = ClassName("com.qelasticsearch.dsl", fieldClass).parameterizedBy(typeParam)
+        val finalTypeName = ClassName(DSLConstants.DSL_PACKAGE, fieldClass).parameterizedBy(typeParam)
 
         objectBuilder.addProperty(
             PropertySpec
@@ -311,7 +466,7 @@ class QElasticsearchSymbolProcessor(
         isNested: Boolean,
         usedImports: MutableSet<String>,
     ) {
-        val className = if (isNested) "UnknownNestedFields" else "UnknownObjectFields"
+        val className = if (isNested) DSLConstants.UNKNOWN_NESTED_FIELDS else DSLConstants.UNKNOWN_OBJECT_FIELDS
         val delegateCall =
             if (isNested) {
                 "nestedField($className)"
@@ -365,7 +520,7 @@ class QElasticsearchSymbolProcessor(
             // Multi-field with inner fields - generate MultiFieldProxy
             val mainFieldClass = getFieldClass(mainFieldType)
             usedImports.add(mainFieldClass)
-            usedImports.add("MultiFieldProxy")
+            usedImports.add(DSLConstants.MULTI_FIELD_PROXY)
 
             val innerFieldsCode =
                 "\n        " +
@@ -381,7 +536,7 @@ class QElasticsearchSymbolProcessor(
 
             objectBuilder.addProperty(
                 PropertySpec
-                    .builder(propertyName, ClassName("com.qelasticsearch.dsl", "MultiFieldProxy"))
+                    .builder(propertyName, ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.MULTI_FIELD_PROXY))
                     .addModifiers()
                     .delegate("multiFieldProxy($mainFieldClass<String>(\"$propertyName\")) {$innerFieldsCode}")
                     .build(),
@@ -396,71 +551,17 @@ class QElasticsearchSymbolProcessor(
             FieldType.Text
         }
 
-    private fun getFieldDelegate(fieldType: FieldType): String =
-        when (fieldType) {
-            FieldType.Text -> "text()"
-            FieldType.Keyword -> "keyword()"
-            FieldType.Long -> "long()"
-            FieldType.Integer -> "integer()"
-            FieldType.Short -> "short()"
-            FieldType.Byte -> "byte()"
-            FieldType.Double -> "double()"
-            FieldType.Float -> "float()"
-            FieldType.Half_Float -> "halfFloat()"
-            FieldType.Scaled_Float -> "scaledFloat()"
-            FieldType.Date -> "date()"
-            FieldType.Date_Nanos -> "dateNanos()"
-            FieldType.Boolean -> "boolean()"
-            FieldType.Binary -> "binary()"
-            FieldType.Ip -> "ip()"
-            FieldType.TokenCount -> "tokenCount()"
-            FieldType.Percolator -> "percolator()"
-            FieldType.Flattened -> "flattened()"
-            FieldType.Rank_Feature -> "rankFeature()"
-            FieldType.Rank_Features -> "rankFeatures()"
-            FieldType.Wildcard -> "wildcard()"
-            FieldType.Constant_Keyword -> "constantKeyword()"
-            FieldType.Integer_Range -> "integerRange()"
-            FieldType.Float_Range -> "floatRange()"
-            FieldType.Long_Range -> "longRange()"
-            FieldType.Double_Range -> "doubleRange()"
-            FieldType.Date_Range -> "dateRange()"
-            FieldType.Ip_Range -> "ipRange()"
-            else -> "keyword()" // Default fallback
-        }
+    /**
+     * Get the DSL delegate method name for a given field type.
+     * Uses the unified field type mapping to eliminate code duplication.
+     */
+    private fun getFieldDelegate(fieldType: FieldType): String = fieldTypeMappings[fieldType]?.delegate ?: "keyword()" // Default fallback
 
-    private fun getFieldClass(fieldType: FieldType): String =
-        when (fieldType) {
-            FieldType.Text -> "TextField"
-            FieldType.Keyword -> "KeywordField"
-            FieldType.Long -> "LongField"
-            FieldType.Integer -> "IntegerField"
-            FieldType.Short -> "ShortField"
-            FieldType.Byte -> "ByteField"
-            FieldType.Double -> "DoubleField"
-            FieldType.Float -> "FloatField"
-            FieldType.Half_Float -> "HalfFloatField"
-            FieldType.Scaled_Float -> "ScaledFloatField"
-            FieldType.Date -> "DateField"
-            FieldType.Date_Nanos -> "DateNanosField"
-            FieldType.Boolean -> "BooleanField"
-            FieldType.Binary -> "BinaryField"
-            FieldType.Ip -> "IpField"
-            FieldType.TokenCount -> "TokenCountField"
-            FieldType.Percolator -> "PercolatorField"
-            FieldType.Flattened -> "FlattenedField"
-            FieldType.Rank_Feature -> "RankFeatureField"
-            FieldType.Rank_Features -> "RankFeaturesField"
-            FieldType.Wildcard -> "WildcardField"
-            FieldType.Constant_Keyword -> "ConstantKeywordField"
-            FieldType.Integer_Range -> "IntegerRangeField"
-            FieldType.Float_Range -> "FloatRangeField"
-            FieldType.Long_Range -> "LongRangeField"
-            FieldType.Double_Range -> "DoubleRangeField"
-            FieldType.Date_Range -> "DateRangeField"
-            FieldType.Ip_Range -> "IpRangeField"
-            else -> "KeywordField" // Default fallback
-        }
+    /**
+     * Get the DSL field class name for a given field type.
+     * Uses the unified field type mapping to eliminate code duplication.
+     */
+    private fun getFieldClass(fieldType: FieldType): String = fieldTypeMappings[fieldType]?.className ?: "KeywordField" // Default fallback
 
     private fun determineFieldType(
         property: KSPropertyDeclaration,
@@ -992,7 +1093,7 @@ class QElasticsearchSymbolProcessor(
                     @generated by QElasticsearch annotation processor
                     """.trimIndent(),
                 ).addModifiers()
-                .superclass(ClassName("com.qelasticsearch.dsl", "ObjectFields"))
+                .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
                 .addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
 
         val processedPropertyNames = mutableSetOf<String>()
@@ -1008,12 +1109,12 @@ class QElasticsearchSymbolProcessor(
             FileSpec
                 .builder(objectFieldInfo.packageName, objectFieldInfo.className)
                 .addType(objectBuilder.build())
-                .addImport("com.qelasticsearch.dsl", "ObjectFields")
+                .addImport(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS)
                 .indent("    ") // Use 4-space indentation for ktlint compliance
 
         // Add only the imports that are actually used
         importContext.usedImports.forEach { className ->
-            fileBuilder.addImport("com.qelasticsearch.dsl", className)
+            fileBuilder.addImport(DSLConstants.DSL_PACKAGE, className)
         }
 
         // Add type imports (full qualified names like "com.example.ParametrisedType")

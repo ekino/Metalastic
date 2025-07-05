@@ -227,6 +227,86 @@ cd qelasticsearch
 - **Test processor module**: `./gradlew :qelasticsearch-processor:test`
 - **Test integration**: `./gradlew :qelasticsearch-test:test`
 
+## Version Compatibility
+
+QElasticsearch is designed to work with different versions of Spring Data Elasticsearch through **runtime detection**:
+
+### How It Works
+
+The annotation processor uses a sophisticated version compatibility system that:
+
+1. **Detects available FieldType enum values** at runtime
+2. **Gracefully handles missing enum values** in older Spring Data Elasticsearch versions
+3. **Automatically supports newer field types** when available
+4. **Provides comprehensive logging** of unsupported field types
+
+### Implementation Details
+
+```kotlin
+// Runtime detection approach in QElasticsearchSymbolProcessor
+private fun safeAddMapping(
+    mappings: MutableMap<FieldType, FieldTypeMapping>,
+    fieldTypeName: String,
+    delegate: String,
+    className: String,
+) {
+    try {
+        val fieldType = FieldType.valueOf(fieldTypeName)
+        mappings[fieldType] = FieldTypeMapping(delegate, className)
+    } catch (e: IllegalArgumentException) {
+        // FieldType enum value doesn't exist in this version - skip it
+        logger.info("Skipping unsupported FieldType: $fieldTypeName")
+    }
+}
+```
+
+### Supported Spring Data Elasticsearch Versions
+
+| Version | Status | Notes |
+|---------|--------|-------|
+| 5.0.x | ✅ Fully supported | Core field types available |
+| 5.1.x | ✅ Fully supported | Additional field types auto-detected |
+| 5.2.x | ✅ Fully supported | Enhanced field type support |
+| 5.3.x+ | ✅ Fully supported | Newest field types auto-detected |
+
+### Benefits
+
+- **Zero Configuration** - No version-specific setup required
+- **Forward Compatible** - Automatically supports new field types in newer versions
+- **Backward Compatible** - Works with older Spring Data Elasticsearch versions
+- **Safe Degradation** - Unknown field types are logged but don't break compilation
+- **No Dependency Conflicts** - Uses the Spring Data Elasticsearch version from your project
+
+### Troubleshooting Version Issues
+
+If you encounter version-related issues:
+
+1. **Check processor logs** for "Skipping unsupported FieldType" messages
+2. **Verify your Spring Data Elasticsearch version** in your build configuration
+3. **Ensure field types exist** in your version by checking the Spring Data documentation
+4. **Update Spring Data Elasticsearch** if you need newer field types
+
+### Why Runtime Detection Over Dependency Shading?
+
+We initially considered dependency shading (relocating Spring Data Elasticsearch classes), but chose runtime detection for several important reasons:
+
+**Runtime Detection Advantages:**
+- **Simpler build process** - No complex shadow JAR configuration
+- **Zero configuration** - Works automatically with any Spring Data Elasticsearch version  
+- **Cleaner dependencies** - Uses the project's own Spring Data Elasticsearch version
+- **Better IDE support** - No confusion with relocated packages
+- **Easier debugging** - Stack traces show familiar package names
+- **Future-proof** - Automatically supports new FieldType enum values
+
+**Shading Disadvantages:**
+- **Complex build setup** - Requires shadow plugin and relocation configuration
+- **Larger JAR size** - Embeds duplicate dependencies
+- **IDE confusion** - Code completion and navigation work with different package names than runtime
+- **Debugging complexity** - Stack traces show relocated package names
+- **Maintenance overhead** - Need to maintain relocation mappings
+
+The runtime detection approach provides maximum compatibility and ease of use while keeping the implementation clean and maintainable.
+
 ## Code Quality
 
 This project follows strict code quality standards:

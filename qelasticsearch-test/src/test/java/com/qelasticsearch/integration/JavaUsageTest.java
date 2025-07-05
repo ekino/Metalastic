@@ -14,7 +14,7 @@ public class JavaUsageTest {
         // Test accessing the generated Q-class from Java
         assertEquals("java_test_document", QJavaTestDocument.INSTANCE.getIndexName());
         assertEquals("", QJavaTestDocument.INSTANCE.getPath());
-        
+
         // Test field access
         assertNotNull(QJavaTestDocument.INSTANCE.getId());
         assertNotNull(QJavaTestDocument.INSTANCE.getTitle());

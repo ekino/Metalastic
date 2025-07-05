@@ -36,10 +36,10 @@ public class JavaTestDocument {
     private List<String> aList;
 
     @Field(type = FieldType.Keyword)
-    private List<ParametrisedType<String>> parametrisedTypeList;
+    private List<ParametrizedType<String>> parametrizedTypeList;
 
     @Field(type = FieldType.Keyword)
-    private ParametrisedType<String> someParametrisedType;
+    private ParametrizedType<String> someParametrizedType;
 
     @Field(type = FieldType.Keyword)
     private Map<String, Integer> mapField;
