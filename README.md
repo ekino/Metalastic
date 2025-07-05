@@ -113,17 +113,17 @@ object QAddress : ObjectFields() {
 val person = QPerson
 
 // Root level fields
-assertThat(person.path).isEqualTo("")
-assertThat(person.name.path).isEqualTo("name")
-assertThat(person.age.path).isEqualTo("age")
+person.path shouldBe ""
+person.name.path shouldBe "name"
+person.age.path shouldBe "age"
 
 // Nested object fields
-assertThat(person.address.city.path).isEqualTo("address.city")
-assertThat(person.address.country.path).isEqualTo("address.country")
+person.address.city.path shouldBe "address.city"
+person.address.country.path shouldBe "address.country"
 
 // Enhanced path information with nested detection
-assertThat(person.address.city.fieldPath.isNested).isFalse() // object field
-assertThat(person.activities.name.fieldPath.isNested).isTrue() // nested field
+person.address.city.fieldPath.isNested shouldBe false // object field
+person.activities.name.fieldPath.isNested shouldBe true // nested field
 
 // Use in Elasticsearch queries
 val searchRequest = SearchRequest()
@@ -315,6 +315,8 @@ This project follows strict code quality standards:
 - **ktlint** - Code formatting and style checks
 - **detekt** - Static code analysis
 - **100% Kotlin** - Kotlin-first design with Java interoperability
+- **Kotest v5.9.1** - ShouldSpec format for all tests (no JUnit)
+- **KotlinLogging** - Structured logging for tests (no println statements)
 
 ## Architecture
 
@@ -345,8 +347,9 @@ QElasticsearch/
 
 1. Follow the established code style (ktlint + detekt)
 2. No star imports
-3. Write tests for new features
-4. Update documentation for API changes
+3. Write tests for new features using Kotest ShouldSpec format
+4. Use KotlinLogging for test output (no println statements)
+5. Update documentation for API changes
 
 ## License
 

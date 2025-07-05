@@ -26,7 +26,6 @@ subprojects {
 
     dependencies {
         add("testImplementation", "org.junit.jupiter:junit-jupiter:5.10.1")
-        add("testImplementation", "com.willowtreeapps.assertk:assertk:0.28.0")
         add("testImplementation", "org.jetbrains.kotlin:kotlin-test")
     }
 

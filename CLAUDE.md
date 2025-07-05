@@ -35,7 +35,8 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 - **Target**: Elasticsearch query generation
 - **Dependencies**: Spring Data Elasticsearch 5.2.5
 - **Annotation Processing**: KSP (Kotlin Symbol Processing) for processing @Document annotations
-- **Testing**: JUnit 5, AssertK, MockK
+- **Testing**: Kotest v5.9.1 (ShouldSpec format), MockK
+- **Logging**: KotlinLogging for test output (no println statements)
 
 ## Development Notes
 
@@ -181,16 +182,16 @@ The generated DSL should support dotted notation path traversal to obtain the fu
 val document = QIndexModulePath
 
 // Path traversal examples
-assertThat(document.path).isEqualTo("")
-assertThat(document.id.path).isEqualTo("id")
-assertThat(document.longCode.path).isEqualTo("longCode")
-assertThat(document.trainingAgency.id.path).isEqualTo("trainingAgency.id")
-assertThat(document.addresses.city.path).isEqualTo("addresses.city")
+document.path shouldBe ""
+document.id.path shouldBe "id"
+document.longCode.path shouldBe "longCode"
+document.trainingAgency.id.path shouldBe "trainingAgency.id"
+document.addresses.city.path shouldBe "addresses.city"
 
 // Enhanced path information with nested detection
-assertThat(document.trainingAgency.id.fieldPath.isNested).isFalse()
-assertThat(document.addresses.city.fieldPath.isNested).isTrue()
-assertThat(document.addresses.city.fieldPath.nestedSegments).containsExactly("addresses")
+document.trainingAgency.id.fieldPath.isNested shouldBe false
+document.addresses.city.fieldPath.isNested shouldBe true
+document.addresses.city.fieldPath.nestedSegments shouldContainExactly listOf("addresses")
 ```
 
 This allows for:
@@ -203,3 +204,7 @@ This allows for:
 ## Memories
 
 - remember to publish to mavenLocal when finish to implement a feature
+- use ShouldSpec format with Kotest v5.9.1 for all tests (no JUnit)
+- use Enum.entries instead of Enum.values
+- use KotlinLogging for test output (no println statements)
+- processor uses KSPLogger, not regular logging
