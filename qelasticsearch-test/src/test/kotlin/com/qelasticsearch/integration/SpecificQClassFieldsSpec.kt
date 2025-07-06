@@ -1,29 +1,27 @@
 package com.qelasticsearch.integration
 
-import com.qelasticsearch.dsl.UnknownNestedFields
-import com.qelasticsearch.dsl.UnknownObjectFields
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
-class UnknownFieldsSpec :
+class SpecificQClassFieldsSpec :
     ShouldSpec({
 
-        should("generate UnknownNestedFields for interface nested fields") {
-            // Verify that activities field uses UnknownNestedFields
+        should("generate QTestActivity for interface nested fields") {
+            // Verify that activities field uses specific QTestActivity Q-class
             val activitiesField = QNestedTestDocument.activities
 
             activitiesField shouldNotBe null
-            activitiesField.shouldBeInstanceOf<UnknownNestedFields>()
+            activitiesField.shouldBeInstanceOf<QTestActivity>()
         }
 
-        should("generate UnknownObjectFields for interface object fields") {
-            // Verify that metadata field uses UnknownObjectFields
+        should("generate QTestMetadata for interface object fields") {
+            // Verify that metadata field uses specific QTestMetadata Q-class
             val metadataField = QNestedTestDocument.metadata
 
             metadataField shouldNotBe null
-            metadataField.shouldBeInstanceOf<UnknownObjectFields>()
+            metadataField.shouldBeInstanceOf<QTestMetadata>()
         }
 
         should("still generate proper Q-classes for classes with Field annotations") {
@@ -43,10 +41,9 @@ class UnknownFieldsSpec :
             QNestedTestDocument.operation.states.id.path shouldBe "operation.states.id"
         }
 
-        should("generate compilable and type-safe code") {
-            // This test just verifies that the generated code compiles
-            // and the types are correct - the fact that this test compiles
-            // means the UnknownFields approach is working
+        should("generate compilable and type-safe code with specific Q-classes") {
+            // This test verifies that the generated code compiles with specific Q-classes
+            // instead of generic Unknown fields - providing better type safety
 
             val document = QNestedTestDocument
 
@@ -54,8 +51,8 @@ class UnknownFieldsSpec :
             val id = document.id
             val name = document.name
             val operation = document.operation
-            val activities = document.activities // UnknownNestedFields
-            val metadata = document.metadata // UnknownObjectFields
+            val activities = document.activities // QTestActivity
+            val metadata = document.metadata // QTestMetadata
 
             // Verify we can access nested fields through the proper Q-class
             val operationActive = document.operation.active
@@ -68,5 +65,9 @@ class UnknownFieldsSpec :
             metadata shouldNotBe null
             operationActive shouldNotBe null
             stateId shouldNotBe null
+
+            // Verify the specific Q-classes provide proper type information
+            activities.shouldBeInstanceOf<QTestActivity>()
+            metadata.shouldBeInstanceOf<QTestMetadata>()
         }
     })

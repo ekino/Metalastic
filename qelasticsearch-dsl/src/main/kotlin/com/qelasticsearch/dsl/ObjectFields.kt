@@ -155,15 +155,18 @@ class FieldDelegate<T : Field>(
     ): T {
         if (field == null) {
             field = fieldFactory(property.name)
-            // If this is an ObjectField or NestedField, we need to initialize its nested fields with the correct parent path
+            // If this is an ObjectField or NestedField,
+            // we need to initialize its nested fields with the correct parent path
             val currentField = field!!
             when (currentField) {
                 is ObjectField<*> -> {
                     currentField.objectFields.updateParentPath(currentField.path)
                 }
+
                 is NestedField<*> -> {
                     currentField.objectFields.updateParentPath(currentField.path, currentField.fieldPath.nestedSegments)
                 }
+
                 else -> {
                     // No special handling needed for other field types
                 }
@@ -249,17 +252,3 @@ class MultiFieldBuilder {
 
     internal fun build(): Map<String, Field> = innerFields.toMap()
 }
-
-/**
- * Generic placeholder for object fields where the referenced class
- * doesn't have @Field annotations and cannot generate a specific Q-class.
- * This maintains the semantic meaning that this is an object field.
- */
-object UnknownObjectFields : ObjectFields()
-
-/**
- * Generic placeholder for nested fields where the referenced class
- * doesn't have @Field annotations and cannot generate a specific Q-class.
- * This maintains the semantic meaning that this is a nested field.
- */
-object UnknownNestedFields : ObjectFields()

@@ -40,7 +40,19 @@ class ProcessorProviderSpec :
             logger.info { "Verifying access to ${allTypes.size} FieldType entries" }
 
             // Test a representative sample of field types that should always be available
-            val requiredTypes = setOf("Text", "Keyword", "Long", "Integer", "Double", "Float", "Boolean", "Date", "Object", "Nested")
+            val requiredTypes =
+                setOf(
+                    "Text",
+                    "Keyword",
+                    "Long",
+                    "Integer",
+                    "Double",
+                    "Float",
+                    "Boolean",
+                    "Date",
+                    "Object",
+                    "Nested",
+                )
             val availableTypeNames = allTypes.map { it.name }.toSet()
 
             requiredTypes.forEach { requiredType ->

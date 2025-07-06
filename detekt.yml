@@ -11,12 +11,11 @@ complexity:
     threshold: 7
 
 style:
-  ReturnCount:
-    max: 5
   MaxLineLength:
-    maxLineLength: 190
-  UnusedParameter:
-    allowedNames: 'usedImports|fieldType'
+    maxLineLength: 160
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: false
 
 exceptions:
   TooGenericExceptionCaught:

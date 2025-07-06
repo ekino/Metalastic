@@ -105,6 +105,9 @@ public class JavaTestDocument {
     )
     private String description2;
 
+    @Field(type = FieldType.Object)
+    private WithoutAnnotatedField withoutAnnotatedField;
+
     // Constructors
     public JavaTestDocument() {
     }
@@ -445,4 +448,8 @@ class JavaAddress {
     public void setLocation(String location) {
         this.location = location;
     }
+}
+
+class WithoutAnnotatedField {
+    private Integer someField;
 }

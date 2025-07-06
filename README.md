@@ -368,7 +368,7 @@ QElasticsearch/
 - [x] **Multi-field and nested object support** - @MultiField and nested object handling
 - [x] **Nested field detection** - Enhanced path system with nested segment tracking
 - [x] **Generated class documentation** - JavaDoc comments with source class references
-- [x] **Semantic placeholders** - UnknownObjectFields/UnknownNestedFields for incomplete mappings
+- [x] **Specific Q-classes for all referenced types** - Generate type-safe Q-classes even for classes without @Field annotations
 - [ ] Query building DSL - Fluent query construction API
 - [ ] Integration with Elasticsearch clients - Direct query execution
 - [ ] Performance optimizations - Processor and runtime optimizations

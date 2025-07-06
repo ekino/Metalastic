@@ -50,6 +50,12 @@ subprojects {
         filter {
             exclude("**/build/**")
         }
+        additionalEditorconfig.set(
+            mapOf(
+                "max_line_length" to "160",
+                "ktlint_standard_max-line-length" to "enabled"
+            )
+        )
     }
 
     configure<PublishingExtension> {

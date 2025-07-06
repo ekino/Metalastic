@@ -52,8 +52,6 @@ private object DSLConstants {
     const val Q_PREFIX = "Q"
     const val INDEX_CLASS = "Index"
     const val OBJECT_FIELDS_CLASS = "ObjectFields"
-    const val UNKNOWN_OBJECT_FIELDS = "UnknownObjectFields"
-    const val UNKNOWN_NESTED_FIELDS = "UnknownNestedFields"
     const val MULTI_FIELD_PROXY = "MultiFieldProxy"
 }
 
@@ -191,13 +189,11 @@ class QElasticsearchSymbolProcessor(
 
             // Third pass: generate all collected ObjectFields classes
             generateAllObjectFields()
-
-            return emptyList()
         } catch (e: Exception) {
             logger.error("Error processing documents: ${e.message}")
             e.printStackTrace()
-            return emptyList()
         }
+        return emptyList()
     }
 
     private fun processDocumentClass(documentClass: KSClassDeclaration) {
@@ -360,7 +356,13 @@ class QElasticsearchSymbolProcessor(
                     generateObjectFieldProperty(objectBuilder, propertyName, fieldType)
                 } else {
                     // Handle simple field
-                    generateSimpleFieldProperty(objectBuilder, propertyName, fieldType, importContext, typeParameterResolver)
+                    generateSimpleFieldProperty(
+                        objectBuilder,
+                        propertyName,
+                        fieldType,
+                        importContext,
+                        typeParameterResolver,
+                    )
                 }
             }
         }
@@ -373,25 +375,13 @@ class QElasticsearchSymbolProcessor(
         importContext: ImportContext,
         typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
     ) {
-        // Handle special cases that need to delegate to other methods
+        // Handle Object/Nested fields by ensuring Q-class exists and delegating to object field handler
         when (fieldType.elasticsearchType) {
-            FieldType.Object -> {
-                logger.info(
-                    "Object field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using ${DSLConstants.UNKNOWN_OBJECT_FIELDS}",
-                )
-                return generateUnknownObjectFieldProperty(
-                    objectBuilder,
-                    propertyName,
-                    false,
-                    importContext.usedImports,
-                )
-            }
-
-            FieldType.Nested -> {
-                logger.info(
-                    "Nested field '$propertyName' of type '${fieldType.kotlinTypeName}' has no QObjectField, using ${DSLConstants.UNKNOWN_NESTED_FIELDS}",
-                )
-                return generateUnknownObjectFieldProperty(objectBuilder, propertyName, true, importContext.usedImports)
+            FieldType.Object, FieldType.Nested -> {
+                // Ensure the referenced class is registered in globalObjectFields
+                ensureObjectFieldRegistered(fieldType)
+                // Delegate to object field property generator
+                return generateObjectFieldProperty(objectBuilder, propertyName, fieldType)
             }
 
             else -> {
@@ -407,7 +397,13 @@ class QElasticsearchSymbolProcessor(
         // Create KotlinPoet TypeName directly from KSType for better nested generic handling
         val kotlinType = fieldType.kotlinType.resolve()
         val typeParam = createKotlinPoetTypeName(kotlinType, typeParameterResolver)
-        val delegateCall = generateGenericDelegateCallForKSType(methodName, kotlinType, typeParameterResolver, importContext.typeImports)
+        val delegateCall =
+            generateGenericDelegateCallForKSType(
+                methodName,
+                kotlinType,
+                typeParameterResolver,
+                importContext.typeImports,
+            )
 
         val finalTypeName = ClassName(DSLConstants.DSL_PACKAGE, fieldClass).parameterizedBy(typeParam)
 
@@ -454,31 +450,6 @@ class QElasticsearchSymbolProcessor(
         objectBuilder.addProperty(
             PropertySpec
                 .builder(propertyName, ClassName(targetPackage, objectFieldsClassName))
-                .addModifiers()
-                .delegate(delegateCall)
-                .build(),
-        )
-    }
-
-    private fun generateUnknownObjectFieldProperty(
-        objectBuilder: TypeSpec.Builder,
-        propertyName: String,
-        isNested: Boolean,
-        usedImports: MutableSet<String>,
-    ) {
-        val className = if (isNested) DSLConstants.UNKNOWN_NESTED_FIELDS else DSLConstants.UNKNOWN_OBJECT_FIELDS
-        val delegateCall =
-            if (isNested) {
-                "nestedField($className)"
-            } else {
-                "objectField($className)"
-            }
-
-        usedImports.add(className)
-
-        objectBuilder.addProperty(
-            PropertySpec
-                .builder(propertyName, ClassName("com.qelasticsearch.dsl", className))
                 .addModifiers()
                 .delegate(delegateCall)
                 .build(),
@@ -601,14 +572,6 @@ class QElasticsearchSymbolProcessor(
                             val typeDeclaration = property.type.resolve().declaration
                             if (typeDeclaration is KSClassDeclaration) {
                                 val typeName = typeDeclaration.simpleName.asString()
-                                logger.info(
-                                    "Checking type $typeName: classKind=${typeDeclaration.classKind}, package=${typeDeclaration.packageName.asString()}",
-                                )
-                                if (typeName == "EventTarget") {
-                                    logger.warn(
-                                        "Found EventTarget: classKind=${typeDeclaration.classKind}, isEnum=${typeDeclaration.classKind == ClassKind.ENUM_CLASS}",
-                                    )
-                                }
                             }
                             typeDeclaration is KSClassDeclaration &&
                                 typeDeclaration.classKind == ClassKind.CLASS &&
@@ -665,6 +628,7 @@ class QElasticsearchSymbolProcessor(
             packageName == "kotlin" ||
             packageName == "java"
 
+    @Suppress("ReturnCount")
     private fun findNestedClass(
         property: KSPropertyDeclaration,
         fieldType: ProcessedFieldType,
@@ -847,6 +811,7 @@ class QElasticsearchSymbolProcessor(
                 }
                 typeName.simpleName
             }
+
             is com.squareup.kotlinpoet.ParameterizedTypeName -> {
                 // Handle parameterized types recursively
                 val baseSimpleName = extractImportsAndSimplifyTypeName(typeName.rawType, usedImports)
@@ -856,6 +821,7 @@ class QElasticsearchSymbolProcessor(
                     }
                 "$baseSimpleName<$typeArgs>"
             }
+
             else -> {
                 // For other types, use the string representation
                 typeName.toString()
@@ -948,13 +914,6 @@ class QElasticsearchSymbolProcessor(
                         val hasField = property.findAnnotation(Field::class) != null
                         val hasId = property.findAnnotation(Id::class) != null
                         val hasMultiField = property.findAnnotation(MultiField::class) != null
-
-                        if (hasField || hasId || hasMultiField) {
-                            logger.info(
-                                "Class $className has Elasticsearch annotation on property ${property.simpleName.asString()}: @Field=$hasField, @Id=$hasId, @MultiField=$hasMultiField",
-                            )
-                        }
-
                         hasField || hasId || hasMultiField
                     }
 
@@ -1130,6 +1089,53 @@ class QElasticsearchSymbolProcessor(
         return fileBuilder.build()
     }
 
+    /**
+     * Ensures that the referenced class from an Object/Nested field is registered in globalObjectFields.
+     * This method will create a Q-class for any referenced class, even if it has no @Field annotations.
+     */
+    @Suppress("ReturnCount")
+    private fun ensureObjectFieldRegistered(fieldType: ProcessedFieldType) {
+        val actualClassDeclaration = findActualClassDeclaration(fieldType)
+        if (actualClassDeclaration == null) {
+            logger.warn("Could not find class declaration for field type: ${fieldType.kotlinTypeName}")
+            return
+        }
+
+        val objectFieldKey = generateObjectFieldKey(actualClassDeclaration)
+
+        // Check if already registered
+        if (objectFieldKey in globalObjectFields) {
+            logger.info("Class ${actualClassDeclaration.simpleName.asString()} already registered as Q-class")
+            return
+        }
+
+        val targetPackage = actualClassDeclaration.packageName.asString()
+
+        // Skip standard library types
+        if (isStandardLibraryType(targetPackage)) {
+            logger.info("Skipping standard library type: ${fieldType.kotlinTypeName} in package $targetPackage")
+            return
+        }
+
+        val className = generateUniqueQClassName(actualClassDeclaration)
+
+        globalObjectFields[objectFieldKey] =
+            ObjectFieldInfo(
+                className = className,
+                packageName = targetPackage,
+                classDeclaration = actualClassDeclaration,
+                qualifiedName =
+                    actualClassDeclaration.qualifiedName?.asString()
+                        ?: actualClassDeclaration.simpleName.asString(),
+            )
+
+        logger
+            .info("Registered new Q-class for Object/Nested field: ${fieldType.kotlinTypeName} -> $targetPackage.$className")
+
+        // Recursively collect from this class to handle nested object fields
+        collectObjectFieldsFromClass(actualClassDeclaration)
+    }
+
     // Extension functions for KSP annotation handling
     private fun KSClassDeclaration.findAnnotation(annotationClass: kotlin.reflect.KClass<*>): KSAnnotation? =
         annotations.find {
@@ -1191,6 +1197,5 @@ class QElasticsearchSymbolProcessor(
             null
         }
 
-    private inline fun <reified T> KSAnnotation.getArgumentValue(name: String): T? =
-        arguments.find { it.name?.asString() == name }?.value as? T
+    private inline fun <reified T> KSAnnotation.getArgumentValue(name: String): T? = arguments.find { it.name?.asString() == name }?.value as? T
 }

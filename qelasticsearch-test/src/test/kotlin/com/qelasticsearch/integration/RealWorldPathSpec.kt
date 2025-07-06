@@ -33,7 +33,7 @@ class RealWorldPathSpec :
             QNestedTestDocument.operation.active.fieldPath.isNested shouldBe false
 
             // Test nested field (activities is a nested field)
-            // Since it uses UnknownNestedFields, we can't access sub-fields but we can test the parent
+            // Since it uses QTestActivity (interface with no @Field annotations), we can't access sub-fields but we can test the parent
             // The nested field itself should show proper path but the object should handle nested status
             // This is showing that activities is a nested field at the root level
         }

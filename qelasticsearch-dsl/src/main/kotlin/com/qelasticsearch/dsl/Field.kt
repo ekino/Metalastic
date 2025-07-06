@@ -329,9 +329,22 @@ class MultiFieldProxy(
     fun main(): Field = multiField.main()
 
     // Dynamic property access - non-nullable, creates default fields if not defined
-    val search: Field get() = multiField["search"] ?: TextField<String>("search", multiField.path, multiField.parentNestedSegments)
-    val keyword: Field get() = multiField["keyword"] ?: KeywordField<String>("keyword", multiField.path, multiField.parentNestedSegments)
-    val raw: Field get() = multiField["raw"] ?: KeywordField<String>("raw", multiField.path, multiField.parentNestedSegments)
+    val search: Field
+        get() = multiField["search"] ?: TextField<String>("search", multiField.path, multiField.parentNestedSegments)
+    val keyword: Field
+        get() =
+            multiField["keyword"] ?: KeywordField<String>(
+                "keyword",
+                multiField.path,
+                multiField.parentNestedSegments,
+            )
+    val raw: Field
+        get() =
+            multiField["raw"] ?: KeywordField<String>(
+                "raw",
+                multiField.path,
+                multiField.parentNestedSegments,
+            )
 
     // Allow custom suffix access - nullable for dynamic access
     operator fun get(suffix: String): Field? = multiField[suffix]
