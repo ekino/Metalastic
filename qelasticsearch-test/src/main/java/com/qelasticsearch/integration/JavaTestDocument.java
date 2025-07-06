@@ -81,6 +81,10 @@ public class JavaTestDocument {
     @Field(type = FieldType.Keyword)
     private Priority priorityLevel;
 
+    @Field(type = FieldType.Keyword)
+    private List<Priority> priorities;
+
+
     @Field(type = FieldType.Object)
     private JavaAddress address;
 
@@ -397,6 +401,9 @@ class JavaAddress {
 
     @Field(type = FieldType.Keyword) // Simplified for test - would normally be geo_point
     private String location;
+
+    @Field(type = FieldType.Nested, index = false)
+    private List<Priority> nestedPriorities;
 
     public JavaAddress() {
     }

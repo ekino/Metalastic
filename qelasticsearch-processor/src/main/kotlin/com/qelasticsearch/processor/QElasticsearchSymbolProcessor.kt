@@ -566,15 +566,15 @@ class QElasticsearchSymbolProcessor(
                             val elementType = getCollectionElementType(property)
                             elementType != null &&
                                 !isStandardLibraryType(elementType.packageName.asString()) &&
-                                elementType.classKind == ClassKind.CLASS // Not enum, interface, etc.
+                                (elementType.classKind == ClassKind.CLASS || elementType.classKind == ClassKind.INTERFACE) // Classes and interfaces only
                         } else {
-                            // For single objects, check if it's a custom class (not enum)
+                            // For single objects, check if it's a custom class or interface (not enum)
                             val typeDeclaration = property.type.resolve().declaration
                             if (typeDeclaration is KSClassDeclaration) {
                                 val typeName = typeDeclaration.simpleName.asString()
                             }
                             typeDeclaration is KSClassDeclaration &&
-                                typeDeclaration.classKind == ClassKind.CLASS &&
+                                (typeDeclaration.classKind == ClassKind.CLASS || typeDeclaration.classKind == ClassKind.INTERFACE) &&
                                 !isStandardLibraryType(typeDeclaration.packageName.asString())
                         }
                     }
@@ -1116,6 +1116,13 @@ class QElasticsearchSymbolProcessor(
         // Skip standard library types
         if (isStandardLibraryType(targetPackage)) {
             logger.info("Skipping standard library type: ${fieldType.kotlinTypeName} in package $targetPackage")
+            return
+        }
+
+        // Skip enums - they should not have Q-classes generated
+        // Allow classes and interfaces, but skip enums and other types
+        if (actualClassDeclaration.classKind != ClassKind.CLASS && actualClassDeclaration.classKind != ClassKind.INTERFACE) {
+            logger.info("Skipping non-class/interface type: ${fieldType.kotlinTypeName} (kind: ${actualClassDeclaration.classKind})")
             return
         }
 
