@@ -1022,7 +1022,9 @@ class QElasticsearchSymbolProcessor(
     }
 
     private fun generateAllObjectFields() {
-        globalObjectFields.values.forEach { objectFieldInfo ->
+        // Create a copy of the values to avoid ConcurrentModificationException
+        val objectFieldsToGenerate = globalObjectFields.values.toList()
+        objectFieldsToGenerate.forEach { objectFieldInfo ->
             val fileSpec = generateObjectFieldsClassFromInfo(objectFieldInfo)
             writeGeneratedFile(fileSpec, objectFieldInfo.packageName, objectFieldInfo.className)
         }
