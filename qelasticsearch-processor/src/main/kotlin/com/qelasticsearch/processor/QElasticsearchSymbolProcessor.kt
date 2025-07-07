@@ -12,6 +12,7 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeReference
+import com.google.devtools.ksp.symbol.Variance
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
@@ -551,7 +552,8 @@ class QElasticsearchSymbolProcessor(
         val containingClass = property.parentDeclaration as? KSClassDeclaration
         val containingClassName = containingClass?.qualifiedName?.asString() ?: "Unknown"
         val propertyName = property.simpleName.asString()
-        val kotlinTypeName = fieldType.kotlinTypeName
+        // Use the actual property type name instead of the simplified fieldType.kotlinTypeName
+        val kotlinTypeName = getFullTypeName(property.type)
         val elasticsearchType = fieldType.elasticsearchType.name
 
         val annotationInfo =
@@ -1238,6 +1240,39 @@ class QElasticsearchSymbolProcessor(
                 .declaration.qualifiedName
                 ?.asString() == annotationClass.qualifiedName
         }
+
+    /**
+     * Gets the full type name including generics from a KSTypeReference.
+     * Examples: List<String> -> "List<String>", ParametrizedType<String> -> "ParametrizedType<String>"
+     */
+    private fun getFullTypeName(typeReference: KSTypeReference): String {
+        val resolvedType = typeReference.resolve()
+        return buildTypeString(resolvedType)
+    }
+
+    /**
+     * Recursively builds a type string with generics.
+     */
+    private fun buildTypeString(type: KSType): String {
+        val declaration = type.declaration
+        val simpleName = declaration.simpleName.asString()
+
+        val arguments = type.arguments
+        return if (arguments.isNotEmpty()) {
+            val argStrings =
+                arguments.mapNotNull { arg ->
+                    when (arg.variance) {
+                        Variance.INVARIANT -> {
+                            arg.type?.let { buildTypeString(it.resolve()) }
+                        }
+                        else -> "*" // For wildcards and other variance types
+                    }
+                }
+            "$simpleName<${argStrings.joinToString(", ")}>"
+        } else {
+            simpleName
+        }
+    }
 
     private fun KSPropertyDeclaration.findAnnotation(annotationClass: kotlin.reflect.KClass<*>): KSAnnotation? =
         annotations.find {
