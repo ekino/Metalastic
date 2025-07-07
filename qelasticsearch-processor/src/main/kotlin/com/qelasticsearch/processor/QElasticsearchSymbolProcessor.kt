@@ -344,7 +344,7 @@ class QElasticsearchSymbolProcessor(
         when {
             multiFieldAnnotation != null -> {
                 // Handle multi-field
-                generateMultiFieldProperty(objectBuilder, propertyName, multiFieldAnnotation, importContext.usedImports)
+                generateMultiFieldProperty(objectBuilder, property, propertyName, multiFieldAnnotation, importContext.usedImports)
             }
 
             else -> {
@@ -353,35 +353,32 @@ class QElasticsearchSymbolProcessor(
 
                 if (fieldType.isObjectType) {
                     // Handle object/nested field
-                    generateObjectFieldProperty(objectBuilder, propertyName, fieldType)
+                    generateObjectFieldProperty(objectBuilder, property, propertyName, fieldType)
                 } else {
                     // Handle simple field
-                    generateSimpleFieldProperty(
-                        objectBuilder,
-                        propertyName,
-                        fieldType,
-                        importContext,
-                        typeParameterResolver,
-                    )
+                    val context =
+                        FieldGenerationContext(
+                            objectBuilder,
+                            property,
+                            propertyName,
+                            fieldType,
+                            importContext,
+                            typeParameterResolver,
+                        )
+                    generateSimpleFieldProperty(context)
                 }
             }
         }
     }
 
-    private fun generateSimpleFieldProperty(
-        objectBuilder: TypeSpec.Builder,
-        propertyName: String,
-        fieldType: ProcessedFieldType,
-        importContext: ImportContext,
-        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
-    ) {
+    private fun generateSimpleFieldProperty(context: FieldGenerationContext) {
         // Handle Object/Nested fields by ensuring Q-class exists and delegating to object field handler
-        when (fieldType.elasticsearchType) {
+        when (context.fieldType.elasticsearchType) {
             FieldType.Object, FieldType.Nested -> {
                 // Ensure the referenced class is registered in globalObjectFields
-                ensureObjectFieldRegistered(fieldType)
+                ensureObjectFieldRegistered(context.fieldType)
                 // Delegate to object field property generator
-                return generateObjectFieldProperty(objectBuilder, propertyName, fieldType)
+                return generateObjectFieldProperty(context.objectBuilder, context.property, context.propertyName, context.fieldType)
             }
 
             else -> {
@@ -390,27 +387,28 @@ class QElasticsearchSymbolProcessor(
         }
 
         // Use existing helper functions to get field info
-        val fieldClass = getFieldClass(fieldType.elasticsearchType)
-        val basicDelegate = getFieldDelegate(fieldType.elasticsearchType)
+        val fieldClass = getFieldClass(context.fieldType.elasticsearchType)
+        val basicDelegate = getFieldDelegate(context.fieldType.elasticsearchType)
         val methodName = basicDelegate.substringBefore("()")
 
         // Create KotlinPoet TypeName directly from KSType for better nested generic handling
-        val kotlinType = fieldType.kotlinType.resolve()
-        val typeParam = createKotlinPoetTypeName(kotlinType, typeParameterResolver)
+        val kotlinType = context.fieldType.kotlinType.resolve()
+        val typeParam = createKotlinPoetTypeName(kotlinType, context.typeParameterResolver)
         val delegateCall =
             generateGenericDelegateCallForKSType(
                 methodName,
                 kotlinType,
-                typeParameterResolver,
-                importContext.typeImports,
+                context.typeParameterResolver,
             )
 
         val finalTypeName = ClassName(DSLConstants.DSL_PACKAGE, fieldClass).parameterizedBy(typeParam)
 
-        objectBuilder.addProperty(
+        val kdoc = generateFieldKDoc(context.property, context.fieldType)
+
+        context.objectBuilder.addProperty(
             PropertySpec
-                .builder(propertyName, finalTypeName)
-                .addModifiers()
+                .builder(context.propertyName, finalTypeName)
+                .addKdoc(kdoc)
                 .delegate(delegateCall)
                 .build(),
         )
@@ -418,6 +416,7 @@ class QElasticsearchSymbolProcessor(
 
     private fun generateObjectFieldProperty(
         objectBuilder: TypeSpec.Builder,
+        property: KSPropertyDeclaration,
         propertyName: String,
         fieldType: ProcessedFieldType,
     ) {
@@ -446,11 +445,12 @@ class QElasticsearchSymbolProcessor(
             }
 
         val targetPackage = objectFieldInfo.packageName
+        val kdoc = generateFieldKDoc(property, fieldType, listOf("@${fieldType.elasticsearchType.name}"))
 
         objectBuilder.addProperty(
             PropertySpec
                 .builder(propertyName, ClassName(targetPackage, objectFieldsClassName))
-                .addModifiers()
+                .addKdoc(kdoc)
                 .delegate(delegateCall)
                 .build(),
         )
@@ -458,6 +458,7 @@ class QElasticsearchSymbolProcessor(
 
     private fun generateMultiFieldProperty(
         objectBuilder: TypeSpec.Builder,
+        property: KSPropertyDeclaration,
         propertyName: String,
         multiFieldAnnotation: KSAnnotation,
         usedImports: MutableSet<String> = mutableSetOf(),
@@ -480,10 +481,19 @@ class QElasticsearchSymbolProcessor(
 
         if (innerFields.isEmpty()) {
             // Simple multi-field without inner fields - use regular field
+            val simpleFieldType =
+                ProcessedFieldType(
+                    elasticsearchType = mainFieldType,
+                    kotlinType = property.type,
+                    kotlinTypeName = getSimpleTypeName(property.type),
+                    isObjectType = false,
+                )
+            val kdoc = generateFieldKDoc(property, simpleFieldType, listOf("@MultiField"))
+
             objectBuilder.addProperty(
                 PropertySpec
                     .builder(propertyName, ClassName("com.qelasticsearch.dsl", "Field"))
-                    .addModifiers()
+                    .addKdoc(kdoc)
                     .delegate(mainFieldDelegate)
                     .build(),
             )
@@ -505,14 +515,62 @@ class QElasticsearchSymbolProcessor(
                         } +
                     "\n    "
 
+            val complexFieldType =
+                ProcessedFieldType(
+                    elasticsearchType = mainFieldType,
+                    kotlinType = property.type,
+                    kotlinTypeName = getSimpleTypeName(property.type),
+                    isObjectType = false,
+                )
+            val innerFieldsList = innerFields.map { it.getArgumentValue<String>("suffix") ?: "unknown" }
+            val kdoc =
+                generateFieldKDoc(
+                    property,
+                    complexFieldType,
+                    listOf("@MultiField", "inner fields: ${innerFieldsList.joinToString(", ")}"),
+                )
+
             objectBuilder.addProperty(
                 PropertySpec
                     .builder(propertyName, ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.MULTI_FIELD_PROXY))
-                    .addModifiers()
+                    .addKdoc(kdoc)
                     .delegate("multiFieldProxy($mainFieldClass<String>(\"$propertyName\")) {$innerFieldsCode}")
                     .build(),
             )
         }
+    }
+
+    /**
+     * Generates KDoc documentation for a generated field property.
+     */
+    private fun generateFieldKDoc(
+        property: KSPropertyDeclaration,
+        fieldType: ProcessedFieldType,
+        annotations: List<String> = emptyList(),
+    ): String {
+        val containingClass = property.parentDeclaration as? KSClassDeclaration
+        val containingClassName = containingClass?.qualifiedName?.asString() ?: "Unknown"
+        val propertyName = property.simpleName.asString()
+        val kotlinTypeName = fieldType.kotlinTypeName
+        val elasticsearchType = fieldType.elasticsearchType.name
+
+        val annotationInfo =
+            if (annotations.isNotEmpty()) {
+                " with ${annotations.joinToString(", ")}"
+            } else {
+                ""
+            }
+
+        return """
+            |Elasticsearch field for property [$containingClassName.$propertyName].
+            |
+            |**Original Property:**
+            |- Name: `$propertyName`
+            |- Type: `$kotlinTypeName`
+            |- Elasticsearch Type: `$elasticsearchType`$annotationInfo
+            |
+            |@see $containingClassName.$propertyName
+            """.trimMargin()
     }
 
     private fun extractFieldTypeFromAnnotation(annotation: KSAnnotation?): FieldType =
@@ -723,6 +781,18 @@ class QElasticsearchSymbolProcessor(
         val isObjectType: Boolean,
     )
 
+    /**
+     * Context for field property generation.
+     */
+    private data class FieldGenerationContext(
+        val objectBuilder: TypeSpec.Builder,
+        val property: KSPropertyDeclaration,
+        val propertyName: String,
+        val fieldType: ProcessedFieldType,
+        val importContext: ImportContext,
+        val typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
+    )
+
     private data class ObjectFieldInfo(
         val className: String,
         val packageName: String,
@@ -783,14 +853,30 @@ class QElasticsearchSymbolProcessor(
         methodName: String,
         kotlinType: KSType,
         typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
-        usedImports: MutableSet<String> = mutableSetOf(),
     ): String {
         val typeName = kotlinType.toTypeName(typeParameterResolver)
 
-        // Extract imports and create simplified type string
-        val simplifiedTypeString = extractImportsAndSimplifyTypeName(typeName, usedImports)
+        // Create simplified type string without adding imports since KotlinPoet handles them from property type
+        val simplifiedTypeString = simplifyTypeNameWithoutImports(typeName)
         return "$methodName<$simplifiedTypeString>()"
     }
+
+    /**
+     * Simplify TypeName to string without adding imports (for delegate calls where KotlinPoet handles imports).
+     */
+    private fun simplifyTypeNameWithoutImports(typeName: com.squareup.kotlinpoet.TypeName): String =
+        when (typeName) {
+            is ClassName -> typeName.simpleName
+            is com.squareup.kotlinpoet.ParameterizedTypeName -> {
+                val baseSimpleName = simplifyTypeNameWithoutImports(typeName.rawType)
+                val typeArgs =
+                    typeName.typeArguments.joinToString(", ") { arg ->
+                        simplifyTypeNameWithoutImports(arg)
+                    }
+                "$baseSimpleName<$typeArgs>"
+            }
+            else -> typeName.toString()
+        }
 
     /**
      * Extract necessary imports from TypeName and return simplified type string.
@@ -1053,8 +1139,7 @@ class QElasticsearchSymbolProcessor(
                     @see ${objectFieldInfo.classDeclaration.qualifiedName?.asString()}
                     @generated by QElasticsearch annotation processor
                     """.trimIndent(),
-                ).addModifiers()
-                .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
+                ).superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
                 .addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
 
         val processedPropertyNames = mutableSetOf<String>()
