@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldBe
 
 class EnhancedPathSpec :
     ShouldSpec({
-
+        QJavaTestDocument.someInnerClass.someOtherInnerClass.someField
         should("correctly identify nested vs non-nested paths") {
             // Simple path (not nested)
             val simplePath = FieldPath.simple("name")

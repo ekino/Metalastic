@@ -101,11 +101,19 @@ class ObjectFieldRegistry(
         isNestedInCurrentDocument: Boolean,
     ): String =
         if (isNestedInCurrentDocument) {
-            objectFieldInfo.classDeclaration.simpleName.asString()
+            // For nested classes within the same document, use the document's Q class name
+            val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass!!)
+            val parentQClassName = generateUniqueQClassName(rootDocumentClass)
+            val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
+            "$parentQClassName.$nestedPath"
         } else if (objectFieldInfo.parentDocumentClass != null) {
-            val parentQClassName = generateUniqueQClassName(objectFieldInfo.parentDocumentClass)
-            "$parentQClassName.${objectFieldInfo.classDeclaration.simpleName.asString()}"
+            // For nested classes in other documents, use the correct parent Q class name
+            val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass)
+            val parentQClassName = generateUniqueQClassName(rootDocumentClass)
+            val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
+            "$parentQClassName.$nestedPath"
         } else {
+            // For standalone classes, use the Q-prefixed class name
             val simpleClassName = objectFieldInfo.classDeclaration.simpleName.asString()
             if (objectFieldInfo.className.startsWith("Q")) {
                 objectFieldInfo.className
@@ -117,26 +125,93 @@ class ObjectFieldRegistry(
     private fun determinePropertyTypeName(
         objectFieldInfo: ObjectFieldInfo,
         isNestedInCurrentDocument: Boolean,
-    ): ClassName =
+    ): com.squareup.kotlinpoet.TypeName =
         if (isNestedInCurrentDocument) {
-            ClassName("", objectFieldInfo.classDeclaration.simpleName.asString())
+            // For nested classes within the same document, use the nested path from the parent Q-class
+            val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass!!)
+            val parentQClassName = generateUniqueQClassName(rootDocumentClass)
+            val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
+
+            // Build the nested class name step by step to avoid import issues
+            val nestedParts = nestedPath.split(".")
+            var currentClass = ClassName(objectFieldInfo.packageName, parentQClassName)
+            for (part in nestedParts) {
+                currentClass = currentClass.nestedClass(part)
+            }
+            currentClass
         } else if (objectFieldInfo.parentDocumentClass != null) {
-            val parentQClassName = generateUniqueQClassName(objectFieldInfo.parentDocumentClass)
-            val nestedClassName = objectFieldInfo.classDeclaration.simpleName.asString()
-            ClassName(objectFieldInfo.packageName, parentQClassName).nestedClass(nestedClassName)
+            // For nested classes in other documents, use the parent Q-class as the outer class
+            val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass)
+            val parentQClassName = generateUniqueQClassName(rootDocumentClass)
+            val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
+
+            // Build the nested class name step by step to avoid import issues
+            val nestedParts = nestedPath.split(".")
+            var currentClass = ClassName(objectFieldInfo.packageName, parentQClassName)
+            for (part in nestedParts) {
+                currentClass = currentClass.nestedClass(part)
+            }
+            currentClass
         } else {
-            ClassName(objectFieldInfo.packageName, determineFinalReferenceClassName(objectFieldInfo, false))
+            // For standalone classes, use the Q-prefixed class name
+            val qClassName =
+                if (objectFieldInfo.className.startsWith("Q")) {
+                    objectFieldInfo.className
+                } else {
+                    "Q${objectFieldInfo.classDeclaration.simpleName.asString()}"
+                }
+            ClassName(objectFieldInfo.packageName, qClassName)
         }
 
     private fun generateUniqueQClassName(classDeclaration: KSClassDeclaration): String {
         val simpleName = classDeclaration.simpleName.asString()
-        val parentClass = classDeclaration.parentDeclaration as? KSClassDeclaration
 
-        return if (parentClass != null) {
-            "Q${parentClass.simpleName.asString()}$simpleName"
+        // Always use the simple Q class name to avoid naming conflicts
+        return "Q$simpleName"
+    }
+
+    private fun extractNestedPath(
+        objectFieldInfo: ObjectFieldInfo,
+        rootDocumentClass: KSClassDeclaration,
+    ): String {
+        val qualifiedName = objectFieldInfo.qualifiedName
+        val rootDocumentQualifiedName = rootDocumentClass.qualifiedName?.asString()
+
+        return if (rootDocumentQualifiedName != null && qualifiedName.startsWith(rootDocumentQualifiedName)) {
+            // Extract the path after the root document class
+            val nestedPath = qualifiedName.substring(rootDocumentQualifiedName.length + 1)
+            nestedPath
         } else {
-            "Q$simpleName"
+            // Fallback to simple class name
+            objectFieldInfo.classDeclaration.simpleName.asString()
         }
+    }
+
+    private fun findRootDocumentClass(classDeclaration: KSClassDeclaration): KSClassDeclaration {
+        var currentClass = classDeclaration
+
+        // Navigate up the hierarchy until we find the root document class
+        while (currentClass.parentDeclaration is KSClassDeclaration) {
+            val parentClass = currentClass.parentDeclaration as KSClassDeclaration
+
+            // Check if parent has @Document annotation
+            val hasDocumentAnnotation =
+                parentClass.annotations.any { annotation ->
+                    annotation.annotationType
+                        .resolve()
+                        .declaration.qualifiedName
+                        ?.asString() == Document::class.qualifiedName
+                }
+
+            if (hasDocumentAnnotation) {
+                return parentClass
+            }
+
+            currentClass = parentClass
+        }
+
+        // If we reach here, the current class itself should be the document class
+        return currentClass
     }
 
     private fun isActuallyNestedClass(

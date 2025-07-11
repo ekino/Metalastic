@@ -30,9 +30,27 @@ class NestedClassProcessor(
         documentClass: KSClassDeclaration,
         fieldTypeExtractor: FieldTypeExtractor,
     ) {
+        // First, collect all nested classes defined within the document class
+        val directNestedClasses = mutableListOf<KSClassDeclaration>()
+        collectNestedClasses(documentClass, directNestedClasses)
+
+        // Register all nested classes found within the document class
+        directNestedClasses.forEach { nestedClass ->
+            registerObjectField(nestedClass, documentClass)
+        }
+
+        // Then process properties to find additional referenced classes
         processClassProperties(documentClass, fieldTypeExtractor) { nestedClass ->
             registerObjectField(nestedClass, documentClass)
             collectObjectFieldsFromClass(nestedClass, fieldTypeExtractor)
+        }
+
+        // Finally, process properties of all nested classes to find their referenced types
+        directNestedClasses.forEach { nestedClass ->
+            processClassProperties(nestedClass, fieldTypeExtractor) { referencedClass ->
+                registerObjectField(referencedClass, documentClass)
+                collectObjectFieldsFromClass(referencedClass, fieldTypeExtractor)
+            }
         }
     }
 
@@ -77,8 +95,27 @@ class NestedClassProcessor(
      */
     fun getNestedClassesForDocument(documentClass: KSClassDeclaration): List<ObjectFieldInfo> =
         globalObjectFields.values.filter { objectFieldInfo ->
-            objectFieldInfo.parentDocumentClass == documentClass
+            objectFieldInfo.parentDocumentClass == documentClass &&
+                isDirectNestedClass(objectFieldInfo.classDeclaration, documentClass)
         }
+
+    /**
+     * Gets nested classes that should be included in a specific class (for recursive nesting).
+     */
+    private fun getNestedClassesForClass(parentClass: KSClassDeclaration): List<ObjectFieldInfo> =
+        globalObjectFields.values.filter { objectFieldInfo ->
+            isDirectNestedClass(objectFieldInfo.classDeclaration, parentClass)
+        }
+
+    private fun isDirectNestedClass(
+        nestedClass: KSClassDeclaration,
+        parentClass: KSClassDeclaration,
+    ): Boolean {
+        // Check if this is a direct nested class (not nested within another nested class)
+        return parentClass.declarations.filterIsInstance<KSClassDeclaration>().any {
+            it.qualifiedName?.asString() == nestedClass.qualifiedName?.asString()
+        }
+    }
 
     /**
      * Adds nested objects to a Q-class builder.
@@ -91,6 +128,30 @@ class NestedClassProcessor(
         objectFieldRegistry: ObjectFieldRegistry,
     ) {
         val nestedClasses = getNestedClassesForDocument(documentClass)
+
+        nestedClasses.forEach { objectFieldInfo ->
+            val nestedObjectBuilder =
+                createNestedObjectBuilder(
+                    objectFieldInfo,
+                    fieldGenerators,
+                    fieldTypeExtractor,
+                    objectFieldRegistry,
+                )
+            parentObjectBuilder.addType(nestedObjectBuilder.build())
+        }
+    }
+
+    /**
+     * Adds nested objects to a specific class builder (for recursive nesting).
+     */
+    private fun addNestedObjectsToClassBuilder(
+        parentClass: KSClassDeclaration,
+        parentObjectBuilder: TypeSpec.Builder,
+        fieldGenerators: FieldGenerators,
+        fieldTypeExtractor: FieldTypeExtractor,
+        objectFieldRegistry: ObjectFieldRegistry,
+    ) {
+        val nestedClasses = getNestedClassesForClass(parentClass)
 
         nestedClasses.forEach { objectFieldInfo ->
             val nestedObjectBuilder =
@@ -142,6 +203,15 @@ class NestedClassProcessor(
             objectFieldRegistry,
         )
 
+        // Recursively add nested objects for this class
+        addNestedObjectsToClassBuilder(
+            objectFieldInfo.classDeclaration,
+            objectBuilder,
+            fieldGenerators,
+            fieldTypeExtractor,
+            objectFieldRegistry,
+        )
+
         return objectBuilder
     }
 
@@ -169,14 +239,8 @@ class NestedClassProcessor(
             )
         }
 
-        // Recursively add nested objects
-        addNestedObjectsToBuilder(
-            classDeclaration,
-            objectBuilder,
-            fieldGenerators,
-            fieldTypeExtractor,
-            objectFieldRegistry,
-        )
+        // Don't add nested objects here to avoid duplicates
+        // They will be added as top-level objects
     }
 
     private fun registerObjectField(
@@ -254,8 +318,25 @@ class NestedClassProcessor(
     ): Boolean {
         if (parentClass == null) return false
 
-        return parentClass.declarations.filterIsInstance<KSClassDeclaration>().any {
-            it.qualifiedName?.asString() == nestedClass.qualifiedName?.asString()
+        // Check if the nested class is contained within the parent class hierarchy
+        return isNestedWithinClass(nestedClass, parentClass)
+    }
+
+    private fun isNestedWithinClass(
+        nestedClass: KSClassDeclaration,
+        parentClass: KSClassDeclaration,
+    ): Boolean {
+        // Check direct nested classes
+        val directNestedClasses = parentClass.declarations.filterIsInstance<KSClassDeclaration>()
+
+        // Check if it's a direct child
+        if (directNestedClasses.any { it.qualifiedName?.asString() == nestedClass.qualifiedName?.asString() }) {
+            return true
+        }
+
+        // Recursively check nested classes
+        return directNestedClasses.any { directChild ->
+            isNestedWithinClass(nestedClass, directChild)
         }
     }
 

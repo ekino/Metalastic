@@ -112,6 +112,9 @@ public class JavaTestDocument {
     @Field(type = FieldType.Object)
     private JavaAddress.WithoutAnnotatedField withoutAnnotatedField;
 
+    @Field(type = FieldType.Object)
+    private JavaAddress.SomeInnerClass someInnerClass;
+
     // Constructors
     public JavaTestDocument() {
     }
@@ -458,5 +461,18 @@ class JavaAddress {
 
     public static class WithoutAnnotatedField {
         private Integer someField;
+    }
+
+    public static class SomeInnerClass {
+        @Field(type = FieldType.Integer)
+        private Integer someField;
+
+        @Field(type = FieldType.Object)
+        private SomeOtherInnerClass someOtherInnerClass;
+    }
+
+    public static class SomeOtherInnerClass {
+        @Field(type = FieldType.Integer)
+        private String someField;
     }
 }
