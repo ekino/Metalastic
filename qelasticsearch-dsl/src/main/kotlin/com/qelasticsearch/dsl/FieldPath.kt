@@ -5,6 +5,7 @@ package com.qelasticsearch.dsl
  * This allows for more intelligent query building where nested paths
  * require special handling (e.g., nested queries in Elasticsearch).
  */
+@JvmRecord
 data class FieldPath(
     /**
      * The full dotted path (e.g., "address.city", "activities.name")
@@ -38,6 +39,9 @@ data class FieldPath(
      */
     val rootNestedPath: String?
         get() = nestedSegments.find { path.startsWith(it) }
+
+    val isRoot: Boolean
+        get() = path.isEmpty()
 
     /**
      * Creates a child path from this path

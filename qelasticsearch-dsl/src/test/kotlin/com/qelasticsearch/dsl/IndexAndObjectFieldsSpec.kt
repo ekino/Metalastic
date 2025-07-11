@@ -19,7 +19,7 @@ class IndexAndObjectFieldsSpec :
                 }
 
             index.indexName shouldBe "test-index"
-            index.path shouldBe ""
+            index.parentPath.path shouldBe ""
         }
 
         should("create fields with correct paths in Index") {
@@ -30,9 +30,9 @@ class IndexAndObjectFieldsSpec :
                     val lastLogin by date<java.util.Date>()
                 }
 
-            index.email.path shouldBe "email"
-            index.firstName.path shouldBe "firstName"
-            index.lastLogin.path shouldBe "lastLogin"
+            index.email.path().path shouldBe "email"
+            index.firstName.path().path shouldBe "firstName"
+            index.lastLogin.path().path shouldBe "lastLogin"
         }
 
         should("maintain field types in Index") {
@@ -84,8 +84,12 @@ class IndexAndObjectFieldsSpec :
                     val address by objectField(AddressFields())
                 }
 
-            person.address.city.path shouldBe "address.city"
-            person.address.country.path shouldBe "address.country"
+            person.address.city
+                .path()
+                .path shouldBe "address.city"
+            person.address.country
+                .path()
+                .path shouldBe "address.country"
         }
 
         should("handle nested object fields correctly") {
@@ -106,10 +110,18 @@ class IndexAndObjectFieldsSpec :
                     val address by objectField(AddressFields())
                 }
 
-            venue.address.street.path shouldBe "address.street"
-            venue.address.city.path shouldBe "address.city"
-            venue.address.location.latitude.path shouldBe "address.location.latitude"
-            venue.address.location.longitude.path shouldBe "address.location.longitude"
+            venue.address.street
+                .path()
+                .path shouldBe "address.street"
+            venue.address.city
+                .path()
+                .path shouldBe "address.city"
+            venue.address.location.latitude
+                .path()
+                .path shouldBe "address.location.latitude"
+            venue.address.location.longitude
+                .path()
+                .path shouldBe "address.location.longitude"
         }
 
         should("handle multiple object fields in same index") {
@@ -130,10 +142,18 @@ class IndexAndObjectFieldsSpec :
                     val address by objectField(AddressFields())
                 }
 
-            person.contact.email.path shouldBe "contact.email"
-            person.contact.phone.path shouldBe "contact.phone"
-            person.address.street.path shouldBe "address.street"
-            person.address.city.path shouldBe "address.city"
+            person.contact.email
+                .path()
+                .path shouldBe "contact.email"
+            person.contact.phone
+                .path()
+                .path shouldBe "contact.phone"
+            person.address.street
+                .path()
+                .path shouldBe "address.street"
+            person.address.city
+                .path()
+                .path shouldBe "address.city"
         }
         should("create nested fields correctly") {
             class TagFields : ObjectFields() {
@@ -147,8 +167,12 @@ class IndexAndObjectFieldsSpec :
                     val tags by nestedField(TagFields())
                 }
 
-            article.tags.name.path shouldBe "tags.name"
-            article.tags.weight.path shouldBe "tags.weight"
+            article.tags.name
+                .path()
+                .path shouldBe "tags.name"
+            article.tags.weight
+                .path()
+                .path shouldBe "tags.weight"
         }
 
         should("handle nested fields with object fields inside") {
@@ -168,9 +192,15 @@ class IndexAndObjectFieldsSpec :
                     val events by nestedField(EventFields())
                 }
 
-            user.events.name.path shouldBe "events.name"
-            user.events.location.city.path shouldBe "events.location.city"
-            user.events.location.country.path shouldBe "events.location.country"
+            user.events.name
+                .path()
+                .path shouldBe "events.name"
+            user.events.location.city
+                .path()
+                .path shouldBe "events.location.city"
+            user.events.location.country
+                .path()
+                .path shouldBe "events.location.country"
         }
         should("handle deep nesting correctly") {
             class MetricsFields : ObjectFields() {
@@ -197,12 +227,24 @@ class IndexAndObjectFieldsSpec :
                 }
 
             // Test deep path construction
-            advertiser.campaigns.name.path shouldBe "campaigns.name"
-            advertiser.campaigns.budget.path shouldBe "campaigns.budget"
-            advertiser.campaigns.analytics.period.path shouldBe "campaigns.analytics.period"
-            advertiser.campaigns.analytics.metrics.views.path shouldBe "campaigns.analytics.metrics.views"
-            advertiser.campaigns.analytics.metrics.clicks.path shouldBe "campaigns.analytics.metrics.clicks"
-            advertiser.campaigns.analytics.metrics.conversions.path shouldBe "campaigns.analytics.metrics.conversions"
+            advertiser.campaigns.name
+                .path()
+                .path shouldBe "campaigns.name"
+            advertiser.campaigns.budget
+                .path()
+                .path shouldBe "campaigns.budget"
+            advertiser.campaigns.analytics.period
+                .path()
+                .path shouldBe "campaigns.analytics.period"
+            advertiser.campaigns.analytics.metrics.views
+                .path()
+                .path shouldBe "campaigns.analytics.metrics.views"
+            advertiser.campaigns.analytics.metrics.clicks
+                .path()
+                .path shouldBe "campaigns.analytics.metrics.clicks"
+            advertiser.campaigns.analytics.metrics.conversions
+                .path()
+                .path shouldBe "campaigns.analytics.metrics.conversions"
         }
         should("handle all field types in nested structures") {
             class StatisticsFields : ObjectFields() {
@@ -243,11 +285,17 @@ class IndexAndObjectFieldsSpec :
             search.timestamp.shouldBeInstanceOf<DateField<java.util.Date>>()
 
             // Verify paths are constructed correctly
-            search.query.path shouldBe "query"
-            search.documents.content.path shouldBe "documents.content"
-            search.documents.statistics.count.path shouldBe "documents.statistics.count"
-            search.documents.statistics.lastUpdated.path shouldBe "documents.statistics.lastUpdated"
-            search.timestamp.path shouldBe "timestamp"
+            search.query.path().path shouldBe "query"
+            search.documents.content
+                .path()
+                .path shouldBe "documents.content"
+            search.documents.statistics.count
+                .path()
+                .path shouldBe "documents.statistics.count"
+            search.documents.statistics.lastUpdated
+                .path()
+                .path shouldBe "documents.statistics.lastUpdated"
+            search.timestamp.path().path shouldBe "timestamp"
         }
         should("handle ObjectFields with same field names in different contexts") {
             class CommonFields : ObjectFields() {
@@ -264,14 +312,22 @@ class IndexAndObjectFieldsSpec :
                 }
 
             // Root level fields
-            index.name.path shouldBe "name"
-            index.id.path shouldBe "id"
+            index.name.path().path shouldBe "name"
+            index.id.path().path shouldBe "id"
 
             // Object fields with same names should have different paths
-            index.user.name.path shouldBe "user.name"
-            index.user.id.path shouldBe "user.id"
-            index.group.name.path shouldBe "group.name"
-            index.group.id.path shouldBe "group.id"
+            index.user.name
+                .path()
+                .path shouldBe "user.name"
+            index.user.id
+                .path()
+                .path shouldBe "user.id"
+            index.group.name
+                .path()
+                .path shouldBe "group.name"
+            index.group.id
+                .path()
+                .path shouldBe "group.id"
         }
 
         should("handle empty field names gracefully") {
@@ -284,7 +340,7 @@ class IndexAndObjectFieldsSpec :
                     val content by text<String>()
                 }
 
-            index.content.path shouldBe "content"
+            index.content.path().path shouldBe "content"
         }
         should("maintain type safety through object traversal") {
             class TypedFields : ObjectFields() {

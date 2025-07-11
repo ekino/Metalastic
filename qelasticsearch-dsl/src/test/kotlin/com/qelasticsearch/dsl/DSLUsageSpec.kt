@@ -20,8 +20,8 @@ class DSLUsageSpec :
 
             index.title.shouldBeInstanceOf<TextField<String>>()
             index.content.shouldBeInstanceOf<TextField<String>>()
-            index.title.path shouldBe "title"
-            index.content.path shouldBe "content"
+            index.title.path().path shouldBe "title"
+            index.content.path().path shouldBe "content"
         }
 
         should("create keyword field via delegate") {
@@ -208,10 +208,16 @@ class DSLUsageSpec :
             product.reviews.rating.shouldBeInstanceOf<FloatField<Float>>()
 
             // Verify paths
-            product.title.path shouldBe "title"
-            product.price.amount.path shouldBe "price.amount"
-            product.category.name.path shouldBe "category.name"
-            product.reviews.comment.path shouldBe "reviews.comment"
+            product.title.path().path shouldBe "title"
+            product.price.amount
+                .path()
+                .path shouldBe "price.amount"
+            product.category.name
+                .path()
+                .path shouldBe "category.name"
+            product.reviews.comment
+                .path()
+                .path shouldBe "reviews.comment"
         }
 
         should("support user management document structure") {
@@ -249,8 +255,12 @@ class DSLUsageSpec :
                 }
 
             // Test deep nesting
-            user.profile.permissions.admin.path shouldBe "profile.permissions.admin"
-            user.activities.ipAddress.path shouldBe "activities.ipAddress"
+            user.profile.permissions.admin
+                .path()
+                .path shouldBe "profile.permissions.admin"
+            user.activities.ipAddress
+                .path()
+                .path shouldBe "activities.ipAddress"
 
             // Test field types
             user.profile.permissions.admin
@@ -268,45 +278,45 @@ class DSLUsageSpec :
         should("create all field types correctly with factory methods") {
             val testCases =
                 listOf(
-                    FieldTestCase("text", { TextField<String>("test", "") }, "TextField"),
-                    FieldTestCase("keyword", { KeywordField<String>("test", "") }, "KeywordField"),
-                    FieldTestCase("long", { LongField<Long>("test", "") }, "LongField"),
-                    FieldTestCase("integer", { IntegerField<Int>("test", "") }, "IntegerField"),
-                    FieldTestCase("short", { ShortField<Short>("test", "") }, "ShortField"),
-                    FieldTestCase("byte", { ByteField<Byte>("test", "") }, "ByteField"),
-                    FieldTestCase("double", { DoubleField<Double>("test", "") }, "DoubleField"),
-                    FieldTestCase("float", { FloatField<Float>("test", "") }, "FloatField"),
-                    FieldTestCase("halfFloat", { HalfFloatField("test", "") }, "HalfFloatField"),
-                    FieldTestCase("scaledFloat", { ScaledFloatField("test", "") }, "ScaledFloatField"),
-                    FieldTestCase("date", { DateField<java.util.Date>("test", "") }, "DateField"),
-                    FieldTestCase("dateNanos", { DateNanosField("test", "") }, "DateNanosField"),
-                    FieldTestCase("boolean", { BooleanField<Boolean>("test", "") }, "BooleanField"),
-                    FieldTestCase("binary", { BinaryField("test", "") }, "BinaryField"),
-                    FieldTestCase("ip", { IpField("test", "") }, "IpField"),
-                    FieldTestCase("geoPoint", { GeoPointField("test", "") }, "GeoPointField"),
-                    FieldTestCase("geoShape", { GeoShapeField("test", "") }, "GeoShapeField"),
-                    FieldTestCase("completion", { CompletionField("test", "") }, "CompletionField"),
-                    FieldTestCase("tokenCount", { TokenCountField("test", "") }, "TokenCountField"),
-                    FieldTestCase("percolator", { PercolatorField("test", "") }, "PercolatorField"),
-                    FieldTestCase("rankFeature", { RankFeatureField("test", "") }, "RankFeatureField"),
-                    FieldTestCase("rankFeatures", { RankFeaturesField("test", "") }, "RankFeaturesField"),
-                    FieldTestCase("flattened", { FlattenedField("test", "") }, "FlattenedField"),
-                    FieldTestCase("wildcard", { WildcardField("test", "") }, "WildcardField"),
-                    FieldTestCase("constantKeyword", { ConstantKeywordField("test", "") }, "ConstantKeywordField"),
-                    FieldTestCase("shape", { ShapeField("test", "") }, "ShapeField"),
-                    FieldTestCase("point", { PointField("test", "") }, "PointField"),
-                    FieldTestCase("integerRange", { IntegerRangeField("test", "") }, "IntegerRangeField"),
-                    FieldTestCase("floatRange", { FloatRangeField("test", "") }, "FloatRangeField"),
-                    FieldTestCase("longRange", { LongRangeField("test", "") }, "LongRangeField"),
-                    FieldTestCase("doubleRange", { DoubleRangeField("test", "") }, "DoubleRangeField"),
-                    FieldTestCase("dateRange", { DateRangeField("test", "") }, "DateRangeField"),
-                    FieldTestCase("ipRange", { IpRangeField("test", "") }, "IpRangeField"),
+                    FieldTestCase("text", { TextField<String>("test") }, "TextField"),
+                    FieldTestCase("keyword", { KeywordField<String>("test") }, "KeywordField"),
+                    FieldTestCase("long", { LongField<Long>("test") }, "LongField"),
+                    FieldTestCase("integer", { IntegerField<Int>("test") }, "IntegerField"),
+                    FieldTestCase("short", { ShortField<Short>("test") }, "ShortField"),
+                    FieldTestCase("byte", { ByteField<Byte>("test") }, "ByteField"),
+                    FieldTestCase("double", { DoubleField<Double>("test") }, "DoubleField"),
+                    FieldTestCase("float", { FloatField<Float>("test") }, "FloatField"),
+                    FieldTestCase("halfFloat", { HalfFloatField("test") }, "HalfFloatField"),
+                    FieldTestCase("scaledFloat", { ScaledFloatField("test") }, "ScaledFloatField"),
+                    FieldTestCase("date", { DateField<java.util.Date>("test") }, "DateField"),
+                    FieldTestCase("dateNanos", { DateNanosField("test") }, "DateNanosField"),
+                    FieldTestCase("boolean", { BooleanField<Boolean>("test") }, "BooleanField"),
+                    FieldTestCase("binary", { BinaryField("test") }, "BinaryField"),
+                    FieldTestCase("ip", { IpField("test") }, "IpField"),
+                    FieldTestCase("geoPoint", { GeoPointField("test") }, "GeoPointField"),
+                    FieldTestCase("geoShape", { GeoShapeField("test") }, "GeoShapeField"),
+                    FieldTestCase("completion", { CompletionField("test") }, "CompletionField"),
+                    FieldTestCase("tokenCount", { TokenCountField("test") }, "TokenCountField"),
+                    FieldTestCase("percolator", { PercolatorField("test") }, "PercolatorField"),
+                    FieldTestCase("rankFeature", { RankFeatureField("test") }, "RankFeatureField"),
+                    FieldTestCase("rankFeatures", { RankFeaturesField("test") }, "RankFeaturesField"),
+                    FieldTestCase("flattened", { FlattenedField("test") }, "FlattenedField"),
+                    FieldTestCase("wildcard", { WildcardField("test") }, "WildcardField"),
+                    FieldTestCase("constantKeyword", { ConstantKeywordField("test") }, "ConstantKeywordField"),
+                    FieldTestCase("shape", { ShapeField("test") }, "ShapeField"),
+                    FieldTestCase("point", { PointField("test") }, "PointField"),
+                    FieldTestCase("integerRange", { IntegerRangeField("test") }, "IntegerRangeField"),
+                    FieldTestCase("floatRange", { FloatRangeField("test") }, "FloatRangeField"),
+                    FieldTestCase("longRange", { LongRangeField("test") }, "LongRangeField"),
+                    FieldTestCase("doubleRange", { DoubleRangeField("test") }, "DoubleRangeField"),
+                    FieldTestCase("dateRange", { DateRangeField("test") }, "DateRangeField"),
+                    FieldTestCase("ipRange", { IpRangeField("test") }, "IpRangeField"),
                 )
 
             testCases.forEach { testCase ->
                 val field = testCase.factory()
-                field.name shouldBe "test"
-                field.path shouldBe "test"
+                field.name() shouldBe "test"
+                field.path().path shouldBe "test"
                 field::class.simpleName shouldBe testCase.expectedType
             }
         }
@@ -318,8 +328,8 @@ class DSLUsageSpec :
                     val anotherField by keyword<String>()
                 }
 
-            index.customFieldName.name shouldBe "customFieldName"
-            index.anotherField.name shouldBe "anotherField"
+            index.customFieldName.name() shouldBe "customFieldName"
+            index.anotherField.name() shouldBe "anotherField"
         }
 
         should("handle camelCase property names") {
@@ -330,9 +340,9 @@ class DSLUsageSpec :
                     val dateOfBirth by date<java.util.Date>()
                 }
 
-            index.firstName.name shouldBe "firstName"
-            index.lastName.name shouldBe "lastName"
-            index.dateOfBirth.name shouldBe "dateOfBirth"
+            index.firstName.name() shouldBe "firstName"
+            index.lastName.name() shouldBe "lastName"
+            index.dateOfBirth.name() shouldBe "dateOfBirth"
         }
 
         should("handle snake_case property names") {
@@ -343,8 +353,8 @@ class DSLUsageSpec :
                     val created_at by date<java.util.Date>()
                 }
 
-            index.first_name.name shouldBe "first_name"
-            index.last_name.name shouldBe "last_name"
-            index.created_at.name shouldBe "created_at"
+            index.first_name.name() shouldBe "first_name"
+            index.last_name.name() shouldBe "last_name"
+            index.created_at.name() shouldBe "created_at"
         }
     })

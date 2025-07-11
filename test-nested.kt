@@ -1,22 +1,17 @@
-// Simple test file to check compilation
-package test
+import com.qelasticsearch.integration.QExampleDocument
 
-import org.springframework.data.annotation.Id
-import org.springframework.data.elasticsearch.annotations.Document
-import org.springframework.data.elasticsearch.annotations.Field
-import org.springframework.data.elasticsearch.annotations.FieldType
-
-@Document(indexName = "test_nested")
-class TestNested {
-    @Id
-    @Field(type = FieldType.Keyword)
-    var id: String = ""
+fun main() {
+    // Test that we can now access the correct nested class
+    val document = QExampleDocument
     
-    @Field(type = FieldType.Object)
-    var nested: NestedClass = NestedClass()
+    // This should work and access the outer NameCollision class
+    val outerNameCollision = document.nameCollision.firstLevel
+    println("Outer nameCollision.firstLevel: ${outerNameCollision.path}")
     
-    class NestedClass {
-        @Field(type = FieldType.Text)
-        var name: String = ""
-    }
+    // This should work and access the inner NameCollision class
+    val innerNameCollision = document.nestedObject.nameCollision.secondLevel
+    println("Inner nestedObject.nameCollision.secondLevel: ${innerNameCollision.path}")
+    
+    // Verify paths are different
+    println("Are paths different? ${outerNameCollision.path != innerNameCollision.path}")
 }

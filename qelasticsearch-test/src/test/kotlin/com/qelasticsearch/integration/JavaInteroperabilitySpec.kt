@@ -13,7 +13,7 @@ class JavaInteroperabilitySpec :
         should("generate QJavaTestDocument from Java class") {
             // Verify that KSP can process plain Java classes
             QJavaTestDocument.indexName shouldBe "java_test_document"
-            QJavaTestDocument.path shouldBe ""
+            QJavaTestDocument.parentPath.path shouldBe ""
         }
 
         should("have accessible Java generated fields with correct types") {
@@ -33,17 +33,21 @@ class JavaInteroperabilitySpec :
 
         should("have correct paths for QueryDSL compatibility") {
             // Verify path generation follows QueryDSL conventions
-            QJavaTestDocument.id.path shouldBe "id"
-            QJavaTestDocument.title.path shouldBe "title"
-            QJavaTestDocument.description.path shouldBe "description"
-            QJavaTestDocument.priority.path shouldBe "priority"
-            QJavaTestDocument.isActive.path shouldBe "isActive"
-            QJavaTestDocument.createdAt.path shouldBe "createdAt"
-            QJavaTestDocument.score.path shouldBe "score"
-            QJavaTestDocument.category.path shouldBe "category"
-            QJavaTestDocument.address.city.path shouldBe "address.city"
-            QJavaTestDocument.tags.name.path shouldBe "tags.name"
-            QJavaTestDocument.multiFieldName.path shouldBe "multiFieldName"
+            QJavaTestDocument.id.path().path shouldBe "id"
+            QJavaTestDocument.title.path().path shouldBe "title"
+            QJavaTestDocument.description.path().path shouldBe "description"
+            QJavaTestDocument.priority.path().path shouldBe "priority"
+            QJavaTestDocument.isActive.path().path shouldBe "isActive"
+            QJavaTestDocument.createdAt.path().path shouldBe "createdAt"
+            QJavaTestDocument.score.path().path shouldBe "score"
+            QJavaTestDocument.category.path().path shouldBe "category"
+            QJavaTestDocument.address.city
+                .path()
+                .path shouldBe "address.city"
+            QJavaTestDocument.tags.name
+                .path()
+                .path shouldBe "tags.name"
+            QJavaTestDocument.multiFieldName.path().path shouldBe "multiFieldName"
         }
 
         should("follow QueryDSL naming conventions") {
@@ -68,7 +72,7 @@ class JavaInteroperabilitySpec :
         should("handle boolean properties with is prefix correctly") {
             // Java convention: boolean isActive -> getIsActive()
             // Verify our processor handles this correctly
-            QJavaTestDocument.isActive.path shouldBe "isActive"
-            QJavaTestDocument.isActive.name shouldBe "isActive"
+            QJavaTestDocument.isActive.path().path shouldBe "isActive"
+            QJavaTestDocument.isActive.name() shouldBe "isActive"
         }
     })

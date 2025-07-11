@@ -1,7 +1,10 @@
 package com.qelasticsearch.integration;
 
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Demonstrates usage of QElasticsearch from Java code,
@@ -13,7 +16,7 @@ public class JavaUsageTest {
     public void shouldAccessGeneratedFieldsFromJava() {
         // Test accessing the generated Q-class from Java
         assertEquals("java_test_document", QJavaTestDocument.INSTANCE.getIndexName());
-        assertEquals("", QJavaTestDocument.INSTANCE.getPath());
+        assertEquals("", QJavaTestDocument.INSTANCE.getParentPath().path());
 
         // Test field access
         assertNotNull(QJavaTestDocument.INSTANCE.getId());
@@ -32,56 +35,56 @@ public class JavaUsageTest {
     @Test
     public void shouldProvideCorrectPathsFromJava() {
         // Verify paths are accessible from Java
-        assertEquals("id", QJavaTestDocument.INSTANCE.getId().getPath());
-        assertEquals("title", QJavaTestDocument.INSTANCE.getTitle().getPath());
-        assertEquals("description", QJavaTestDocument.INSTANCE.getDescription().getPath());
-        assertEquals("priority", QJavaTestDocument.INSTANCE.getPriority().getPath());
-        assertEquals("isActive", QJavaTestDocument.INSTANCE.isActive().getPath());
-        assertEquals("createdAt", QJavaTestDocument.INSTANCE.getCreatedAt().getPath());
-        assertEquals("score", QJavaTestDocument.INSTANCE.getScore().getPath());
-        assertEquals("category", QJavaTestDocument.INSTANCE.getCategory().getPath());
-        assertEquals("address.city", QJavaTestDocument.INSTANCE.getAddress().getCity().getPath());
-        assertEquals("tags.name", QJavaTestDocument.INSTANCE.getTags().getName().getPath());
-        assertEquals("multiFieldName", QJavaTestDocument.INSTANCE.getMultiFieldName().getPath());
+        assertEquals("id", QJavaTestDocument.INSTANCE.getId().path().path());
+        assertEquals("title", QJavaTestDocument.INSTANCE.getTitle().path().path());
+        assertEquals("description", QJavaTestDocument.INSTANCE.getDescription().path().path());
+        assertEquals("priority", QJavaTestDocument.INSTANCE.getPriority().path().path());
+        assertEquals("isActive", QJavaTestDocument.INSTANCE.isActive().path().path());
+        assertEquals("createdAt", QJavaTestDocument.INSTANCE.getCreatedAt().path().path());
+        assertEquals("score", QJavaTestDocument.INSTANCE.getScore().path().path());
+        assertEquals("category", QJavaTestDocument.INSTANCE.getCategory().path().path());
+        assertEquals("address.city", QJavaTestDocument.INSTANCE.getAddress().getCity().path().path());
+        assertEquals("tags.name", QJavaTestDocument.INSTANCE.getTags().getName().path().path());
+        assertEquals("multiFieldName", QJavaTestDocument.INSTANCE.getMultiFieldName().path().path());
     }
 
     @Test
     public void shouldFollowQueryDslPatterns() {
         // Demonstrate QueryDSL-like usage patterns from Java
         var document = QJavaTestDocument.INSTANCE;
-        
+
         // This is how it would be used in QueryDSL-style queries
         var idField = document.getId();
         var titleField = document.getTitle();
         var isActiveField = document.isActive();
-        
+
         // Field names should match the original property names
-        assertEquals("id", idField.getName());
-        assertEquals("title", titleField.getName());
-        assertEquals("isActive", isActiveField.getName());
-        
+        assertEquals("id", idField.name());
+        assertEquals("title", titleField.name());
+        assertEquals("isActive", isActiveField.name());
+
         // Paths should be suitable for Elasticsearch queries
-        assertEquals("id", idField.getPath());
-        assertEquals("title", titleField.getPath());
-        assertEquals("isActive", isActiveField.getPath());
+        assertEquals("id", idField.path().path());
+        assertEquals("title", titleField.path().path());
+        assertEquals("isActive", isActiveField.path().path());
     }
 
     @Test
     public void shouldWorkWithJavaClasses() {
         // The fact that this test compiles and runs proves that KSP
         // can process plain Java getters/setters correctly
-        
+
         // Create a test document (this uses standard Java constructors)
         var testDoc = new JavaTestDocument();
         testDoc.setId("test-123");
         testDoc.setTitle("Test Document");
         testDoc.setIsActive(true);
-        
+
         // Verify standard Java methods work
         assertEquals("test-123", testDoc.getId());
         assertEquals("Test Document", testDoc.getTitle());
         assertTrue(testDoc.getIsActive());
-        
+
         // And our Q-class was generated from this Java class
         assertNotNull(QJavaTestDocument.INSTANCE);
     }
