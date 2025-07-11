@@ -15,7 +15,6 @@ class EnhancedPathSpec :
             simplePath.path shouldBe "name"
             simplePath.isNested shouldBe false
             simplePath.nestedSegments.shouldBeEmpty()
-
             // Nested path
             val nestedPath = FieldPath.nested("activities")
             nestedPath.path shouldBe "activities"

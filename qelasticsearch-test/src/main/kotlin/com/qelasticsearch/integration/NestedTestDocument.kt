@@ -43,7 +43,7 @@ class NestedTestDocument {
     @Field(type = FieldType.Object)
     var metadata: TestMetadata? = null
 
-    // Nested static class - similar to IndexMandateOperation
+    // Nested static class
     class Operation {
         @Field(type = FieldType.Boolean)
         var active: Boolean = false

@@ -29,7 +29,7 @@ class SpecificQClassFieldsSpec :
             val operationField = QNestedTestDocument.operation
 
             operationField shouldNotBe null
-            operationField.shouldBeInstanceOf<QNestedTestDocumentOperation>()
+            operationField.shouldBeInstanceOf<QNestedTestDocument.Operation>()
         }
 
         should("provide correct path structure for document") {
