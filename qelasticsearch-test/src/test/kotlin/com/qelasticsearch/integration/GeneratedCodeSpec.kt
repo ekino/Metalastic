@@ -25,20 +25,14 @@ class GeneratedCodeSpec :
         }
 
         should("have correct field paths in generated QTestDocument") {
-            QTestDocument.id.path().path shouldBe "id"
-            QTestDocument.name.path().path shouldBe "name"
-            QTestDocument.age.path().path shouldBe "age"
-            QTestDocument.active.path().path shouldBe "active"
-            QTestDocument.createdDate.path().path shouldBe "createdDate"
+            QTestDocument.id.path() shouldBe "id"
+            QTestDocument.name.path() shouldBe "name"
+            QTestDocument.age.path() shouldBe "age"
+            QTestDocument.active.path() shouldBe "active"
+            QTestDocument.createdDate.path() shouldBe "createdDate"
             QTestDocument.address.city
-                .path()
-                .path shouldBe "address.city"
+                .path() shouldBe "address.city"
             QTestDocument.tags.name
-                .path()
-                .path shouldBe "tags.name"
-        }
-
-        should("extend Index correctly") {
-            QTestDocument.parentPath.path shouldBe ""
+                .path() shouldBe "tags.name"
         }
     })

@@ -18,6 +18,9 @@ public class ExampleDocument {
     public NestedObject nestedObject;
 
     @Field(type = FieldType.Object)
+    public NestedObject nestedObject2;
+
+    @Field(type = FieldType.Object)
     public com.qelasticsearch.integration.NameCollision fromSeparateClass;
 
     public static class NameCollision {

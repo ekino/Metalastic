@@ -30,10 +30,8 @@ class EnumTypeHandlingSpec :
             val priorityField = QJavaTestDocument.priorityLevel
 
             // Verify field path properties
-            statusField.path().path shouldBe "status"
-            priorityField.path().path shouldBe "priorityLevel"
-            statusField.path().isNested shouldBe false
-            priorityField.path().isNested shouldBe false
+            statusField.path() shouldBe "status"
+            priorityField.path() shouldBe "priorityLevel"
         }
 
         should("work correctly for enum fields from NestedTestDocument") {
@@ -41,16 +39,12 @@ class EnumTypeHandlingSpec :
 
             nestedStatusField.shouldBeInstanceOf<KeywordField<*>>()
             nestedStatusField.name() shouldBe "status"
-            nestedStatusField.path().path shouldBe "status"
+            nestedStatusField.path() shouldBe "status"
         }
 
         should("verify enum types in nested document") {
-            // Test document structure
-            QJavaTestDocument.parentPath.path shouldBe ""
-            QNestedTestDocument.parentPath.path shouldBe ""
-
             // Test nested document enum fields
             val nestedStatus = QNestedTestDocument.status
-            nestedStatus.path().isNested shouldBe false
+            nestedStatus.path() shouldBe "status"
         }
     })

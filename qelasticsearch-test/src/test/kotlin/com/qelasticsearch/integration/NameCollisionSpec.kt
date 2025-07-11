@@ -3,6 +3,7 @@ package com.qelasticsearch.integration
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 /**
  * Tests for name collision resolution in nested classes.
@@ -17,8 +18,8 @@ class NameCollisionSpec :
 
             should("generate separate Q-classes for each NameCollision class") {
                 // Verify that both NameCollision classes exist
-                QExampleDocument.NameCollision shouldNotBe null
-                QExampleDocument.NestedObject.NameCollision shouldNotBe null
+                QExampleDocument.NameCollision::class shouldNotBe null
+                QExampleDocument.NestedObject.NameCollision::class shouldNotBe null
 
                 // Verify they are different classes
                 QExampleDocument.NameCollision::class shouldNotBe QExampleDocument.NestedObject.NameCollision::class
@@ -29,11 +30,11 @@ class NameCollisionSpec :
 
                 // Verify it's not null and is the correct object
                 outerNameCollision shouldNotBe null
-                outerNameCollision shouldBe QExampleDocument.NameCollision
+                outerNameCollision.shouldBeInstanceOf<QExampleDocument.NameCollision>()
 
                 // Verify it has the correct field
                 val firstLevelField = outerNameCollision.firstLevel
-                firstLevelField.path().path shouldBe "nameCollision.firstLevel"
+                firstLevelField.path() shouldBe "nameCollision.firstLevel"
             }
 
             should("correctly reference inner NameCollision class") {
@@ -41,11 +42,11 @@ class NameCollisionSpec :
 
                 // Verify it's not null and is the correct object
                 innerNameCollision shouldNotBe null
-                innerNameCollision shouldBe QExampleDocument.NestedObject.NameCollision
+                innerNameCollision.shouldBeInstanceOf<QExampleDocument.NestedObject.NameCollision>()
 
                 // Verify it has the correct field
                 val secondLevelField = innerNameCollision.secondLevel
-                secondLevelField.path().path shouldBe "nestedObject.nameCollision.secondLevel"
+                secondLevelField.path() shouldBe "nestedObject.nameCollision.secondLevel"
             }
 
             should("have different field paths for different NameCollision classes") {
@@ -53,36 +54,36 @@ class NameCollisionSpec :
                 val innerSecondLevel = QExampleDocument.nestedObject.nameCollision.secondLevel
 
                 // The paths should be different
-                outerFirstLevel.path().path shouldNotBe innerSecondLevel.path().path
+                outerFirstLevel.path() shouldNotBe innerSecondLevel.path()
 
                 // Verify the actual paths
-                outerFirstLevel.path().path shouldBe "nameCollision.firstLevel"
-                innerSecondLevel.path().path shouldBe "nestedObject.nameCollision.secondLevel"
+                outerFirstLevel.path() shouldBe "nameCollision.firstLevel"
+                innerSecondLevel.path() shouldBe "nestedObject.nameCollision.secondLevel"
             }
 
             should("handle separate class references correctly") {
                 val separateClass = QExampleDocument.fromSeparateClass
 
                 // This should reference the standalone QNameCollision class
-                separateClass shouldBe QNameCollision
+                separateClass.shouldBeInstanceOf<QNameCollision>()
 
                 // Verify it has the correct field
                 val separateField = separateClass.separateClassField
-                separateField.path().path shouldBe "fromSeparateClass.separateClassField"
+                separateField.path() shouldBe "fromSeparateClass.separateClassField"
             }
 
             should("maintain correct nesting hierarchy") {
                 val nestedObject = QExampleDocument.nestedObject
 
                 // Verify nestedObject has the correct structure
-                nestedObject shouldBe QExampleDocument.NestedObject
+                nestedObject.shouldBeInstanceOf<QExampleDocument.NestedObject>()
 
                 // Verify it has both someField and nameCollision
                 val someField = nestedObject.someField
-                someField.path().path shouldBe "nestedObject.someField"
+                someField.path() shouldBe "nestedObject.someField"
 
                 val nameCollision = nestedObject.nameCollision
-                nameCollision shouldBe QExampleDocument.NestedObject.NameCollision
+                nameCollision.shouldBeInstanceOf<QExampleDocument.NestedObject.NameCollision>()
             }
 
             should("generate unique class names for nested classes") {
@@ -107,19 +108,16 @@ class NameCollisionSpec :
                 val path1 =
                     QExampleDocument.nameCollision.firstLevel
                         .path()
-                        .path
 
                 // Access inner NameCollision field
                 val path2 =
                     QExampleDocument.nestedObject.nameCollision.secondLevel
                         .path()
-                        .path
 
                 // Access separate class field
                 val path3 =
                     QExampleDocument.fromSeparateClass.separateClassField
                         .path()
-                        .path
 
                 // All paths should be unique
                 path1 shouldNotBe path2
@@ -133,17 +131,13 @@ class NameCollisionSpec :
             }
 
             should("handle nested detection correctly") {
-                // Test the nested field detection for path building
+                // Test the path building for object fields
                 val outerField = QExampleDocument.nameCollision.firstLevel
                 val innerField = QExampleDocument.nestedObject.nameCollision.secondLevel
 
-                // Verify isNested detection is correct
-                outerField.path().isNested shouldBe false
-                innerField.path().isNested shouldBe false // Neither should be nested type (Object, not Nested)
-
-                // Verify nested segments are empty for Object types
-                outerField.path().nestedSegments shouldBe emptyList()
-                innerField.path().nestedSegments shouldBe emptyList()
+                // Verify paths are correct for object fields
+                outerField.path() shouldBe "nameCollision.firstLevel"
+                innerField.path() shouldBe "nestedObject.nameCollision.secondLevel"
             }
 
             should("maintain type safety across name collisions") {
@@ -155,8 +149,8 @@ class NameCollisionSpec :
                 outer::class shouldNotBe inner::class
 
                 // But both should have their respective fields accessible
-                outer.firstLevel.path().path shouldBe "nameCollision.firstLevel"
-                inner.secondLevel.path().path shouldBe "nestedObject.nameCollision.secondLevel"
+                outer.firstLevel.path() shouldBe "nameCollision.firstLevel"
+                inner.secondLevel.path() shouldBe "nestedObject.nameCollision.secondLevel"
             }
         }
 
@@ -168,17 +162,16 @@ class NameCollisionSpec :
 
                 // Test multi-level access
                 val nestedAccess = document.nestedObject.nameCollision.secondLevel
-                nestedAccess.path().path shouldBe "nestedObject.nameCollision.secondLevel"
+                nestedAccess.path() shouldBe "nestedObject.nameCollision.secondLevel"
 
                 // Verify the path contains the full hierarchy
                 nestedAccess
                     .path()
-                    .path
                     .split(".")
                     .size shouldBe 3
-                nestedAccess.path().path.split(".")[0] shouldBe "nestedObject"
-                nestedAccess.path().path.split(".")[1] shouldBe "nameCollision"
-                nestedAccess.path().path.split(".")[2] shouldBe "secondLevel"
+                nestedAccess.path().split(".")[0] shouldBe "nestedObject"
+                nestedAccess.path().split(".")[1] shouldBe "nameCollision"
+                nestedAccess.path().split(".")[2] shouldBe "secondLevel"
             }
 
             should("support different field types in same-named classes") {
@@ -188,22 +181,22 @@ class NameCollisionSpec :
                 val innerField = QExampleDocument.nestedObject.nameCollision.secondLevel
 
                 // Both are Text fields but have different paths
-                outerField.path().path shouldBe "nameCollision.firstLevel"
-                innerField.path().path shouldBe "nestedObject.nameCollision.secondLevel"
+                outerField.path() shouldBe "nameCollision.firstLevel"
+                innerField.path() shouldBe "nestedObject.nameCollision.secondLevel"
             }
 
-            should("maintain reference consistency") {
-                // Multiple references to the same object should be identical
+            should("maintain functional consistency") {
+                // Multiple references to the same object should have same behavior
                 val ref1 = QExampleDocument.nameCollision
                 val ref2 = QExampleDocument.nameCollision
-                ref1 shouldBe ref2
+                ref1.firstLevel.path() shouldBe ref2.firstLevel.path()
 
                 val ref3 = QExampleDocument.nestedObject.nameCollision
                 val ref4 = QExampleDocument.nestedObject.nameCollision
-                ref3 shouldBe ref4
+                ref3.secondLevel.path() shouldBe ref4.secondLevel.path()
 
-                // But different objects should be different
-                ref1 shouldNotBe ref3
+                // Different objects should have different paths
+                ref1.firstLevel.path() shouldNotBe ref3.secondLevel.path()
             }
         }
     })

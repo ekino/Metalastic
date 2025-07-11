@@ -98,7 +98,8 @@ public class JavaTestDocument {
             mainField = @Field(type = FieldType.Text),
             otherFields = {
                     @InnerField(suffix = "keyword", type = FieldType.Keyword),
-                    @InnerField(suffix = "search", type = FieldType.Text, analyzer = "standard")
+                    @InnerField(suffix = "search", type = FieldType.Text, analyzer = "standard"),
+                    @InnerField(suffix = "zobi", type = FieldType.Text, analyzer = "standard")
             }
     )
     private String multiFieldName;

@@ -34,15 +34,12 @@ class SpecificQClassFieldsSpec :
 
         should("provide correct path structure for document") {
             QNestedTestDocument.indexName shouldBe "nested_test_document"
-            QNestedTestDocument.parentPath.path shouldBe ""
 
             // Test nested path construction
             QNestedTestDocument.operation.active
-                .path()
-                .path shouldBe "operation.active"
+                .path() shouldBe "operation.active"
             QNestedTestDocument.operation.states.id
-                .path()
-                .path shouldBe "operation.states.id"
+                .path() shouldBe "operation.states.id"
         }
 
         should("generate compilable and type-safe code with specific Q-classes") {
@@ -75,3 +72,14 @@ class SpecificQClassFieldsSpec :
             metadata.shouldBeInstanceOf<QTestMetadata>()
         }
     })
+
+fun main() {
+    println(
+        QExampleDocument.nestedObject.someField
+            .path(),
+    )
+    println(
+        QExampleDocument.nestedObject2.someField
+            .path(),
+    )
+}

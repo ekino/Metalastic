@@ -192,12 +192,19 @@ class QElasticsearchSymbolProcessor(
 
         val objectBuilder =
             TypeSpec
-                .objectBuilder(objectFieldInfo.className)
+                .classBuilder(objectFieldInfo.className)
                 .addKdoc(createObjectFieldKDoc(objectFieldInfo))
-                .addModifiers(KModifier.DATA)
                 .addAnnotation(generatedAnnotation)
                 .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
-                .addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
+                .addSuperclassConstructorParameter("name")
+                .addSuperclassConstructorParameter("parent")
+                .primaryConstructor(
+                    com.squareup.kotlinpoet.FunSpec
+                        .constructorBuilder()
+                        .addParameter("name", String::class)
+                        .addParameter("parent", ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS).copy(nullable = true))
+                        .build(),
+                ).addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
 
         // Add properties
         val processedPropertyNames = mutableSetOf<String>()

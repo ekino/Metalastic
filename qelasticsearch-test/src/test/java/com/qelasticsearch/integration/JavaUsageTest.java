@@ -16,7 +16,6 @@ public class JavaUsageTest {
     public void shouldAccessGeneratedFieldsFromJava() {
         // Test accessing the generated Q-class from Java
         assertEquals("java_test_document", QJavaTestDocument.INSTANCE.getIndexName());
-        assertEquals("", QJavaTestDocument.INSTANCE.getParentPath().path());
 
         // Test field access
         assertNotNull(QJavaTestDocument.INSTANCE.getId());
@@ -35,17 +34,17 @@ public class JavaUsageTest {
     @Test
     public void shouldProvideCorrectPathsFromJava() {
         // Verify paths are accessible from Java
-        assertEquals("id", QJavaTestDocument.INSTANCE.getId().path().path());
-        assertEquals("title", QJavaTestDocument.INSTANCE.getTitle().path().path());
-        assertEquals("description", QJavaTestDocument.INSTANCE.getDescription().path().path());
-        assertEquals("priority", QJavaTestDocument.INSTANCE.getPriority().path().path());
-        assertEquals("isActive", QJavaTestDocument.INSTANCE.isActive().path().path());
-        assertEquals("createdAt", QJavaTestDocument.INSTANCE.getCreatedAt().path().path());
-        assertEquals("score", QJavaTestDocument.INSTANCE.getScore().path().path());
-        assertEquals("category", QJavaTestDocument.INSTANCE.getCategory().path().path());
-        assertEquals("address.city", QJavaTestDocument.INSTANCE.getAddress().getCity().path().path());
-        assertEquals("tags.name", QJavaTestDocument.INSTANCE.getTags().getName().path().path());
-        assertEquals("multiFieldName", QJavaTestDocument.INSTANCE.getMultiFieldName().path().path());
+        assertEquals("id", QJavaTestDocument.INSTANCE.getId().path());
+        assertEquals("title", QJavaTestDocument.INSTANCE.getTitle().path());
+        assertEquals("description", QJavaTestDocument.INSTANCE.getDescription().path());
+        assertEquals("priority", QJavaTestDocument.INSTANCE.getPriority().path());
+        assertEquals("isActive", QJavaTestDocument.INSTANCE.isActive().path());
+        assertEquals("createdAt", QJavaTestDocument.INSTANCE.getCreatedAt().path());
+        assertEquals("score", QJavaTestDocument.INSTANCE.getScore().path());
+        assertEquals("category", QJavaTestDocument.INSTANCE.getCategory().path());
+        assertEquals("address.city", QJavaTestDocument.INSTANCE.getAddress().getCity().path());
+        assertEquals("tags.name", QJavaTestDocument.INSTANCE.getTags().getName().path());
+        assertEquals("multiFieldName", QJavaTestDocument.INSTANCE.getMultiFieldName().path());
     }
 
     @Test
@@ -64,9 +63,9 @@ public class JavaUsageTest {
         assertEquals("isActive", isActiveField.name());
 
         // Paths should be suitable for Elasticsearch queries
-        assertEquals("id", idField.path().path());
-        assertEquals("title", titleField.path().path());
-        assertEquals("isActive", isActiveField.path().path());
+        assertEquals("id", idField.path());
+        assertEquals("title", titleField.path());
+        assertEquals("isActive", isActiveField.path());
     }
 
     @Test

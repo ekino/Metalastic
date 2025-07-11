@@ -1,120 +1,104 @@
 package com.qelasticsearch.dsl
 
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.primaryConstructor
 
 /**
  * Base class for object fields that can contain nested fields.
  * Used for both nested objects and the root index.
  */
-abstract class ObjectFields {
-    var parentPath: FieldPath = FieldPath("")
-    private val childDelegates = mutableListOf<ObjectFieldDelegate<*>>()
-
-    /**
-     * Updates the parent path for all fields in this object.
-     * This is used when this object is nested within another object.
-     */
-    internal fun updateParentPath(newParentPath: FieldPath) {
-        parentPath = newParentPath
-        // Update parent path for any registered object field delegates
-        childDelegates.forEach { delegate ->
-            delegate.path = parentPath
-        }
-    }
-
-    private fun registerObjectDelegate(delegate: ObjectFieldDelegate<*>) {
-        childDelegates.add(delegate)
-    }
-
+abstract class ObjectFields(
+    name: String = "",
+    parent: ObjectFields? = null,
+) : Field(name, parent) {
     // Text field delegates
-    protected inline fun <reified T> text() = FieldDelegate { name -> TextField<T>(name, parentPath) }
+    protected inline fun <reified T> text() = FieldDelegate { name -> TextField<T>(name, this) }
 
     // Keyword field delegates
-    protected inline fun <reified T> keyword() = FieldDelegate { name -> KeywordField<T>(name, parentPath) }
+    protected inline fun <reified T> keyword() = FieldDelegate { name -> KeywordField<T>(name, this) }
 
     // Numeric field delegates
-    protected inline fun <reified T> long() = FieldDelegate { name -> LongField<T>(name, parentPath) }
+    protected inline fun <reified T> long() = FieldDelegate { name -> LongField<T>(name, this) }
 
-    protected inline fun <reified T> integer() = FieldDelegate { name -> IntegerField<T>(name, parentPath) }
+    protected inline fun <reified T> integer() = FieldDelegate { name -> IntegerField<T>(name, this) }
 
-    protected inline fun <reified T> short() = FieldDelegate { name -> ShortField<T>(name, parentPath) }
+    protected inline fun <reified T> short() = FieldDelegate { name -> ShortField<T>(name, this) }
 
-    protected inline fun <reified T> byte() = FieldDelegate { name -> ByteField<T>(name, parentPath) }
+    protected inline fun <reified T> byte() = FieldDelegate { name -> ByteField<T>(name, this) }
 
-    protected inline fun <reified T> double() = FieldDelegate { name -> DoubleField<T>(name, parentPath) }
+    protected inline fun <reified T> double() = FieldDelegate { name -> DoubleField<T>(name, this) }
 
-    protected inline fun <reified T> float() = FieldDelegate { name -> FloatField<T>(name, parentPath) }
+    protected inline fun <reified T> float() = FieldDelegate { name -> FloatField<T>(name, this) }
 
-    protected fun halfFloat() = FieldDelegate { name -> HalfFloatField(name, parentPath) }
+    protected fun halfFloat() = FieldDelegate { name -> HalfFloatField(name, this) }
 
-    protected fun scaledFloat() = FieldDelegate { name -> ScaledFloatField(name, parentPath) }
+    protected fun scaledFloat() = FieldDelegate { name -> ScaledFloatField(name, this) }
 
     // Date field delegates
-    protected inline fun <reified T> date() = FieldDelegate { name -> DateField<T>(name, parentPath) }
+    protected inline fun <reified T> date() = FieldDelegate { name -> DateField<T>(name, this) }
 
-    protected fun dateNanos() = FieldDelegate { name -> DateNanosField(name, parentPath) }
+    protected fun dateNanos() = FieldDelegate { name -> DateNanosField(name, this) }
 
     // Boolean field delegate
-    protected inline fun <reified T> boolean() = FieldDelegate { name -> BooleanField<T>(name, parentPath) }
+    protected inline fun <reified T> boolean() = FieldDelegate { name -> BooleanField<T>(name, this) }
 
     // Binary field delegate
-    protected fun binary() = FieldDelegate { name -> BinaryField(name, parentPath) }
+    protected fun binary() = FieldDelegate { name -> BinaryField(name, this) }
 
     // Geo field delegates
-    protected fun ip() = FieldDelegate { name -> IpField(name, parentPath) }
+    protected fun ip() = FieldDelegate { name -> IpField(name, this) }
 
-    protected fun geoPoint() = FieldDelegate { name -> GeoPointField(name, parentPath) }
+    protected fun geoPoint() = FieldDelegate { name -> GeoPointField(name, this) }
 
-    protected fun geoShape() = FieldDelegate { name -> GeoShapeField(name, parentPath) }
+    protected fun geoShape() = FieldDelegate { name -> GeoShapeField(name, this) }
 
     // Specialized field delegates
-    protected fun completion() = FieldDelegate { name -> CompletionField(name, parentPath) }
+    protected fun completion() = FieldDelegate { name -> CompletionField(name, this) }
 
-    protected fun tokenCount() = FieldDelegate { name -> TokenCountField(name, parentPath) }
+    protected fun tokenCount() = FieldDelegate { name -> TokenCountField(name, this) }
 
-    protected fun percolator() = FieldDelegate { name -> PercolatorField(name, parentPath) }
+    protected fun percolator() = FieldDelegate { name -> PercolatorField(name, this) }
 
-    protected fun rankFeature() = FieldDelegate { name -> RankFeatureField(name, parentPath) }
+    protected fun rankFeature() = FieldDelegate { name -> RankFeatureField(name, this) }
 
-    protected fun rankFeatures() = FieldDelegate { name -> RankFeaturesField(name, parentPath) }
+    protected fun rankFeatures() = FieldDelegate { name -> RankFeaturesField(name, this) }
 
-    protected fun flattened() = FieldDelegate { name -> FlattenedField(name, parentPath) }
+    protected fun flattened() = FieldDelegate { name -> FlattenedField(name, this) }
 
-    protected fun shape() = FieldDelegate { name -> ShapeField(name, parentPath) }
+    protected fun shape() = FieldDelegate { name -> ShapeField(name, this) }
 
-    protected fun point() = FieldDelegate { name -> PointField(name, parentPath) }
+    protected fun point() = FieldDelegate { name -> PointField(name, this) }
 
-    protected fun constantKeyword() = FieldDelegate { name -> ConstantKeywordField(name, parentPath) }
+    protected fun constantKeyword() = FieldDelegate { name -> ConstantKeywordField(name, this) }
 
-    protected fun wildcard() = FieldDelegate { name -> WildcardField(name, parentPath) }
+    protected fun wildcard() = FieldDelegate { name -> WildcardField(name, this) }
 
     // Range field delegates
-    protected fun integerRange() = FieldDelegate { name -> IntegerRangeField(name, parentPath) }
+    protected fun integerRange() = FieldDelegate { name -> IntegerRangeField(name, this) }
 
-    protected fun floatRange() = FieldDelegate { name -> FloatRangeField(name, parentPath) }
+    protected fun floatRange() = FieldDelegate { name -> FloatRangeField(name, this) }
 
-    protected fun longRange() = FieldDelegate { name -> LongRangeField(name, parentPath) }
+    protected fun longRange() = FieldDelegate { name -> LongRangeField(name, this) }
 
-    protected fun doubleRange() = FieldDelegate { name -> DoubleRangeField(name, parentPath) }
+    protected fun doubleRange() = FieldDelegate { name -> DoubleRangeField(name, this) }
 
-    protected fun dateRange() = FieldDelegate { name -> DateRangeField(name, parentPath) }
+    protected fun dateRange() = FieldDelegate { name -> DateRangeField(name, this) }
 
-    protected fun ipRange() = FieldDelegate { name -> IpRangeField(name, parentPath) }
+    protected fun ipRange() = FieldDelegate { name -> IpRangeField(name, this) }
 
     // Object field delegates
     protected fun <T : ObjectFields> objectField(
-        objectFields: T,
+        clazz: KClass<T>,
         nested: Boolean = false,
     ): ObjectFieldDelegate<T> {
-        val delegate = ObjectFieldDelegate(objectFields, nested)
-        registerObjectDelegate(delegate)
+        val delegate = ObjectFieldDelegate(clazz, nested)
         return delegate
     }
 
-    protected fun <T : ObjectFields> nestedField(objectFields: T): ObjectFieldDelegate<T> {
-        val delegate = ObjectFieldDelegate(objectFields, nested = true)
-        registerObjectDelegate(delegate)
+    protected fun <T : ObjectFields> nestedField(clazz: KClass<T>): ObjectFieldDelegate<T> {
+        val delegate = ObjectFieldDelegate(clazz, nested = true)
         return delegate
     }
 
@@ -125,7 +109,7 @@ abstract class ObjectFields {
     ) = FieldDelegate { name ->
         val builder = MultiFieldBuilder()
         builder.configure()
-        MultiField(parentPath, mainField, builder.build())
+        MultiField(parent, mainField, builder.build())
     }
 
     // Multi-field proxy delegate that allows .search, .keyword access
@@ -138,11 +122,11 @@ abstract class ObjectFields {
         // Create a new field with the proper name and parent path, not using the passed mainField's name
         val properMainField =
             when (mainField) {
-                is TextField<*> -> TextField<Any>(name, parentPath)
-                is KeywordField<*> -> KeywordField<Any>(name, parentPath)
+                is TextField<*> -> TextField<Any>(name, parent)
+                is KeywordField<*> -> KeywordField<Any>(name, parent)
                 else -> throw IllegalArgumentException("Unsupported main field type for MultiField: ${mainField::class}")
             }
-        val multiField = MultiField(parentPath, properMainField, builder.build())
+        val multiField = MultiField(parent, properMainField, builder.build())
         MultiFieldProxy(multiField)
     }
 }
@@ -161,22 +145,6 @@ class FieldDelegate<T : Field>(
     ): T {
         if (field == null) {
             field = fieldFactory(property.name)
-            // If this is an ObjectField or NestedField,
-            // we need to initialize its nested fields with the correct parent path
-            val currentField = field!!
-            when (currentField) {
-                is ObjectField<*> -> {
-                    currentField.objectFields.updateParentPath(currentField.path())
-                }
-
-                is NestedField<*> -> {
-                    currentField.objectFields.updateParentPath(currentField.path())
-                }
-
-                else -> {
-                    // No special handling needed for other field types
-                }
-            }
         }
         return field!!
     }
@@ -206,29 +174,13 @@ class MultiFieldProxyDelegate(
  * This allows person.address.city instead of person.address.objectFields.city
  */
 class ObjectFieldDelegate<T : ObjectFields>(
-    private val objectFields: T,
+    private val clazz: KClass<T>,
     private val nested: Boolean = false,
 ) : ReadOnlyProperty<Any?, T> {
-    var path: FieldPath = FieldPath("")
-
     override fun getValue(
         thisRef: Any?,
         property: KProperty<*>,
-    ): T {
-        val currentPath =
-            if (path.isRoot) property.name else "${path.path}.${property.name}"
-        val newPath =
-            FieldPath(
-                currentPath,
-                if (nested) {
-                    path.nestedSegments + currentPath
-                } else {
-                    path.nestedSegments
-                },
-            )
-        objectFields.updateParentPath(newPath)
-        return objectFields
-    }
+    ): T = clazz.primaryConstructor!!.call(property.name, thisRef as ObjectFields)
 }
 
 /**

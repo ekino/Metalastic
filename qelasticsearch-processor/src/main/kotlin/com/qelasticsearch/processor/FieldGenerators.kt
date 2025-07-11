@@ -226,7 +226,7 @@ class FieldGenerators(
                     val innerFieldType = codeGenUtils.extractFieldTypeFromAnnotation(innerFieldAnnotation)
                     val innerFieldClass = getFieldClass(innerFieldType)
                     importContext.usedImports.add(innerFieldClass)
-                    "field(\"$suffix\") { $innerFieldClass<String>(\"$suffix\") }"
+                    "field(\"$suffix\") { $innerFieldClass<String>(\"$suffix\", null) }"
                 } + "\n    "
 
         val complexFieldType =
@@ -248,7 +248,7 @@ class FieldGenerators(
             PropertySpec
                 .builder(propertyName, ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.MULTI_FIELD_PROXY))
                 .addKdoc(kdoc)
-                .delegate("multiFieldProxy($mainFieldClass<String>(\"$propertyName\")) {$innerFieldsCode}")
+                .delegate("multiFieldProxy($mainFieldClass<String>(\"$propertyName\", null)) {$innerFieldsCode}")
                 .build(),
         )
     }

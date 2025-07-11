@@ -51,9 +51,9 @@ class ObjectFieldRegistry(
 
         val delegateCall =
             if (isNested) {
-                "nestedField($finalReferenceClassName)"
+                "nestedField($finalReferenceClassName::class)"
             } else {
-                "objectField($finalReferenceClassName)"
+                "objectField($finalReferenceClassName::class)"
             }
 
         objectBuilder.addProperty(

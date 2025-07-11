@@ -7,4 +7,4 @@ package com.qelasticsearch.dsl
  */
 abstract class Index(
     val indexName: String,
-) : ObjectFields()
+) : ObjectFields("", null)
