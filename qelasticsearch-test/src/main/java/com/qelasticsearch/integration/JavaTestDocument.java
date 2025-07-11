@@ -110,7 +110,7 @@ public class JavaTestDocument {
     private String description2;
 
     @Field(type = FieldType.Object)
-    private WithoutAnnotatedField withoutAnnotatedField;
+    private JavaAddress.WithoutAnnotatedField withoutAnnotatedField;
 
     // Constructors
     public JavaTestDocument() {
@@ -353,7 +353,7 @@ public class JavaTestDocument {
     }
 
     // Nested inner class
-    private static class JavaTag {
+    public static class JavaTag {
         @Field(type = FieldType.Keyword)
         private String tagName;
 
@@ -455,8 +455,8 @@ class JavaAddress {
     public void setLocation(String location) {
         this.location = location;
     }
-}
 
-class WithoutAnnotatedField {
-    private Integer someField;
+    public static class WithoutAnnotatedField {
+        private Integer someField;
+    }
 }

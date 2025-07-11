@@ -21,17 +21,17 @@ class NestedClassCollisionSpec :
             externalTagField.weight.path shouldBe "tags.weight"
             externalTagField.description.path shouldBe "tags.description"
 
-            // Nested JavaTag class should generate QJavaTestDocumentJavaTag
+            // Nested JavaTag class should generate nested object within QJavaTestDocument
             val nestedTagField = QJavaTestDocument.tags2
             nestedTagField shouldNotBe null
 
-            // Should have fields from nested JavaTestDocument.JavaTag class
+            // Nested class has different field names: tagName and size (not name, weight, description)
             nestedTagField.tagName.path shouldBe "tags2.tagName"
             nestedTagField.size.path shouldBe "tags2.size"
 
             // Verify they are different Q-class types
             externalTagField::class.simpleName shouldBe "QJavaTag"
-            nestedTagField::class.simpleName shouldBe "QJavaTestDocumentJavaTag"
+            nestedTagField::class.simpleName shouldBe "JavaTag" // Q prefix removed for nested classes
         }
 
         should("correctly resolve field paths for both external and nested classes") {
@@ -40,7 +40,7 @@ class NestedClassCollisionSpec :
             QJavaTestDocument.tags.weight.fieldPath.path shouldBe "tags.weight"
             QJavaTestDocument.tags.description.fieldPath.path shouldBe "tags.description"
 
-            // Nested class field paths
+            // Nested class field paths (different field names)
             QJavaTestDocument.tags2.tagName.fieldPath.path shouldBe "tags2.tagName"
             QJavaTestDocument.tags2.size.fieldPath.path shouldBe "tags2.size"
 
