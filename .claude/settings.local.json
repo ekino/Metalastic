@@ -17,7 +17,8 @@
       "Bash(true)",
       "Bash(rg:*)",
       "Bash(grep:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(gradle :qelasticsearch-processor:compileKotlin:*)"
     ],
     "deny": []
   }

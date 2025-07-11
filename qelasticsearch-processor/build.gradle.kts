@@ -14,6 +14,8 @@ dependencies {
     implementation(libs.kotlinpoet)
     implementation(libs.kotlinpoet.ksp)
 
+    implementation(libs.jakarta.annotation.api)
+
     // Testing annotation processing
     testImplementation(libs.kotlin.compile.testing)
     testImplementation(libs.kotlin.compile.testing.ksp)

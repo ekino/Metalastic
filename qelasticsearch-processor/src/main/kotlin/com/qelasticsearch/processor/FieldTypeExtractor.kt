@@ -49,11 +49,13 @@ class FieldTypeExtractor(
                             val elementType = codeGenUtils.getCollectionElementType(property)
                             elementType != null &&
                                 !codeGenUtils.isStandardLibraryType(elementType.packageName.asString()) &&
+                                elementType.classKind != ClassKind.ENUM_CLASS &&
                                 (elementType.classKind == ClassKind.CLASS || elementType.classKind == ClassKind.INTERFACE)
                         } else {
                             // For single objects, check if it's a custom class or interface
                             val typeDeclaration = property.type.resolve().declaration
                             typeDeclaration is KSClassDeclaration &&
+                                typeDeclaration.classKind != ClassKind.ENUM_CLASS &&
                                 (typeDeclaration.classKind == ClassKind.CLASS || typeDeclaration.classKind == ClassKind.INTERFACE) &&
                                 !codeGenUtils.isStandardLibraryType(typeDeclaration.packageName.asString())
                         }

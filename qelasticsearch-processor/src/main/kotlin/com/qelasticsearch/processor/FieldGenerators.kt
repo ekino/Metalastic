@@ -68,10 +68,9 @@ class FieldGenerators(
                 val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation, idAnnotation)
 
                 // Check if this is an Object or Nested field type
-                if (fieldType.isObjectType ||
-                    fieldType.elasticsearchType == FieldType.Object ||
-                    fieldType.elasticsearchType == FieldType.Nested
-                ) {
+                // Only generate object fields if the field is actually an object type
+                // (not just annotated as Object/Nested but containing primitives/enums)
+                if (fieldType.isObjectType) {
                     objectFieldRegistry.generateObjectFieldProperty(objectBuilder, property, propertyName, fieldType)
                 } else {
                     val context =
@@ -91,18 +90,28 @@ class FieldGenerators(
 
     /**
      * Generates a simple field property (non-object/nested type).
+     * Also handles Object/Nested types when they contain simple types like enums.
      */
     fun generateSimpleFieldProperty(context: FieldGenerationContext) {
-        // Object/Nested fields should be handled by ObjectFieldRegistry, not here
+        // Object/Nested fields should be handled by ObjectFieldRegistry only if they are actual object types
+        // Fields annotated as Object/Nested but containing simple types (like enums) are handled here
         require(
-            context.fieldType.elasticsearchType != FieldType.Object &&
-                context.fieldType.elasticsearchType != FieldType.Nested,
+            context.fieldType.elasticsearchType != FieldType.Object || !context.fieldType.isObjectType,
         ) {
-            "Object/Nested fields should be handled by ObjectFieldRegistry, not FieldGenerators"
+            "Object fields with object types should be handled by ObjectFieldRegistry, not FieldGenerators"
         }
 
-        val fieldClass = getFieldClass(context.fieldType.elasticsearchType)
-        val basicDelegate = getFieldDelegate(context.fieldType.elasticsearchType)
+        // For Nested/Object types that are not actually object types (like enums),
+        // treat them as keyword fields instead
+        val (fieldClass, basicDelegate) =
+            if (
+                (context.fieldType.elasticsearchType == FieldType.Nested || context.fieldType.elasticsearchType == FieldType.Object) &&
+                !context.fieldType.isObjectType
+            ) {
+                "KeywordField" to "keyword()"
+            } else {
+                getFieldClass(context.fieldType.elasticsearchType) to getFieldDelegate(context.fieldType.elasticsearchType)
+            }
         val methodName = basicDelegate.substringBefore("()")
 
         // Create KotlinPoet TypeName directly from KSType

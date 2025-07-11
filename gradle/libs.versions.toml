@@ -10,6 +10,9 @@ kotlinpoet = "2.2.0"
 # Spring Data Elasticsearch
 spring-data-elasticsearch = "5.5.1"
 
+#annotations
+jakarta-annotation-api = "3.0.0"
+
 # Code Quality
 ktlint-gradle = "12.3.0"
 ktlint = "1.6.0"
@@ -48,6 +51,9 @@ kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref 
 kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
 kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
 kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+
+# Annotations
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-api" }
 
 # Logging
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }

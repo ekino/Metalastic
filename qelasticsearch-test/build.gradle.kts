@@ -10,6 +10,7 @@ tasks.matching { it.name.startsWith("ktlint") }.configureEach {
 dependencies {
     // DSL runtime needed for generated code
     implementation(project(":qelasticsearch-dsl"))
+    api(libs.jakarta.annotation.api)
     ksp(project(":qelasticsearch-processor"))
 
     // Spring Data Elasticsearch for real document classes
