@@ -1,6 +1,5 @@
 package com.qelasticsearch.integration;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -8,7 +7,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Document(indexName = "example")
 public class ExampleDocument {
 
-    @Id
+    @Field(type = FieldType.Keyword)
     public String id;
 
     @Field(type = FieldType.Object)

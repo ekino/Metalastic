@@ -1,6 +1,5 @@
 package com.qelasticsearch.integration
 
-import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
@@ -21,7 +20,6 @@ interface TestMetadata {
 
 @Document(indexName = "nested_test_document")
 class NestedTestDocument {
-    @Id
     @Field(type = FieldType.Keyword)
     var id: String = ""
 

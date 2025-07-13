@@ -43,6 +43,6 @@ class RealWorldPathSpec :
 
             // Test all the actual @InnerField definitions are accessible
             multiField.keyword.path() shouldBe "multiFieldName.keyword"
-            multiField.zobi.path() shouldBe "multiFieldName.zobi"
+            multiField.somethingElse.path() shouldBe "multiFieldName.somethingElse"
         }
     })

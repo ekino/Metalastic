@@ -1,13 +1,11 @@
 package com.qelasticsearch.integration
 
-import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 @Document(indexName = "test_document")
 class TestDocument {
-    @Id
     @Field(type = FieldType.Keyword)
     var id: String = ""
 

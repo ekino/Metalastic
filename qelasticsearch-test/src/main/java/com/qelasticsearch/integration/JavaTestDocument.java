@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
@@ -20,8 +19,6 @@ import org.springframework.data.elasticsearch.annotations.MultiField;
  */
 @Document(indexName = "java_test_document")
 public class JavaTestDocument {
-
-    @Id
     @Field(type = FieldType.Keyword)
     private String id;
 
@@ -99,7 +96,7 @@ public class JavaTestDocument {
             otherFields = {
                     @InnerField(suffix = "keyword", type = FieldType.Keyword),
                     @InnerField(suffix = "search", type = FieldType.Text, analyzer = "standard"),
-                    @InnerField(suffix = "zobi", type = FieldType.Text, analyzer = "standard")
+                    @InnerField(suffix = "somethingElse", type = FieldType.Text, analyzer = "standard")
             }
     )
     private String multiFieldName;

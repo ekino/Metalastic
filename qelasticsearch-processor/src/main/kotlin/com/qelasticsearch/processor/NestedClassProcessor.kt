@@ -9,7 +9,6 @@ import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
-import org.springframework.data.annotation.Id
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.MultiField
@@ -339,8 +338,7 @@ class NestedClassProcessor(private val logger: KSPLogger, private val codeGenUti
                 val hasFieldAnnotations =
                     parentClass.getAllProperties().any { property ->
                         val fieldAnnotation = property.findAnnotation(Field::class)
-                        val idAnnotation = property.findAnnotation(Id::class)
-                        fieldAnnotation != null || idAnnotation != null
+                        fieldAnnotation != null
                     }
                 if (hasDocumentAnnotation || hasFieldAnnotations) {
                     return parentClass
@@ -363,13 +361,12 @@ class NestedClassProcessor(private val logger: KSPLogger, private val codeGenUti
     ) {
         classDeclaration.getAllProperties().forEach { property ->
             val fieldAnnotation = property.findAnnotation(Field::class)
-            val idAnnotation = property.findAnnotation(Id::class)
 
-            if (fieldAnnotation == null && idAnnotation == null) {
+            if (fieldAnnotation == null) {
                 return@forEach
             }
 
-            val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation, idAnnotation)
+            val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation)
 
             if (fieldType.isObjectType) {
                 val nestedClass = extractNestedClassFromProperty(property)
@@ -409,9 +406,8 @@ class NestedClassProcessor(private val logger: KSPLogger, private val codeGenUti
      */
     private fun hasElasticsearchAnnotations(classDeclaration: KSClassDeclaration): Boolean = classDeclaration.getAllProperties().any { property ->
         val hasField = property.findAnnotation(Field::class) != null
-        val hasId = property.findAnnotation(Id::class) != null
         val hasMultiField = property.findAnnotation(MultiField::class) != null
-        hasField || hasId || hasMultiField
+        hasField || hasMultiField
     }
 
     // Extension function to find annotations

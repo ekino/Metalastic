@@ -46,12 +46,11 @@ class FieldGenerators(
     ) {
         val fieldAnnotation = property.findAnnotation(org.springframework.data.elasticsearch.annotations.Field::class)
         val multiFieldAnnotation = property.findAnnotation(MultiField::class)
-        val idAnnotation = property.findAnnotation(org.springframework.data.annotation.Id::class)
 
         val propertyName = property.simpleName.asString()
 
         // Skip fields with no annotations at all
-        if (fieldAnnotation == null && multiFieldAnnotation == null && idAnnotation == null) {
+        if (fieldAnnotation == null && multiFieldAnnotation == null) {
             logger.info("Property $propertyName has no annotations, ignoring field")
             return
         }
@@ -67,8 +66,8 @@ class FieldGenerators(
                 )
             }
 
-            else -> {
-                val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation, idAnnotation)
+            fieldAnnotation != null -> {
+                val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation)
 
                 // Check if this is an Object or Nested field type
                 // Only generate object fields if the field is actually an object type

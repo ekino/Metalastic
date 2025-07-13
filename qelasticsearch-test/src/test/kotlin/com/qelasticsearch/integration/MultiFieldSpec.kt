@@ -22,9 +22,9 @@ class MultiFieldSpec :
             QJavaTestDocument.multiFieldName.keyword.shouldNotBeNull()
             QJavaTestDocument.multiFieldName.keyword.path() shouldBe "multiFieldName.keyword"
 
-            // Test the new 'zobi' field that was previously not accessible
-            QJavaTestDocument.multiFieldName.zobi.shouldNotBeNull()
-            QJavaTestDocument.multiFieldName.zobi.path() shouldBe "multiFieldName.zobi"
+            // Test the new 'somethingElse' field that was previously not accessible
+            QJavaTestDocument.multiFieldName.somethingElse.shouldNotBeNull()
+            QJavaTestDocument.multiFieldName.somethingElse.path() shouldBe "multiFieldName.somethingElse"
         }
 
         should("be able to traverse multifield search path like user requested") {
@@ -39,12 +39,11 @@ class MultiFieldSpec :
             QJavaTestDocument.multiFieldName.keyword.shouldNotBeNull()
 
             // Test the new field that was defined but previously inaccessible
-            QJavaTestDocument.multiFieldName.zobi.shouldNotBeNull()
+            QJavaTestDocument.multiFieldName.somethingElse.shouldNotBeNull()
         }
 
         should("support type-safe multifield access with actual @InnerField definitions") {
             // Test that we can access all the actually defined inner fields
-            // This was the main problem with the old approach - 'zobi' was defined but not accessible!
 
             // The multifield itself IS the main field (mainField = @Field(type = FieldType.Text))
             // No .main property needed - that's the elegance of MultiField<T : Field> delegation!
@@ -60,9 +59,9 @@ class MultiFieldSpec :
             QJavaTestDocument.multiFieldName.search.shouldNotBeNull()
             QJavaTestDocument.multiFieldName.search.path() shouldBe "multiFieldName.search"
 
-            // @InnerField(suffix = "zobi", type = FieldType.Text, analyzer = "standard")
-            QJavaTestDocument.multiFieldName.zobi.shouldNotBeNull()
-            QJavaTestDocument.multiFieldName.zobi.path() shouldBe "multiFieldName.zobi"
+            // @InnerField(suffix = "somethingElse", type = FieldType.Text, analyzer = "standard")
+            QJavaTestDocument.multiFieldName.somethingElse.shouldNotBeNull()
+            QJavaTestDocument.multiFieldName.somethingElse.path() shouldBe "multiFieldName.somethingElse"
 
             // The multifield object itself represents both the container AND the main field
             QJavaTestDocument.multiFieldName.path() shouldBe "multiFieldName"

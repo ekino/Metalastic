@@ -12,6 +12,7 @@ allprojects {
     repositories {
         mavenCentral()
     }
+
 }
 
 subprojects {
@@ -44,26 +45,33 @@ subprojects {
             target("**/*.kt")
             targetExclude("**/build/generated/**")
             ktlint("1.6.0")
-                .editorConfigOverride(mapOf(
-                    "max_line_length" to "160",
-                    "ktlint_standard_max-line-length" to "enabled"
-                ))
+                .editorConfigOverride(
+                    mapOf(
+                        "max_line_length" to "160",
+                        "ktlint_standard_max-line-length" to "enabled"
+                    )
+                )
             trimTrailingWhitespace()
             endWithNewline()
         }
-        
+
+        java {
+            removeUnusedImports()
+            removeWildcardImports()
+        }
+
         kotlinGradle {
             ktlint("1.6.0")
             trimTrailingWhitespace()
             endWithNewline()
         }
-        
+
         format("markdown") {
             target("**/*.md")
             prettier()
                 .configFile(rootProject.file(".prettierrc.json"))
         }
-        
+
         yaml {
             target("**/*.yml", "**/*.yaml")
             prettier()

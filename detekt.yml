@@ -1,8 +1,6 @@
 complexity:
   TooManyFunctions:
     thresholdInClasses: 50
-  CyclomaticComplexMethod:
-    threshold: 35
   LongMethod:
     threshold: 80
 
