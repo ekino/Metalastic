@@ -199,9 +199,11 @@ class FieldGenerators(
                 ).primaryConstructor(
                     FunSpec
                         .constructorBuilder()
+                        .addParameter("parent", ClassName(DSLConstants.DSL_PACKAGE, "ObjectField"))
                         .addParameter("path", String::class)
                         .build(),
-                ).addSuperclassConstructorParameter("$mainFieldClass(path)")
+                ).addSuperclassConstructorParameter("parent")
+                .addSuperclassConstructorParameter("$mainFieldClass(parent, path)")
 
         // Add fields for each inner field
         innerFields.forEach { innerFieldAnnotation ->
@@ -215,7 +217,7 @@ class FieldGenerators(
             val kdocForInnerField =
                 """
                 Elasticsearch inner field for suffix '$suffix'.
-                
+
                 **Original @InnerField:**
                 - Suffix: `$suffix`
                 - Elasticsearch Type: `${innerFieldType.name}`
@@ -271,13 +273,12 @@ class FieldGenerators(
     private fun getFieldClass(fieldType: FieldType): String = fieldTypeMappings[fieldType]?.className ?: "KeywordField"
 
     // Extension function to find annotations
-    private fun KSPropertyDeclaration.findAnnotation(annotationClass: kotlin.reflect.KClass<*>): KSAnnotation? =
-        annotations.find {
-            it.annotationType
-                .resolve()
-                .declaration.qualifiedName
-                ?.asString() == annotationClass.qualifiedName
-        }
+    private fun KSPropertyDeclaration.findAnnotation(annotationClass: kotlin.reflect.KClass<*>): KSAnnotation? = annotations.find {
+        it.annotationType
+            .resolve()
+            .declaration.qualifiedName
+            ?.asString() == annotationClass.qualifiedName
+    }
 
     // Extension function to get argument values
     private inline fun <reified T> KSAnnotation.getArgumentValue(name: String): T? = arguments.find { it.name?.asString() == name }?.value as? T

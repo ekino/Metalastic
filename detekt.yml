@@ -5,10 +5,6 @@ complexity:
     threshold: 35
   LongMethod:
     threshold: 80
-  LargeClass:
-    threshold: 1000
-  NestedBlockDepth:
-    threshold: 7
 
 style:
   MaxLineLength:
@@ -16,9 +12,3 @@ style:
     excludePackageStatements: true
     excludeImportStatements: true
     excludeCommentStatements: false
-
-exceptions:
-  TooGenericExceptionCaught:
-    active: false
-  PrintStackTrace:
-    active: false

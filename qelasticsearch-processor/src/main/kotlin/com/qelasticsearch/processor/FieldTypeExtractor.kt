@@ -10,18 +10,11 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 /**
  * Handles extraction and determination of field types.
  */
-class FieldTypeExtractor(
-    private val logger: KSPLogger,
-    private val codeGenUtils: CodeGenerationUtils,
-) {
+class FieldTypeExtractor(private val logger: KSPLogger, private val codeGenUtils: CodeGenerationUtils) {
     /**
      * Determines the field type for a property based on annotations.
      */
-    fun determineFieldType(
-        property: KSPropertyDeclaration,
-        fieldAnnotation: KSAnnotation?,
-        idAnnotation: KSAnnotation?,
-    ): ProcessedFieldType {
+    fun determineFieldType(property: KSPropertyDeclaration, fieldAnnotation: KSAnnotation?, idAnnotation: KSAnnotation?): ProcessedFieldType {
         val propertyName = property.simpleName.asString()
 
         // If property has @Id annotation, treat as keyword by default

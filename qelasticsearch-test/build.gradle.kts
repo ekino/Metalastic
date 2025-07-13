@@ -2,10 +2,7 @@ plugins {
     alias(libs.plugins.ksp)
 }
 
-// Disable ktlint for test module that contains generated code
-tasks.matching { it.name.startsWith("ktlint") }.configureEach {
-    enabled = false
-}
+// Generated code is automatically excluded by Spotless configuration in parent build.gradle.kts
 
 dependencies {
     // DSL runtime needed for generated code

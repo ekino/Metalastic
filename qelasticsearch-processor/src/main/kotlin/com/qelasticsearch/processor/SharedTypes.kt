@@ -7,28 +7,17 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 /**
  * Context for import management during code generation.
  */
-data class ImportContext(
-    val usedImports: MutableSet<String> = mutableSetOf(),
-    val typeImports: MutableSet<String> = mutableSetOf(),
-)
+data class ImportContext(val usedImports: MutableSet<String> = mutableSetOf(), val typeImports: MutableSet<String> = mutableSetOf())
 
 /**
  * Field type mapping for generating DSL methods and classes.
  */
-data class FieldTypeMapping(
-    val delegate: String,
-    val className: String,
-)
+data class FieldTypeMapping(val delegate: String, val className: String)
 
 /**
  * Processed field type information.
  */
-data class ProcessedFieldType(
-    val elasticsearchType: FieldType,
-    val kotlinType: KSTypeReference,
-    val kotlinTypeName: String,
-    val isObjectType: Boolean,
-)
+data class ProcessedFieldType(val elasticsearchType: FieldType, val kotlinType: KSTypeReference, val kotlinTypeName: String, val isObjectType: Boolean)
 
 /**
  * Information about an object field that needs Q-class generation.

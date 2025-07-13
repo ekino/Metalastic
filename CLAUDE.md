@@ -61,8 +61,8 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 ## Code Style Guidelines
 
 - **No star imports**: Use explicit imports only
-- **Code Quality**: Use ktlint for formatting and detekt for static analysis
-- **Linting**: All code must pass ktlint and detekt checks
+- **Code Quality**: Use Spotless with Ktlint for formatting and detekt for static analysis
+- **Linting**: All code must pass Spotless formatting checks and detekt checks
 
 ## Generated DSL Structure
 

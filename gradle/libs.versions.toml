@@ -16,6 +16,7 @@ jakarta-annotation-api = "3.0.0"
 # Code Quality
 ktlint-gradle = "12.3.0"
 ktlint = "1.6.0"
+spotless = "7.1.0"
 detekt = "1.23.8"
 
 # Testing
@@ -70,4 +71,5 @@ compile-testing = ["kotlin-compile-testing", "kotlin-compile-testing-ksp"]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint-gradle" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

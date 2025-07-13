@@ -6,9 +6,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 /**
  * Builds field type mappings with runtime detection for version compatibility.
  */
-class FieldTypeMappingBuilder(
-    private val logger: KSPLogger,
-) {
+class FieldTypeMappingBuilder(private val logger: KSPLogger) {
     /**
      * Builds field type mappings with runtime detection for version compatibility.
      * Only includes FieldType enum values that exist in the current Spring Data Elasticsearch version.
@@ -81,12 +79,7 @@ class FieldTypeMappingBuilder(
     /**
      * Safely adds a FieldType mapping if the enum value exists in the current version.
      */
-    private fun safeAddMapping(
-        mappings: MutableMap<FieldType, FieldTypeMapping>,
-        fieldTypeName: String,
-        delegate: String,
-        className: String,
-    ) {
+    private fun safeAddMapping(mappings: MutableMap<FieldType, FieldTypeMapping>, fieldTypeName: String, delegate: String, className: String) {
         try {
             val fieldType = FieldType.valueOf(fieldTypeName)
             mappings[fieldType] = FieldTypeMapping(delegate, className)

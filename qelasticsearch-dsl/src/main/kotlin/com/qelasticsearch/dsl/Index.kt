@@ -5,6 +5,4 @@ package com.qelasticsearch.dsl
  *
  * @param indexName The name of the Elasticsearch index
  */
-abstract class Index(
-    val indexName: String,
-) : ObjectField()
+abstract class Index(val indexName: String) : ObjectField()

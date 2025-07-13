@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.ksp) apply false
-    alias(libs.plugins.ktlint) apply false
+    alias(libs.plugins.spotless) apply false
     alias(libs.plugins.detekt) apply false
 }
 
@@ -16,7 +16,7 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+    apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.gitlab.arturbosch.detekt")
     apply(plugin = "maven-publish")
 
@@ -29,7 +29,7 @@ subprojects {
         add("testImplementation", "org.jetbrains.kotlin:kotlin-test")
     }
 
-    tasks.named<Test>("test") {
+    tasks.withType<Test>().configureEach {
         useJUnitPlatform()
     }
 
@@ -39,23 +39,36 @@ subprojects {
         config.setFrom(rootProject.file("detekt.yml"))
     }
 
-    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
-        version.set("1.6.0")
-        debug.set(true)
-        verbose.set(true)
-        android.set(false)
-        outputToConsole.set(true)
-        outputColorName.set("RED")
-        ignoreFailures.set(false)
-        filter {
-            exclude("**/build/**")
+    configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        kotlin {
+            target("**/*.kt")
+            targetExclude("**/build/generated/**")
+            ktlint("1.6.0")
+                .editorConfigOverride(mapOf(
+                    "max_line_length" to "160",
+                    "ktlint_standard_max-line-length" to "enabled"
+                ))
+            trimTrailingWhitespace()
+            endWithNewline()
         }
-        additionalEditorconfig.set(
-            mapOf(
-                "max_line_length" to "160",
-                "ktlint_standard_max-line-length" to "enabled"
-            )
-        )
+        
+        kotlinGradle {
+            ktlint("1.6.0")
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+        
+        format("markdown") {
+            target("**/*.md")
+            prettier()
+                .configFile(rootProject.file(".prettierrc.json"))
+        }
+        
+        yaml {
+            target("**/*.yml", "**/*.yaml")
+            prettier()
+                .configFile(rootProject.file(".prettierrc.json"))
+        }
     }
 
     configure<PublishingExtension> {

@@ -12,7 +12,6 @@ import java.util.Date
 class DSLUsageSpec :
     ShouldSpec(
         {
-
             should("create text field via delegate") {
                 val index =
                     object : Index("test") {
@@ -134,9 +133,7 @@ class DSLUsageSpec :
                 index.coordinate.shouldBeInstanceOf<PointField>()
             }
             should("create object fields via delegate") {
-                class AddressFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class AddressFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val street by text<String>()
                     val city by text<String>()
                     val zipCode by keyword<String>()
@@ -155,9 +152,7 @@ class DSLUsageSpec :
             }
 
             should("create object multifield via delegate") {
-                class SomeMultiField(
-                    name: String,
-                ) : MultiField<TextField<String>>(TextField(name)) {
+                class SomeMultiField(parent: ObjectField, name: String) : MultiField<TextField<String>>(parent, TextField(parent, name)) {
                     val search by text<String>()
                     val description by text<String>()
                 }
@@ -170,14 +165,13 @@ class DSLUsageSpec :
 
                 index.multiField.shouldBeInstanceOf<MultiField<TextField<*>>>()
                 index.multiField.path() shouldBe "multiField"
+                index.multiField.mainField().shouldBeInstanceOf<TextField<String>>()
                 index.multiField.search.path() shouldBe "multiField.search"
                 index.multiField.description.path() shouldBe "multiField.description"
             }
 
             should("create nested fields via delegate") {
-                class TagFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class TagFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val name by keyword<String>()
                     val weight by integer<Int>()
                 }
@@ -193,25 +187,19 @@ class DSLUsageSpec :
                 index.tags.weight.shouldBeInstanceOf<IntegerField<Int>>()
             }
             should("support complex e-commerce document structure") {
-                class PriceFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class PriceFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val amount by double<Double>()
                     val currency by keyword<String>()
                     val discount by double<Double>()
                 }
 
-                class CategoryFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class CategoryFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val id by keyword<String>()
                     val name by text<String>()
                     val level by integer<Int>()
                 }
 
-                class ReviewFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class ReviewFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val rating by float<Float>()
                     val comment by text<String>()
                     val reviewer by keyword<String>()
@@ -250,27 +238,21 @@ class DSLUsageSpec :
             }
 
             should("support user management document structure") {
-                class PermissionsFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class PermissionsFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val read by boolean<Boolean>()
                     val write by boolean<Boolean>()
                     val admin by boolean<Boolean>()
                 }
 
-                class ProfileFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class ProfileFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val firstName by text<String>()
                     val lastName by text<String>()
                     val bio by text<String>()
                     val avatar by keyword<String>()
-                    val permissions by objectField<PermissionsFields>()
+                    val permissions by nestedField<PermissionsFields>()
                 }
 
-                class ActivityFields(
-                    name: String,
-                ) : ObjectField(name) {
+                class ActivityFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
                     val action by keyword<String>()
                     val timestamp by date<Date>()
                     val ipAddress by ip()
@@ -281,7 +263,7 @@ class DSLUsageSpec :
                     object : Index("users") {
                         val email by keyword<String>()
                         val username by keyword<String>()
-                        val profile by objectField<ProfileFields>()
+                        val profile by nestedField<ProfileFields>()
                         val isActive by boolean<Boolean>()
                         val roles by keyword<List<String>>()
                         val lastLogin by date<Date>()
@@ -299,96 +281,169 @@ class DSLUsageSpec :
                 user.profile.permissions.admin
                     .shouldBeInstanceOf<BooleanField<Boolean>>()
                 user.activities.ipAddress.shouldBeInstanceOf<IpField>()
+
+                // Test nested path functionality - corrected semantics
+                // Fields within nested objects should be considered nested paths
+                user.activities.action.isNestedPath() shouldBe true
+                user.profile.permissions.admin
+                    .isNestedPath() shouldBe true
+
+                // But nested objects themselves should not be considered nested paths
+                user.activities.isNestedPath() shouldBe false
+                user.profile.isNestedPath() shouldBe false
+
+                // Regular fields should not be nested paths
+                user.email.isNestedPath() shouldBe false
+
+                // Test nested paths collection
+                val activityNestedPaths =
+                    user.activities.action
+                        .nestedPaths()
+                        .toList()
+                activityNestedPaths shouldBe listOf("activities")
             }
 
-            // Data-driven test for all field types
-            data class FieldTestCase(
-                val name: String,
-                val factory: () -> Field,
-                val expectedType: String,
-            )
+            context("Nested Object Functionality") {
+                should("thoroughly test nested object functionality with multiple nesting levels") {
+                    // Create a complex structure with multiple levels of nesting
+                    class DeepMetricsFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
+                        val clicks by long<Long>()
+                        val impressions by long<Long>()
+                        val conversionRate by double<Double>()
+                    }
 
-//        should("create all field types correctly with factory methods") {
-//            val testCases =
-//                listOf(
-//                    FieldTestCase("text", { TextField<String>("test") }, "TextField"),
-//                    FieldTestCase("keyword", { KeywordField<String>("test") }, "KeywordField"),
-//                    FieldTestCase("long", { LongField<Long>("test") }, "LongField"),
-//                    FieldTestCase("integer", { IntegerField<Int>("test") }, "IntegerField"),
-//                    FieldTestCase("short", { ShortField<Short>("test") }, "ShortField"),
-//                    FieldTestCase("byte", { ByteField<Byte>("test") }, "ByteField"),
-//                    FieldTestCase("double", { DoubleField<Double>("test") }, "DoubleField"),
-//                    FieldTestCase("float", { FloatField<Float>("test") }, "FloatField"),
-//                    FieldTestCase("halfFloat", { HalfFloatField("test") }, "HalfFloatField"),
-//                    FieldTestCase("scaledFloat", { ScaledFloatField("test") }, "ScaledFloatField"),
-//                    FieldTestCase("date", { DateField<java.util.Date>("test") }, "DateField"),
-//                    FieldTestCase("dateNanos", { DateNanosField("test") }, "DateNanosField"),
-//                    FieldTestCase("boolean", { BooleanField<Boolean>("test") }, "BooleanField"),
-//                    FieldTestCase("binary", { BinaryField("test") }, "BinaryField"),
-//                    FieldTestCase("ip", { IpField("test") }, "IpField"),
-//                    FieldTestCase("geoPoint", { GeoPointField("test") }, "GeoPointField"),
-//                    FieldTestCase("geoShape", { GeoShapeField("test") }, "GeoShapeField"),
-//                    FieldTestCase("completion", { CompletionField("test") }, "CompletionField"),
-//                    FieldTestCase("tokenCount", { TokenCountField("test") }, "TokenCountField"),
-//                    FieldTestCase("percolator", { PercolatorField("test") }, "PercolatorField"),
-//                    FieldTestCase("rankFeature", { RankFeatureField("test") }, "RankFeatureField"),
-//                    FieldTestCase("rankFeatures", { RankFeaturesField("test") }, "RankFeaturesField"),
-//                    FieldTestCase("flattened", { FlattenedField("test") }, "FlattenedField"),
-//                    FieldTestCase("wildcard", { WildcardField("test") }, "WildcardField"),
-//                    FieldTestCase("constantKeyword", { ConstantKeywordField("test") }, "ConstantKeywordField"),
-//                    FieldTestCase("shape", { ShapeField("test") }, "ShapeField"),
-//                    FieldTestCase("point", { PointField("test") }, "PointField"),
-//                    FieldTestCase("integerRange", { IntegerRangeField("test") }, "IntegerRangeField"),
-//                    FieldTestCase("floatRange", { FloatRangeField("test") }, "FloatRangeField"),
-//                    FieldTestCase("longRange", { LongRangeField("test") }, "LongRangeField"),
-//                    FieldTestCase("doubleRange", { DoubleRangeField("test") }, "DoubleRangeField"),
-//                    FieldTestCase("dateRange", { DateRangeField("test") }, "DateRangeField"),
-//                    FieldTestCase("ipRange", { IpRangeField("test") }, "IpRangeField"),
-//                )
-//
-//            testCases.forEach { testCase ->
-//                val field = testCase.factory()
-//                field.name() shouldBe "test"
-//                field.path().path shouldBe "test"
-//                field::class.simpleName shouldBe testCase.expectedType
-//            }
-//        }
+                    class CampaignAnalyticsFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
+                        val period by keyword<String>()
+                        val metrics by objectField<DeepMetricsFields>() // Regular object field
+                        val dailyMetrics by nestedField<DeepMetricsFields>() // Nested field
+                    }
 
-//        should("use property name as field name") {
-//            val index =
-//                object : Index("test") {
-//                    val customFieldName by text<String>()
-//                    val anotherField by keyword<String>()
-//                }
-//
-//            index.customFieldName.name() shouldBe "customFieldName"
-//            index.anotherField.name() shouldBe "anotherField"
-//        }
+                    class AdvertiserFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
+                        val name by text<String>()
+                        val campaigns by nestedField<CampaignAnalyticsFields>() // Nested field
+                    }
 
-//        should("handle camelCase property names") {
-//            val index =
-//                object : Index("test") {
-//                    val firstName by text<String>()
-//                    val lastName by text<String>()
-//                    val dateOfBirth by date<Date>()
-//                }
-//
-//            index.firstName.name() shouldBe "firstName"
-//            index.lastName.name() shouldBe "lastName"
-//            index.dateOfBirth.name() shouldBe "dateOfBirth"
-//        }
+                    class LocationFields(parent: ObjectField?, name: String, nested: Boolean = false) : ObjectField(parent, name, nested) {
+                        val city by text<String>()
+                        val country by keyword<String>()
+                        val advertisers by nestedField<AdvertiserFields>() // Nested field
+                    }
 
-//        should("handle snake_case property names") {
-//            val index =
-//                object : Index("test") {
-//                    val first_name by text<String>()
-//                    val last_name by text<String>()
-//                    val created_at by date<Date>()
-//                }
-//
-//            index.first_name.name() shouldBe "first_name"
-//            index.last_name.name() shouldBe "last_name"
-//            index.created_at.name() shouldBe "created_at"
-//        }
+                    val complexDocument =
+                        object : Index("complex_analytics") {
+                            val documentId by keyword<String>()
+                            val timestamp by date<Date>()
+                            val location by objectField<LocationFields>() // Regular object field
+                            val globalAdvertisers by nestedField<AdvertiserFields>() // Nested field at root
+                        }
+
+                    // Test nested path detection at different levels
+
+                    // Root level fields - should not be nested paths
+                    complexDocument.documentId.isNestedPath() shouldBe false
+                    complexDocument.timestamp.isNestedPath() shouldBe false
+
+                    // Regular object fields and their children - should not be nested paths
+                    complexDocument.location.isNestedPath() shouldBe false
+                    complexDocument.location.city.isNestedPath() shouldBe false
+                    complexDocument.location.country.isNestedPath() shouldBe false
+
+                    // Nested object containers themselves - should not be nested paths
+                    complexDocument.location.advertisers.isNestedPath() shouldBe false
+                    complexDocument.globalAdvertisers.isNestedPath() shouldBe false
+
+                    // Fields within nested objects - should be nested paths
+                    complexDocument.location.advertisers.name
+                        .isNestedPath() shouldBe true
+                    complexDocument.location.advertisers.campaigns
+                        .isNestedPath() shouldBe true
+                    complexDocument.globalAdvertisers.name.isNestedPath() shouldBe true
+                    complexDocument.globalAdvertisers.campaigns.isNestedPath() shouldBe true
+
+                    // Fields within nested objects at deeper levels - should be nested paths
+                    complexDocument.location.advertisers.campaigns.period
+                        .isNestedPath() shouldBe true
+                    complexDocument.location.advertisers.campaigns.metrics.clicks
+                        .isNestedPath() shouldBe true
+                    complexDocument.location.advertisers.campaigns.dailyMetrics.clicks
+                        .isNestedPath() shouldBe true
+
+                    // Test nestedPaths() collection at different levels
+
+                    // Fields in single-level nested structure
+                    val singleLevelPaths =
+                        complexDocument.globalAdvertisers.name
+                            .nestedPaths()
+                            .toList()
+                    singleLevelPaths shouldBe listOf("globalAdvertisers")
+
+                    // Fields in two-level nested structure (location.advertisers.*)
+                    val twoLevelPaths =
+                        complexDocument.location.advertisers.name
+                            .nestedPaths()
+                            .toList()
+                    twoLevelPaths shouldBe listOf("location.advertisers")
+
+                    // Fields in three-level nested structure (location.advertisers.campaigns.*)
+                    val threeLevelPaths =
+                        complexDocument.location.advertisers.campaigns.period
+                            .nestedPaths()
+                            .toList()
+                    threeLevelPaths shouldBe listOf("location.advertisers.campaigns", "location.advertisers")
+
+                    // Fields in mixed nested structure (regular object + nested + nested)
+                    val mixedPaths =
+                        complexDocument.location.advertisers.campaigns.metrics.clicks
+                            .nestedPaths()
+                            .toList()
+                    mixedPaths shouldBe listOf("location.advertisers.campaigns", "location.advertisers")
+
+                    // Fields in complex nested structure (nested + nested + nested)
+                    val complexPaths =
+                        complexDocument.location.advertisers.campaigns.dailyMetrics.impressions
+                            .nestedPaths()
+                            .toList()
+                    complexPaths shouldBe
+                        listOf(
+                            "location.advertisers.campaigns.dailyMetrics",
+                            "location.advertisers.campaigns",
+                            "location.advertisers",
+                        )
+
+                    // Test parent() navigation
+                    complexDocument.location.advertisers.campaigns.dailyMetrics.clicks
+                        .parent() shouldBe
+                        complexDocument.location.advertisers.campaigns.dailyMetrics
+                    complexDocument.location.advertisers.campaigns.dailyMetrics
+                        .parent() shouldBe
+                        complexDocument.location.advertisers.campaigns
+                    complexDocument.location.advertisers.campaigns
+                        .parent() shouldBe complexDocument.location.advertisers
+                    complexDocument.location.advertisers.parent() shouldBe complexDocument.location
+                    complexDocument.location.parent() shouldBe complexDocument
+                    complexDocument.parent() shouldBe null // Root index has no parent
+
+                    // Test parents() sequence
+                    val allParents =
+                        complexDocument.location.advertisers.campaigns.dailyMetrics.clicks
+                            .parents()
+                            .toList()
+                    allParents.size shouldBe 5
+                    allParents[0] shouldBe
+                        complexDocument.location.advertisers.campaigns.dailyMetrics
+                    allParents[1] shouldBe complexDocument.location.advertisers.campaigns
+                    allParents[2] shouldBe complexDocument.location.advertisers
+                    allParents[3] shouldBe complexDocument.location
+                    allParents[4] shouldBe complexDocument
+
+                    // Test path construction
+                    complexDocument.location.advertisers.campaigns.dailyMetrics.clicks
+                        .path() shouldBe
+                        "location.advertisers.campaigns.dailyMetrics.clicks"
+                    complexDocument.globalAdvertisers.campaigns.period
+                        .path() shouldBe
+                        "globalAdvertisers.campaigns.period"
+                }
+            }
         },
     )

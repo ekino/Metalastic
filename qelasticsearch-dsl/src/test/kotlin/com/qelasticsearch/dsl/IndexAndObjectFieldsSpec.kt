@@ -49,16 +49,14 @@ class IndexAndObjectFieldsSpec :
             index.category.shouldBeInstanceOf<KeywordField<String>>()
         }
         should("create ObjectFields with correct field types") {
-            class AddressFields(
-                path: String,
-            ) : ObjectField(path) {
+            class AddressFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val street by text<String>()
                 val city by text<String>()
                 val country by keyword<String>()
                 val zipCode by keyword<String>()
             }
 
-            val address = AddressFields("address")
+            val address = AddressFields(null, "address")
 
             address.street.shouldBeInstanceOf<TextField<String>>()
             address.city.shouldBeInstanceOf<TextField<String>>()
@@ -67,18 +65,14 @@ class IndexAndObjectFieldsSpec :
         }
 
         should("handle empty ObjectFields") {
-            class EmptyFields(
-                path: String,
-            ) : ObjectField(path)
+            class EmptyFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested)
 
-            val empty = EmptyFields("empty")
+            val empty = EmptyFields(null, "empty")
             // Should not throw any exceptions
-            empty.shouldBeInstanceOf<FieldContainer>()
+            empty.shouldBeInstanceOf<ObjectField>()
         }
         should("construct correct paths for simple object fields") {
-            class AddressFields(
-                path: String,
-            ) : ObjectField(path) {
+            class AddressFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val city by text<String>()
                 val country by keyword<String>()
             }
@@ -93,16 +87,12 @@ class IndexAndObjectFieldsSpec :
         }
 
         should("handle nested object fields correctly") {
-            class LocationFields(
-                path: String,
-            ) : ObjectField(path) {
+            class LocationFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val latitude by double<Double>()
                 val longitude by double<Double>()
             }
 
-            class AddressFields(
-                path: String,
-            ) : ObjectField(path) {
+            class AddressFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val street by text<String>()
                 val city by text<String>()
                 val location by objectField<LocationFields>()
@@ -123,16 +113,12 @@ class IndexAndObjectFieldsSpec :
         }
 
         should("handle multiple object fields in same index") {
-            class ContactFields(
-                path: String,
-            ) : ObjectField(path) {
+            class ContactFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val email by keyword<String>()
                 val phone by keyword<String>()
             }
 
-            class AddressFields(
-                path: String,
-            ) : ObjectField(path) {
+            class AddressFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val street by text<String>()
                 val city by text<String>()
             }
@@ -150,9 +136,7 @@ class IndexAndObjectFieldsSpec :
             person.address.city.path() shouldBe "address.city"
         }
         should("create nested fields correctly") {
-            class TagFields(
-                path: String,
-            ) : ObjectField(path) {
+            class TagFields(parent: ObjectField?, path: String, nested: Boolean = true) : ObjectField(parent, path, nested) {
                 val name by keyword<String>()
                 val weight by integer<Int>()
             }
@@ -168,16 +152,12 @@ class IndexAndObjectFieldsSpec :
         }
 
         should("handle nested fields with object fields inside") {
-            class LocationFields(
-                path: String,
-            ) : ObjectField(path) {
+            class LocationFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val city by text<String>()
                 val country by keyword<String>()
             }
 
-            class EventFields(
-                path: String,
-            ) : ObjectField(path) {
+            class EventFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val name by text<String>()
                 val location by objectField<LocationFields>()
             }
@@ -195,24 +175,18 @@ class IndexAndObjectFieldsSpec :
                 .path() shouldBe "events.location.country"
         }
         should("handle deep nesting correctly") {
-            class MetricsFields(
-                path: String,
-            ) : ObjectField(path) {
+            class MetricsFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val views by long<Long>()
                 val clicks by long<Long>()
                 val conversions by double<Double>()
             }
 
-            class AnalyticsFields(
-                path: String,
-            ) : ObjectField(path) {
+            class AnalyticsFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val period by keyword<String>()
                 val metrics by objectField<MetricsFields>()
             }
 
-            class CampaignFields(
-                path: String,
-            ) : ObjectField(path) {
+            class CampaignFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val name by text<String>()
                 val budget by double<Double>()
                 val analytics by nestedField<AnalyticsFields>()
@@ -237,9 +211,7 @@ class IndexAndObjectFieldsSpec :
                 .path() shouldBe "campaigns.analytics.metrics.conversions"
         }
         should("handle all field types in nested structures") {
-            class StatisticsFields(
-                path: String,
-            ) : ObjectField(path) {
+            class StatisticsFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val count by long<Long>()
                 val average by double<Double>()
                 val isValid by boolean<Boolean>()
@@ -247,9 +219,7 @@ class IndexAndObjectFieldsSpec :
                 val tags by keyword<List<String>>()
             }
 
-            class DocumentFields(
-                path: String,
-            ) : ObjectField(path) {
+            class DocumentFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val content by text<String>()
                 val metadata by flattened()
                 val statistics by objectField<StatisticsFields>()
@@ -288,9 +258,7 @@ class IndexAndObjectFieldsSpec :
             search.timestamp.path() shouldBe "timestamp"
         }
         should("handle ObjectFields with same field names in different contexts") {
-            class CommonFields(
-                path: String,
-            ) : ObjectField(path) {
+            class CommonFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val name by text<String>()
                 val id by keyword<String>()
             }
@@ -315,9 +283,7 @@ class IndexAndObjectFieldsSpec :
         }
 
         should("handle empty field names gracefully") {
-            class TestFields(
-                path: String,
-            ) : ObjectField(path) {
+            class TestFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 // Note: This might not be practical in real use, but testing edge case
             }
 
@@ -329,9 +295,7 @@ class IndexAndObjectFieldsSpec :
             index.content.path() shouldBe "content"
         }
         should("maintain type safety through object traversal") {
-            class TypedFields(
-                path: String,
-            ) : ObjectField(path) {
+            class TypedFields(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
                 val stringField by text<String>()
                 val intField by integer<Int>()
                 val doubleField by double<Double>()

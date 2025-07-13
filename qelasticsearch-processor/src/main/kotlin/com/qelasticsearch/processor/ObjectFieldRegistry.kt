@@ -21,12 +21,7 @@ class ObjectFieldRegistry(
     /**
      * Generates an object field property.
      */
-    fun generateObjectFieldProperty(
-        objectBuilder: TypeSpec.Builder,
-        property: KSPropertyDeclaration,
-        propertyName: String,
-        fieldType: ProcessedFieldType,
-    ) {
+    fun generateObjectFieldProperty(objectBuilder: TypeSpec.Builder, property: KSPropertyDeclaration, propertyName: String, fieldType: ProcessedFieldType) {
         val actualClassDeclaration = findActualClassDeclaration(fieldType)
         if (actualClassDeclaration == null) {
             logger.warn("Could not find class declaration for field type: ${fieldType.kotlinTypeName}")
@@ -85,20 +80,14 @@ class ObjectFieldRegistry(
     private fun generateObjectFieldKey(classDeclaration: KSClassDeclaration): String =
         classDeclaration.qualifiedName?.asString() ?: classDeclaration.simpleName.asString()
 
-    private fun isNestedInCurrentDocument(
-        objectFieldInfo: ObjectFieldInfo,
-        currentDocumentClass: KSClassDeclaration?,
-    ): Boolean =
+    private fun isNestedInCurrentDocument(objectFieldInfo: ObjectFieldInfo, currentDocumentClass: KSClassDeclaration?): Boolean =
         currentDocumentClass != null &&
             objectFieldInfo.parentDocumentClass == currentDocumentClass &&
             isActuallyNestedClass(objectFieldInfo.classDeclaration, currentDocumentClass) &&
             objectFieldInfo.packageName == currentDocumentClass.packageName.asString() &&
             objectFieldInfo.qualifiedName.contains("${currentDocumentClass.simpleName.asString()}.")
 
-    private fun determinePropertyTypeName(
-        objectFieldInfo: ObjectFieldInfo,
-        isNestedInCurrentDocument: Boolean,
-    ): com.squareup.kotlinpoet.TypeName =
+    private fun determinePropertyTypeName(objectFieldInfo: ObjectFieldInfo, isNestedInCurrentDocument: Boolean): com.squareup.kotlinpoet.TypeName =
         if (isNestedInCurrentDocument) {
             // For nested classes within the same document, use the nested path from the parent Q-class
             val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass!!)
@@ -143,10 +132,7 @@ class ObjectFieldRegistry(
         return "Q$simpleName"
     }
 
-    private fun extractNestedPath(
-        objectFieldInfo: ObjectFieldInfo,
-        rootDocumentClass: KSClassDeclaration,
-    ): String {
+    private fun extractNestedPath(objectFieldInfo: ObjectFieldInfo, rootDocumentClass: KSClassDeclaration): String {
         val qualifiedName = objectFieldInfo.qualifiedName
         val rootDocumentQualifiedName = rootDocumentClass.qualifiedName?.asString()
 
@@ -187,10 +173,7 @@ class ObjectFieldRegistry(
         return currentClass
     }
 
-    private fun isActuallyNestedClass(
-        nestedClass: KSClassDeclaration,
-        parentClass: KSClassDeclaration?,
-    ): Boolean {
+    private fun isActuallyNestedClass(nestedClass: KSClassDeclaration, parentClass: KSClassDeclaration?): Boolean {
         if (parentClass == null) return false
 
         return parentClass.declarations.filterIsInstance<KSClassDeclaration>().any {

@@ -1,199 +1,111 @@
 package com.qelasticsearch.dsl
 
 /**
- * Sealed interface for all field types in the DSL.
+ * Sealed class for all field types in the DSL.
  * Provides path traversal functionality for nested field access.
  * Using sealed class ensures exhaustive pattern matching and type safety.
  *
- * All Elasticsearch field types inherit from this base class, providing
- * a unified interface for path calculation and field naming.
  */
-sealed interface Field {
-    fun path(): String
+sealed class Field(private val parent: ObjectField? = null, private val path: String) {
 
-    fun name(): String = path().substringAfterLast('.')
+    @YellowColor
+    fun path(): String = path
+
+    @YellowColor
+    fun name(): String = path.substringAfterLast('.')
+
+    @YellowColor
+    fun parent(): ObjectField? = parent
+
+    @YellowColor
+    fun parents() = generateSequence(parent()) { it.parent() }
+
+    @YellowColor
+    fun isNestedPath(): Boolean = parents().any { it.nested() }
+
+    @YellowColor
+    fun nestedPaths(): Sequence<String> = parents().mapNotNull {
+        if (it.nested()) {
+            it.path()
+        } else {
+            null
+        }
+    }
 }
 
 // Text fields
-class TextField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class TextField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class KeywordField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class KeywordField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
 // Numeric fields
-class LongField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class LongField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class IntegerField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class IntegerField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class ShortField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class ShortField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class ByteField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class ByteField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class DoubleField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class DoubleField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class FloatField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class FloatField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class HalfFloatField(
-    path: String,
-) : PathElement(path),
-    Field
+class HalfFloatField(parent: ObjectField, path: String) : Field(parent, path)
 
-class ScaledFloatField(
-    path: String,
-) : PathElement(path),
-    Field
+class ScaledFloatField(parent: ObjectField, path: String) : Field(parent, path)
 
 // Date fields
-class DateField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class DateField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
-class DateNanosField(
-    path: String,
-) : PathElement(path),
-    Field
+class DateNanosField(parent: ObjectField, path: String) : Field(parent, path)
 
 // Boolean field
-class BooleanField<T>(
-    path: String,
-) : PathElement(path),
-    Field
+class BooleanField<T>(parent: ObjectField, path: String) : Field(parent, path)
 
 // Binary field
-class BinaryField(
-    path: String,
-) : PathElement(path),
-    Field
+class BinaryField(parent: ObjectField, path: String) : Field(parent, path)
 
 // Geo fields
-class IpField(
-    path: String,
-) : PathElement(path),
-    Field
+class IpField(parent: ObjectField, path: String) : Field(parent, path)
 
-class GeoPointField(
-    path: String,
-) : PathElement(path),
-    Field
+class GeoPointField(parent: ObjectField, path: String) : Field(parent, path)
 
-class GeoShapeField(
-    path: String,
-) : PathElement(path),
-    Field
+class GeoShapeField(parent: ObjectField, path: String) : Field(parent, path)
 
 // Specialized fields
-class CompletionField(
-    path: String,
-) : PathElement(path),
-    Field
+class CompletionField(parent: ObjectField, path: String) : Field(parent, path)
 
-class TokenCountField(
-    path: String,
-) : PathElement(path),
-    Field
+class TokenCountField(parent: ObjectField, path: String) : Field(parent, path)
 
-class PercolatorField(
-    path: String,
-) : PathElement(path),
-    Field
+class PercolatorField(parent: ObjectField, path: String) : Field(parent, path)
 
-class RankFeatureField(
-    path: String,
-) : PathElement(path),
-    Field
+class RankFeatureField(parent: ObjectField, path: String) : Field(parent, path)
 
-class RankFeaturesField(
-    path: String,
-) : PathElement(path),
-    Field
+class RankFeaturesField(parent: ObjectField, path: String) : Field(parent, path)
 
-class FlattenedField(
-    path: String,
-) : PathElement(path),
-    Field
+class FlattenedField(parent: ObjectField, path: String) : Field(parent, path)
 
-class ShapeField(
-    path: String,
-) : PathElement(path),
-    Field
+class ShapeField(parent: ObjectField, path: String) : Field(parent, path)
 
-class PointField(
-    path: String,
-) : PathElement(path),
-    Field
+class PointField(parent: ObjectField, path: String) : Field(parent, path)
 
-class ConstantKeywordField(
-    path: String,
-) : PathElement(path),
-    Field
+class ConstantKeywordField(parent: ObjectField, path: String) : Field(parent, path)
 
-class WildcardField(
-    path: String,
-) : PathElement(path),
-    Field
+class WildcardField(parent: ObjectField, path: String) : Field(parent, path)
 
 // Range fields
-class IntegerRangeField(
-    path: String,
-) : PathElement(path),
-    Field
+class IntegerRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
-class FloatRangeField(
-    path: String,
-) : PathElement(path),
-    Field
+class FloatRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
-class LongRangeField(
-    path: String,
-) : PathElement(path),
-    Field
+class LongRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
-class DoubleRangeField(
-    path: String,
-) : PathElement(path),
-    Field
+class DoubleRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
-class DateRangeField(
-    path: String,
-) : PathElement(path),
-    Field
+class DateRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
-class IpRangeField(
-    path: String,
-) : PathElement(path),
-    Field
-
-// Object and nested fields
-abstract class ObjectField(
-    internal val path: String = "",
-) : FieldContainer(),
-    Field {
-    override fun path(): String = path
-}
+class IpRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
 // class NestedField<T : ObjectFields>(
 //    name: String,

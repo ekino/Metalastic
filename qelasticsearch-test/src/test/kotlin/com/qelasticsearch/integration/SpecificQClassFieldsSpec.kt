@@ -72,14 +72,3 @@ class SpecificQClassFieldsSpec :
             metadata.shouldBeInstanceOf<QTestMetadata>()
         }
     })
-
-fun main() {
-    println(
-        QExampleDocument.nestedObject.someField
-            .path(),
-    )
-    println(
-        QExampleDocument.nestedObject2.someField
-            .path(),
-    )
-}
