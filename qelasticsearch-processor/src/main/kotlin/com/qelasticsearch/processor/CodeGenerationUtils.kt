@@ -75,14 +75,6 @@ class CodeGenerationUtils {
         }.getOrNull()
 
     /**
-     * Gets the full type name including generics from a KSTypeReference.
-     */
-    fun getFullTypeName(typeReference: KSTypeReference): String {
-        val resolvedType = typeReference.resolve()
-        return buildTypeString(resolvedType)
-    }
-
-    /**
      * Recursively builds a type string with generics.
      */
     private fun buildTypeString(type: KSType): String {
@@ -114,19 +106,6 @@ class CodeGenerationUtils {
         kotlinType: KSType,
         typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
     ): TypeName = kotlinType.toTypeName(typeParameterResolver)
-
-    /**
-     * Generate a generic delegate call directly from KSType.
-     */
-    fun generateGenericDelegateCallForKSType(
-        methodName: String,
-        kotlinType: KSType,
-        typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
-    ): String {
-        val typeName = kotlinType.toTypeName(typeParameterResolver)
-        val simplifiedTypeString = simplifyTypeNameWithoutImports(typeName)
-        return "$methodName<$simplifiedTypeString>()"
-    }
 
     /**
      * Simplify TypeName to string without adding imports.
@@ -198,7 +177,6 @@ class CodeGenerationUtils {
         val containingClass = property.parentDeclaration as? KSClassDeclaration
         val containingClassName = containingClass?.qualifiedName?.asString() ?: "Unknown"
         val propertyName = property.simpleName.asString()
-        val kotlinTypeName = getFullTypeName(property.type)
         val elasticsearchType = fieldType.elasticsearchType.name
 
         val annotationInfo =
@@ -212,8 +190,6 @@ class CodeGenerationUtils {
             |Elasticsearch field for property [$containingClassName.$propertyName].
             |
             |**Original Property:**
-            |- Name: `$propertyName`
-            |- Type: `$kotlinTypeName`
             |- Elasticsearch Type: `$elasticsearchType`$annotationInfo
             |
             |@see $containingClassName.$propertyName

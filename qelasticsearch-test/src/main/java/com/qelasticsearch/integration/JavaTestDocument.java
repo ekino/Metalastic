@@ -95,7 +95,7 @@ public class JavaTestDocument {
     private List<JavaTag> tags2;
 
     @MultiField(
-            mainField = @Field(type = FieldType.Text),
+            mainField = @Field(type = FieldType.Keyword),
             otherFields = {
                     @InnerField(suffix = "keyword", type = FieldType.Keyword),
                     @InnerField(suffix = "search", type = FieldType.Text, analyzer = "standard"),
@@ -105,8 +105,7 @@ public class JavaTestDocument {
     private String multiFieldName;
 
     @MultiField(
-            mainField = @Field(type = FieldType.Keyword),
-            otherFields = @InnerField(suffix = "SEARCH", type = FieldType.Text)
+            mainField = @Field(type = FieldType.Keyword)
     )
     private String description2;
 

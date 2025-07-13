@@ -33,12 +33,16 @@ class RealWorldPathSpec :
             // This is showing that activities is a nested field at the root level
         }
 
-        should("maintain nested information for MultiField") {
+        should("maintain correct path information for MultiField") {
             val multiField = QJavaTestDocument.multiFieldName
             multiField.path() shouldBe "multiFieldName"
 
-            // Test that inner fields return their local field name
+            // Test that inner fields return their complete dotted path (this was fixed!)
             val searchField = multiField.search
-            searchField.path() shouldBe "search"
+            searchField.path() shouldBe "multiFieldName.search"
+
+            // Test all the actual @InnerField definitions are accessible
+            multiField.keyword.path() shouldBe "multiFieldName.keyword"
+            multiField.zobi.path() shouldBe "multiFieldName.zobi"
         }
     })

@@ -196,13 +196,11 @@ class QElasticsearchSymbolProcessor(
                 .addKdoc(createObjectFieldKDoc(objectFieldInfo))
                 .addAnnotation(generatedAnnotation)
                 .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
-                .addSuperclassConstructorParameter("name")
-                .addSuperclassConstructorParameter("parent")
+                .addSuperclassConstructorParameter("path")
                 .primaryConstructor(
                     com.squareup.kotlinpoet.FunSpec
                         .constructorBuilder()
-                        .addParameter("name", String::class)
-                        .addParameter("parent", ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS).copy(nullable = true))
+                        .addParameter("path", String::class)
                         .build(),
                 ).addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
 

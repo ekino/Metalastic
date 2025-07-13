@@ -4,9 +4,11 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
+import com.squareup.kotlinpoet.asTypeName
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField
 
@@ -64,6 +66,7 @@ class FieldGenerators(
                     importContext,
                 )
             }
+
             else -> {
                 val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation, idAnnotation)
 
@@ -117,13 +120,7 @@ class FieldGenerators(
         // Create KotlinPoet TypeName directly from KSType
         val kotlinType = context.fieldType.kotlinType.resolve()
         val typeParam = codeGenUtils.createKotlinPoetTypeName(kotlinType, context.typeParameterResolver)
-        val delegateCall =
-            codeGenUtils.generateGenericDelegateCallForKSType(
-                methodName,
-                kotlinType,
-                context.typeParameterResolver,
-            )
-
+        val delegateCall = "$methodName()"
         val finalTypeName = ClassName(DSLConstants.DSL_PACKAGE, fieldClass).parameterizedBy(typeParam)
         val kdoc = codeGenUtils.generateFieldKDoc(context.property, context.fieldType)
 
@@ -163,46 +160,14 @@ class FieldGenerators(
             }
 
         val mainFieldType = codeGenUtils.extractFieldTypeFromAnnotation(mainFieldAnnotation)
-        val mainFieldDelegate = getFieldDelegate(mainFieldType)
 
-        if (innerFields.isEmpty()) {
-            // Simple multi-field without inner fields
-            generateSimpleMultiField(objectBuilder, property, propertyName, mainFieldType, mainFieldDelegate)
-        } else {
-            // Multi-field with inner fields
-            generateComplexMultiField(
-                objectBuilder,
-                property,
-                propertyName,
-                mainFieldType,
-                innerFields,
-                importContext,
-            )
-        }
-    }
-
-    private fun generateSimpleMultiField(
-        objectBuilder: TypeSpec.Builder,
-        property: KSPropertyDeclaration,
-        propertyName: String,
-        mainFieldType: FieldType,
-        mainFieldDelegate: String,
-    ) {
-        val simpleFieldType =
-            ProcessedFieldType(
-                elasticsearchType = mainFieldType,
-                kotlinType = property.type,
-                kotlinTypeName = codeGenUtils.getSimpleTypeName(property.type),
-                isObjectType = false,
-            )
-        val kdoc = codeGenUtils.generateFieldKDoc(property, simpleFieldType, listOf("@MultiField"))
-
-        objectBuilder.addProperty(
-            PropertySpec
-                .builder(propertyName, ClassName("com.qelasticsearch.dsl", "Field"))
-                .addKdoc(kdoc)
-                .delegate(mainFieldDelegate)
-                .build(),
+        generateComplexMultiField(
+            objectBuilder,
+            property,
+            propertyName,
+            mainFieldType,
+            innerFields,
+            importContext,
         )
     }
 
@@ -215,20 +180,62 @@ class FieldGenerators(
         innerFields: List<KSAnnotation>,
         importContext: ImportContext,
     ) {
+        // Generate multifield using new MultiField<T : Field> approach
+        val multiFieldClassName = "${propertyName.replaceFirstChar { it.uppercase() }}MultiField"
         val mainFieldClass = getFieldClass(mainFieldType)
+        val mainFieldTypeName =
+            ClassName(DSLConstants.DSL_PACKAGE, mainFieldClass).parameterizedBy(String::class.asTypeName())
+
         importContext.usedImports.add(mainFieldClass)
-        importContext.usedImports.add(DSLConstants.MULTI_FIELD_PROXY)
+        importContext.usedImports.add("MultiField")
 
-        val innerFieldsCode =
-            "\n        " +
-                innerFields.joinToString(separator = "\n        ") { innerFieldAnnotation ->
-                    val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
-                    val innerFieldType = codeGenUtils.extractFieldTypeFromAnnotation(innerFieldAnnotation)
-                    val innerFieldClass = getFieldClass(innerFieldType)
-                    importContext.usedImports.add(innerFieldClass)
-                    "field(\"$suffix\") { $innerFieldClass<String>(\"$suffix\", null) }"
-                } + "\n    "
+        // Create the nested multifield class that extends MultiField<MainFieldType>
+        val multiFieldClass =
+            TypeSpec
+                .classBuilder(multiFieldClassName)
+                .superclass(
+                    ClassName(DSLConstants.DSL_PACKAGE, "MultiField")
+                        .parameterizedBy(mainFieldTypeName),
+                ).primaryConstructor(
+                    FunSpec
+                        .constructorBuilder()
+                        .addParameter("path", String::class)
+                        .build(),
+                ).addSuperclassConstructorParameter("$mainFieldClass(path)")
 
+        // Add fields for each inner field
+        innerFields.forEach { innerFieldAnnotation ->
+            val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
+            val innerFieldType = codeGenUtils.extractFieldTypeFromAnnotation(innerFieldAnnotation)
+            val innerFieldClass = getFieldClass(innerFieldType)
+            val innerFieldDelegate = getFieldDelegate(innerFieldType)
+
+            importContext.usedImports.add(innerFieldClass)
+
+            val kdocForInnerField =
+                """
+                Elasticsearch inner field for suffix '$suffix'.
+                
+                **Original @InnerField:**
+                - Suffix: `$suffix`
+                - Elasticsearch Type: `${innerFieldType.name}`
+                """.trimIndent()
+
+            multiFieldClass.addProperty(
+                PropertySpec
+                    .builder(
+                        suffix,
+                        ClassName(DSLConstants.DSL_PACKAGE, innerFieldClass).parameterizedBy(String::class.asTypeName()),
+                    ).addKdoc(kdocForInnerField)
+                    .delegate("${innerFieldDelegate.substringBefore("()")}<String>()")
+                    .build(),
+            )
+        }
+
+        // Add the nested class to the main object
+        objectBuilder.addType(multiFieldClass.build())
+
+        // Generate the property that uses object instantiation
         val complexFieldType =
             ProcessedFieldType(
                 elasticsearchType = mainFieldType,
@@ -246,9 +253,9 @@ class FieldGenerators(
 
         objectBuilder.addProperty(
             PropertySpec
-                .builder(propertyName, ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.MULTI_FIELD_PROXY))
+                .builder(propertyName, ClassName("", multiFieldClassName))
                 .addKdoc(kdoc)
-                .delegate("multiFieldProxy($mainFieldClass<String>(\"$propertyName\", null)) {$innerFieldsCode}")
+                .delegate("multiField()")
                 .build(),
         )
     }

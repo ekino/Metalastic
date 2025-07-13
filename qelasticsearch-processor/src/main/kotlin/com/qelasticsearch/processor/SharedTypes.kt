@@ -48,6 +48,5 @@ object DSLConstants {
     const val DSL_PACKAGE = "com.qelasticsearch.dsl"
     const val Q_PREFIX = "Q"
     const val INDEX_CLASS = "Index"
-    const val OBJECT_FIELDS_CLASS = "ObjectFields"
-    const val MULTI_FIELD_PROXY = "MultiFieldProxy"
+    const val OBJECT_FIELDS_CLASS = "ObjectField"
 }

@@ -43,7 +43,6 @@ class ObjectFieldRegistry(
         val currentDocumentClass = findContainingDocumentClass(property)
         val isNestedInCurrentDocument = isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass)
 
-        val finalReferenceClassName = determineFinalReferenceClassName(objectFieldInfo, isNestedInCurrentDocument)
         val propertyTypeName = determinePropertyTypeName(objectFieldInfo, isNestedInCurrentDocument)
 
         val isNested = fieldType.elasticsearchType == FieldType.Nested
@@ -51,9 +50,9 @@ class ObjectFieldRegistry(
 
         val delegateCall =
             if (isNested) {
-                "nestedField($finalReferenceClassName::class)"
+                "nestedField()"
             } else {
-                "objectField($finalReferenceClassName::class)"
+                "objectField()"
             }
 
         objectBuilder.addProperty(
@@ -95,32 +94,6 @@ class ObjectFieldRegistry(
             isActuallyNestedClass(objectFieldInfo.classDeclaration, currentDocumentClass) &&
             objectFieldInfo.packageName == currentDocumentClass.packageName.asString() &&
             objectFieldInfo.qualifiedName.contains("${currentDocumentClass.simpleName.asString()}.")
-
-    private fun determineFinalReferenceClassName(
-        objectFieldInfo: ObjectFieldInfo,
-        isNestedInCurrentDocument: Boolean,
-    ): String =
-        if (isNestedInCurrentDocument) {
-            // For nested classes within the same document, use the document's Q class name
-            val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass!!)
-            val parentQClassName = generateUniqueQClassName(rootDocumentClass)
-            val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
-            "$parentQClassName.$nestedPath"
-        } else if (objectFieldInfo.parentDocumentClass != null) {
-            // For nested classes in other documents, use the correct parent Q class name
-            val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass)
-            val parentQClassName = generateUniqueQClassName(rootDocumentClass)
-            val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
-            "$parentQClassName.$nestedPath"
-        } else {
-            // For standalone classes, use the Q-prefixed class name
-            val simpleClassName = objectFieldInfo.classDeclaration.simpleName.asString()
-            if (objectFieldInfo.className.startsWith("Q")) {
-                objectFieldInfo.className
-            } else {
-                "Q$simpleClassName"
-            }
-        }
 
     private fun determinePropertyTypeName(
         objectFieldInfo: ObjectFieldInfo,
