@@ -23,7 +23,47 @@ To publish manually (requires GitLab authentication):
 
 Add the GitLab Package Registry to your project:
 
-#### Gradle (Kotlin DSL)
+#### For Project Members (Recommended)
+
+If you're a member of the QElasticsearch project, no credentials are needed:
+
+##### Gradle (Kotlin DSL)
+```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven")
+        // No credentials needed for project members
+    }
+}
+```
+
+##### Gradle (Groovy DSL)
+```groovy
+repositories {
+    mavenCentral()
+    maven {
+        url 'https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven'
+        // No credentials needed for project members
+    }
+}
+```
+
+##### Maven
+```xml
+<repositories>
+    <repository>
+        <id>gitlab-maven</id>
+        <url>https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven</url>
+    </repository>
+</repositories>
+```
+
+#### For External Users (with Personal Access Token)
+
+If you're not a project member, you'll need credentials:
+
+##### Gradle (Kotlin DSL)
 ```kotlin
 repositories {
     mavenCentral()
@@ -40,7 +80,7 @@ repositories {
 }
 ```
 
-#### Gradle (Groovy DSL)
+##### Gradle (Groovy DSL)
 ```groovy
 repositories {
     mavenCentral()
@@ -57,7 +97,7 @@ repositories {
 }
 ```
 
-#### Maven
+##### Maven
 ```xml
 <repositories>
     <repository>
