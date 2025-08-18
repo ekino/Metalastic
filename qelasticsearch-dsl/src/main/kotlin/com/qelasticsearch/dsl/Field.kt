@@ -100,7 +100,3 @@ class DoubleRangeField(parent: ObjectField, path: String) : Field(parent, path)
 class DateRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
 class IpRangeField(parent: ObjectField, path: String) : Field(parent, path)
-
-// class NestedField<T : ObjectFields>(
-//    name: String,
-// ) : Field
