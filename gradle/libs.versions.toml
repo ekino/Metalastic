@@ -1,25 +1,23 @@
 [versions]
 # Kotlin and JVM
-kotlin = "2.2.0"
-jvm = "21"
+kotlin = "2.2.10"
 
 # KSP and Code Generation
-ksp = "2.2.0-2.0.2"
+ksp = "2.2.10-2.0.2"
 kotlinpoet = "2.2.0"
 
 # Spring Data Elasticsearch
-spring-data-elasticsearch = "5.5.1"
+spring-data-elasticsearch = "5.5.3"
 
 #annotations
 jakarta-annotation-api = "3.0.0"
 
 # Code Quality
-spotless = "7.1.0"
+spotless = "7.2.1"
 detekt = "1.23.8"
 
 # Testing
-junit = "5.13.3"
-mockk = "1.14.4"
+mockk = "1.14.5"
 kotlin-compile-testing = "1.6.0"
 kotest = "5.9.1"
 
@@ -40,7 +38,6 @@ kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 
 # Testing
-junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 kotlin-compile-testing = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlin-compile-testing" }
 kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlin-compile-testing" }
@@ -58,12 +55,7 @@ jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api",
 kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 
 [bundles]
-testing-common = ["junit-jupiter", "kotlin-test"]
-testing-extended = ["junit-jupiter", "kotlin-test", "mockk"]
-kotest-common = ["kotest-runner-junit5", "kotest-assertions-core", "kotlin-test"]
 kotest-extended = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property", "kotest-framework-datatest", "kotlin-test"]
-ksp-processor = ["ksp-api", "kotlinpoet", "kotlinpoet-ksp"]
-compile-testing = ["kotlin-compile-testing", "kotlin-compile-testing-ksp"]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
