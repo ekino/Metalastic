@@ -1,4 +1,5 @@
 {
+  "_comment": "Prettier configuration used by Spotless for formatting Markdown (*.md) and YAML (*.yml, *.yaml) files. Kotlin/Java code uses ktfmt Google Style instead.",
   "printWidth": 160,
   "tabWidth": 2,
   "useTabs": false,
