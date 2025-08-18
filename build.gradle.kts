@@ -83,6 +83,39 @@ subprojects {
         publications {
             create<MavenPublication>("maven") {
                 from(components["java"])
+                
+                pom {
+                    name.set("QElasticsearch ${project.name}")
+                    description.set("A QueryDSL-like library for Elasticsearch in Kotlin")
+                    url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                    
+                    licenses {
+                        license {
+                            name.set("Apache License, Version 2.0")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                        }
+                    }
+                    
+                    scm {
+                        connection.set("scm:git:git://gitlab.ekino.com/iperia/qelasticsearch.git")
+                        developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/qelasticsearch.git")
+                        url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                    }
+                }
+            }
+        }
+        
+        repositories {
+            maven {
+                name = "GitLab"
+                url = uri("https://gitlab.ekino.com/api/v4/projects/\${System.getenv("CI_PROJECT_ID")}/packages/maven")
+                credentials(HttpHeaderCredentials::class) {
+                    name = "Job-Token"
+                    value = System.getenv("CI_JOB_TOKEN")
+                }
+                authentication {
+                    create("header", HttpHeaderAuthentication::class)
+                }
             }
         }
     }
