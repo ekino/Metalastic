@@ -127,7 +127,7 @@ repositories {
 ```kotlin
 dependencies {
     implementation("com.qelasticsearch:qelasticsearch-dsl:1.0-SNAPSHOT")
-    kapt("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
+    ksp("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
 }
 ```
 
