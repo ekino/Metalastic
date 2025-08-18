@@ -2,6 +2,11 @@
 
 A QueryDSL-like library for Elasticsearch in Kotlin that generates type-safe query builders from Spring Data Elasticsearch document classes.
 
+[![GitLab CI/CD](https://gitlab.ekino.com/iperia/qelasticsearch/badges/master/pipeline.svg)](https://gitlab.ekino.com/iperia/qelasticsearch/pipelines)
+[![Maven Repository](https://img.shields.io/badge/maven-GitLab%20Registry-blue)](https://gitlab.ekino.com/iperia/qelasticsearch/-/packages)
+[![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-purple)](https://kotlinlang.org/)
+
 ## Overview
 
 QElasticsearch provides compile-time code generation to create type-safe, fluent query builders for Elasticsearch documents. Similar to how QueryDSL generates Q-classes for SQL entities, this library generates QIndex classes for Spring Data Elasticsearch `@Document` annotated classes.
@@ -15,8 +20,10 @@ QElasticsearch provides compile-time code generation to create type-safe, fluent
 - ✅ **Nested object support** - Type-safe traversal of nested document structures
 - ✅ **Path traversal** - Dotted notation support for nested field access
 - ✅ **Multi-field support** - Handle complex field mappings with inner fields
-- ✅ **Java & Kotlin compatible** - Works with both Java and Kotlin projects
+- ✅ **Java & Kotlin compatible** - Works with both Java and Kotlin projects  
 - ✅ **Java 21** - Built with modern Java features and performance improvements
+- ✅ **KSP-based** - Uses Kotlin Symbol Processing for efficient annotation processing
+- ✅ **ktfmt Google Style** - Consistent code formatting with ktfmt
 
 ## How It Works
 
@@ -94,15 +101,21 @@ public class Person {
 
 ```kotlin
 object QPerson : Index("person") {
-    val id by keyword()
-    val name by text()
-    val age by integer()
-    val address by objectField(QAddress)
+    val id by keyword<String>()
+    val name by text<String>()
+    val age by integer<Int>()
+    val address by objectField<QAddress>()
+    val activities by nestedField<QActivity>()
 }
 
-object QAddress : ObjectFields() {
-    val city by text()
-    val country by keyword()
+class QAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
+    val city by text<String>()
+    val country by keyword<String>()
+}
+
+class QActivity(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
+    val name by text<String>()
+    val timestamp by date<String>()
 }
 ```
 
@@ -113,17 +126,21 @@ object QAddress : ObjectFields() {
 val person = QPerson
 
 // Root level fields
-person.path shouldBe ""
-person.name.path shouldBe "name"
-person.age.path shouldBe "age"
+person.path() shouldBe ""
+person.name.path() shouldBe "name"
+person.age.path() shouldBe "age"
 
-// Nested object fields
-person.address.city.path shouldBe "address.city"
-person.address.country.path shouldBe "address.country"
+// Object fields
+person.address.city.path() shouldBe "address.city"
+person.address.country.path() shouldBe "address.country"
+
+// Nested fields  
+person.activities.name.path() shouldBe "activities.name"
+person.activities.timestamp.path() shouldBe "activities.timestamp"
 
 // Enhanced path information with nested detection
-person.address.city.fieldPath.isNested shouldBe false // object field
-person.activities.name.fieldPath.isNested shouldBe true // nested field
+person.address.city.isNestedPath() shouldBe false // object field
+person.activities.name.isNestedPath() shouldBe true // nested field
 
 // Use in Elasticsearch queries
 val searchRequest = SearchRequest()
@@ -132,8 +149,8 @@ val searchRequest = SearchRequest()
         SearchSourceBuilder()
             .query(
                 QueryBuilders.boolQuery()
-                    .must(QueryBuilders.termQuery(person.name.path, "John"))
-                    .filter(QueryBuilders.rangeQuery(person.age.path).gte(18))
+                    .must(QueryBuilders.termQuery(person.name.path(), "John"))
+                    .filter(QueryBuilders.rangeQuery(person.age.path()).gte(18))
             )
     )
 ```
@@ -181,41 +198,61 @@ The library handles complex field mappings including multi-fields with inner fie
 
 ```java
 @MultiField(
-    mainField = @Field(type = FieldType.Long),
+    mainField = @Field(type = FieldType.Text),
     otherFields = {
+        @InnerField(suffix = "keyword", type = FieldType.Keyword),
         @InnerField(suffix = "search", type = FieldType.Text)
     }
 )
-private Long longCode;
+private String multiFieldName;
 ```
 
 Generates:
 
 ```kotlin
-val longCode by multiField(long()) {
-    field("search", text())
+object QMultiFieldName : MultiField<TextField<String>>(parent, TextField(parent, "multiFieldName")) {
+    val keyword by keyword<String>()
+    val search by text<String>()
 }
+
+// Usage in index:
+val multiFieldName by multiField<QMultiFieldName>()
+
+// Access patterns:
+multiFieldName.path() shouldBe "multiFieldName"           // main field
+multiFieldName.keyword.path() shouldBe "multiFieldName.keyword"  // inner field
+multiFieldName.search.path() shouldBe "multiFieldName.search"    // inner field
 ```
 
 ## Installation
 
 ### As a Library Consumer
 
-Add the dependency to your `build.gradle.kts`:
+Add the GitLab Maven repository and dependencies to your `build.gradle.kts`:
 
 ```kotlin
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven")
+        // No credentials needed for project members
+    }
+}
+
 dependencies {
-    implementation("com.yourorg:qelasticsearch-runtime:1.0.0")
-    ksp("com.yourorg:qelasticsearch-processor:1.0.0")
+    implementation("com.qelasticsearch:qelasticsearch-dsl:1.0-SNAPSHOT")
+    ksp("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
 }
 ```
+
+For detailed consumption instructions including authentication for external users, see [PUBLISHING.md](PUBLISHING.md).
 
 ### Development Setup
 
 Clone and build the library:
 
 ```bash
-git clone https://github.com/yourorg/qelasticsearch.git
+git clone https://gitlab.ekino.com/iperia/qelasticsearch.git
 cd qelasticsearch
 ./gradlew build
 ```
@@ -223,9 +260,13 @@ cd qelasticsearch
 ### Building and Testing
 
 - **Build all modules**: `./gradlew build`
+- **Format code**: `./gradlew spotlessApply`
+- **Check formatting**: `./gradlew spotlessCheck`
+- **Run all checks**: `./gradlew check`
 - **Test DSL module**: `./gradlew :qelasticsearch-dsl:test`
 - **Test processor module**: `./gradlew :qelasticsearch-processor:test`
 - **Test integration**: `./gradlew :qelasticsearch-test:test`
+- **Publish locally**: `./gradlew publishToMavenLocal`
 
 ## Version Compatibility
 
@@ -312,11 +353,13 @@ The runtime detection approach provides maximum compatibility and ease of use wh
 This project follows strict code quality standards:
 
 - **No star imports** - All imports are explicit
-- **ktlint** - Code formatting and style checks
-- **detekt** - Static code analysis
+- **ktfmt Google Style** - Consistent code formatting with ktfmt
+- **Spotless** - Automated code formatting enforcement
+- **detekt** - Static code analysis for Kotlin
 - **100% Kotlin** - Kotlin-first design with Java interoperability
 - **Kotest v5.9.1** - ShouldSpec format for all tests (no JUnit)
 - **KotlinLogging** - Structured logging for tests (no println statements)
+- **KSP** - Kotlin Symbol Processing for annotation processing
 
 ## Architecture
 
@@ -345,15 +388,22 @@ QElasticsearch/
 
 ## Contributing
 
-1. Follow the established code style (ktlint + detekt)
-2. No star imports
-3. Write tests for new features using Kotest ShouldSpec format
-4. Use KotlinLogging for test output (no println statements)
-5. Update documentation for API changes
+1. Follow the established code style (ktfmt Google Style + detekt)
+2. Run `./gradlew spotlessApply` to format code before committing
+3. No star imports - all imports must be explicit
+4. Write tests for new features using Kotest ShouldSpec format
+5. Use KotlinLogging for test output (no println statements)
+6. Use KSP for annotation processing (not kapt)
+7. Update documentation for API changes
+8. Ensure all checks pass: `./gradlew check`
 
-## License
 
-[Your License Here]
+## GitLab Repository
+
+This project is hosted on GitLab at:
+- **Repository**: https://gitlab.ekino.com/iperia/qelasticsearch
+- **CI/CD Pipelines**: https://gitlab.ekino.com/iperia/qelasticsearch/pipelines
+- **Package Registry**: https://gitlab.ekino.com/iperia/qelasticsearch/-/packages
 
 ## Roadmap
 
