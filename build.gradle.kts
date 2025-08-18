@@ -54,7 +54,9 @@ subprojects {
         }
 
         kotlinGradle {
-            ktfmt().googleStyle()
+            ktfmt().googleStyle().configure {
+                it.setRemoveUnusedImports(true)
+            }
             trimTrailingWhitespace()
             endWithNewline()
         }
@@ -77,18 +79,21 @@ subprojects {
             create<MavenPublication>("maven") {
                 from(components["java"])
                 
+                // Enable sources jar for better IDE support
+                artifact(tasks.named("kotlinSourcesJar"))
+
                 pom {
                     name.set("QElasticsearch ${project.name}")
                     description.set("A QueryDSL-like library for Elasticsearch in Kotlin")
                     url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
-                    
+
                     licenses {
                         license {
                             name.set("Apache License, Version 2.0")
                             url.set("https://www.apache.org/licenses/LICENSE-2.0")
                         }
                     }
-                    
+
                     scm {
                         connection.set("scm:git:git://gitlab.ekino.com/iperia/qelasticsearch.git")
                         developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/qelasticsearch.git")
@@ -97,7 +102,7 @@ subprojects {
                 }
             }
         }
-        
+
         repositories {
             maven {
                 name = "GitLab"
