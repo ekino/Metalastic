@@ -44,24 +44,17 @@ subprojects {
         kotlin {
             target("**/*.kt")
             targetExclude("**/build/generated/**")
-            ktlint("1.6.0")
-                .editorConfigOverride(
-                    mapOf(
-                        "max_line_length" to "160",
-                        "ktlint_standard_max-line-length" to "enabled"
-                    )
-                )
+            ktfmt().googleStyle()
             trimTrailingWhitespace()
             endWithNewline()
         }
 
         java {
             removeUnusedImports()
-            removeWildcardImports()
         }
 
         kotlinGradle {
-            ktlint("1.6.0")
+            ktfmt().googleStyle()
             trimTrailingWhitespace()
             endWithNewline()
         }

@@ -1,35 +1,29 @@
 package com.qelasticsearch.dsl
 
 /**
- * Sealed class for all field types in the DSL.
- * Provides path traversal functionality for nested field access.
- * Using sealed class ensures exhaustive pattern matching and type safety.
- *
+ * Sealed class for all field types in the DSL. Provides path traversal functionality for nested
+ * field access. Using sealed class ensures exhaustive pattern matching and type safety.
  */
 sealed class Field(private val parent: ObjectField? = null, private val path: String) {
 
-    @YellowColor
-    fun path(): String = path
+  @YellowColor fun path(): String = path
 
-    @YellowColor
-    fun name(): String = path.substringAfterLast('.')
+  @YellowColor fun name(): String = path.substringAfterLast('.')
 
-    @YellowColor
-    fun parent(): ObjectField? = parent
+  @YellowColor fun parent(): ObjectField? = parent
 
-    @YellowColor
-    fun parents() = generateSequence(parent()) { it.parent() }
+  @YellowColor fun parents() = generateSequence(parent()) { it.parent() }
 
-    @YellowColor
-    fun isNestedPath(): Boolean = parents().any { it.nested() }
+  @YellowColor fun isNestedPath(): Boolean = parents().any { it.nested() }
 
-    @YellowColor
-    fun nestedPaths(): Sequence<String> = parents().mapNotNull {
-        if (it.nested()) {
-            it.path()
-        } else {
-            null
-        }
+  @YellowColor
+  fun nestedPaths(): Sequence<String> =
+    parents().mapNotNull {
+      if (it.nested()) {
+        it.path()
+      } else {
+        null
+      }
     }
 }
 
