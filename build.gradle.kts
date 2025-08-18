@@ -108,7 +108,7 @@ subprojects {
         repositories {
             maven {
                 name = "GitLab"
-                url = uri("https://gitlab.ekino.com/api/v4/projects/\${System.getenv("CI_PROJECT_ID")}/packages/maven")
+                url = uri("https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
                 credentials(HttpHeaderCredentials::class) {
                     name = "Job-Token"
                     value = System.getenv("CI_JOB_TOKEN")
