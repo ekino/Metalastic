@@ -1,5 +1,6 @@
 package com.qelasticsearch.dsl.delegate
 
+import com.qelasticsearch.dsl.DynamicField
 import com.qelasticsearch.dsl.MultiField
 import com.qelasticsearch.dsl.ObjectField
 import kotlin.reflect.KProperty
@@ -22,4 +23,9 @@ inline fun <reified T : ObjectField> nestedField(): ObjectFieldDelegate<T> {
 
 inline fun <reified T : MultiField<*>> multiField(): MultiFieldDelegate<T> {
   return MultiFieldDelegate(T::class)
+}
+
+// Dynamic field delegate
+inline fun <reified T> dynamicField(): FieldDelegate<DynamicField<T>> {
+  return FieldDelegate { parent, path -> DynamicField<T>(parent, path) }
 }

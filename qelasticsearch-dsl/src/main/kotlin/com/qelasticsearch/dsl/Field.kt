@@ -100,3 +100,6 @@ class DoubleRangeField(parent: ObjectField, path: String) : Field(parent, path)
 class DateRangeField(parent: ObjectField, path: String) : Field(parent, path)
 
 class IpRangeField(parent: ObjectField, path: String) : Field(parent, path)
+
+// Dynamic field for runtime/generic field references
+class DynamicField<T>(parent: ObjectField, path: String) : Field(parent, path)
