@@ -2,10 +2,10 @@ package com.qelasticsearch.dsl
 
 /**
  * Annotation to mark fields that should be included in the generated Q-index as DynamicField<T>.
- * 
- * Unlike @Field annotations that map to specific Elasticsearch field types, @QDynamicField 
- * creates generic field references that can be used for runtime queries without being tied 
- * to a specific Elasticsearch mapping.
+ *
+ * Unlike @Field annotations that map to specific Elasticsearch field types, @QDynamicField creates
+ * generic field references that can be used for runtime queries without being tied to a specific
+ * Elasticsearch mapping.
  *
  * Supports primitive types and collections but not nested objects.
  *
@@ -15,11 +15,11 @@ package com.qelasticsearch.dsl
  * class ProductDocument {
  *     @Field(type = FieldType.Keyword)
  *     val id: String = ""
- *     
+ *
  *     @QDynamicField
  *     val runtimeScore: Double = 0.0
- *     
- *     @QDynamicField  
+ *
+ *     @QDynamicField
  *     val tags: List<String> = emptyList()
  * }
  * ```

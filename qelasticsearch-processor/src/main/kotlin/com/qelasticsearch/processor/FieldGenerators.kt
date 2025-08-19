@@ -3,6 +3,7 @@ package com.qelasticsearch.processor
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.qelasticsearch.dsl.QDynamicField
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -41,16 +42,34 @@ class FieldGenerators(
     val fieldAnnotation =
       property.findAnnotation(org.springframework.data.elasticsearch.annotations.Field::class)
     val multiFieldAnnotation = property.findAnnotation(MultiField::class)
+    val qDynamicFieldAnnotation = property.findAnnotation(QDynamicField::class)
 
     val propertyName = property.simpleName.asString()
 
+    // Log dynamic field detection
+    if (qDynamicFieldAnnotation != null) {
+      logger.info("Found @QDynamicField on property: $propertyName")
+    }
+
     // Skip fields with no annotations at all
-    if (fieldAnnotation == null && multiFieldAnnotation == null) {
+    if (
+      fieldAnnotation == null && multiFieldAnnotation == null && qDynamicFieldAnnotation == null
+    ) {
       logger.info("Property $propertyName has no annotations, ignoring field")
       return
     }
 
     when {
+      qDynamicFieldAnnotation != null -> {
+        generateDynamicFieldProperty(
+          objectBuilder,
+          property,
+          propertyName,
+          importContext,
+          typeParameterResolver,
+        )
+      }
+
       multiFieldAnnotation != null -> {
         generateMultiFieldProperty(
           objectBuilder,
@@ -266,6 +285,43 @@ class FieldGenerators(
   /** Get the DSL field class name for a given field type. */
   private fun getFieldClass(fieldType: FieldType): String =
     fieldTypeMappings[fieldType]?.className ?: "KeywordField"
+
+  /** Generates a dynamic field property for @QDynamicField annotated fields. */
+  fun generateDynamicFieldProperty(
+    objectBuilder: TypeSpec.Builder,
+    property: KSPropertyDeclaration,
+    propertyName: String,
+    importContext: ImportContext,
+    typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
+  ) {
+    // Create KotlinPoet TypeName directly from KSType
+    val kotlinType = property.type.resolve()
+    val typeParam = codeGenUtils.createKotlinPoetTypeName(kotlinType, typeParameterResolver)
+    val finalTypeName =
+      ClassName(DSLConstants.DSL_PACKAGE, "DynamicField").parameterizedBy(typeParam)
+
+    val kdoc =
+      """
+        Dynamic field for property [${property.parentDeclaration?.qualifiedName?.asString()}.${propertyName}].
+
+        **Original Property:**
+        - Annotated with @QDynamicField
+        - Kotlin Type: `${codeGenUtils.getSimpleTypeName(property.type)}`
+
+        @see ${property.parentDeclaration?.qualifiedName?.asString()}.${propertyName}
+        """
+        .trimIndent()
+
+    objectBuilder.addProperty(
+      PropertySpec.builder(propertyName, finalTypeName)
+        .addKdoc(kdoc)
+        .delegate("dynamicField()")
+        .build()
+    )
+
+    // Add DynamicField to imports
+    importContext.usedImports.add("DynamicField")
+  }
 
   // Extension function to find annotations
   private fun KSPropertyDeclaration.findAnnotation(

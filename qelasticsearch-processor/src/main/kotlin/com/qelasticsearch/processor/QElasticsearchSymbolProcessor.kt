@@ -313,6 +313,7 @@ class QElasticsearchSymbolProcessor(
     fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "objectField")
     fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "nestedField")
     fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "multiField")
+    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "dynamicField")
 
     // Add type imports
     importContext.typeImports.forEach { qualifiedName ->
