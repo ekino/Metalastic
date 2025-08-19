@@ -8,6 +8,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 data class ImportContext(
   val usedImports: MutableSet<String> = mutableSetOf(),
   val typeImports: MutableSet<String> = mutableSetOf(),
+  val usedDelegationFunctions: MutableSet<String> = mutableSetOf(),
 )
 
 /** Field type mapping for generating DSL methods and classes. */
