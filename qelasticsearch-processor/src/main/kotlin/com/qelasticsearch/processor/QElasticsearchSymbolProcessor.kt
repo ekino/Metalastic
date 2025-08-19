@@ -309,6 +309,11 @@ class QElasticsearchSymbolProcessor(
       fileBuilder.addImport(DSLConstants.DSL_PACKAGE, className)
     }
 
+    // Add delegate function imports
+    fileBuilder.addImport(DSLConstants.DSL_PACKAGE, "objectField")
+    fileBuilder.addImport(DSLConstants.DSL_PACKAGE, "nestedField")
+    fileBuilder.addImport(DSLConstants.DSL_PACKAGE, "multiField")
+
     // Add type imports
     importContext.typeImports.forEach { qualifiedName ->
       if (qualifiedName.contains('.')) {
