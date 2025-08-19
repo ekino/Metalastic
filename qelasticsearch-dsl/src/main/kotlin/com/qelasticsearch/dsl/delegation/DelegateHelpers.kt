@@ -1,4 +1,4 @@
-package com.qelasticsearch.dsl.delegate
+package com.qelasticsearch.dsl.delegation
 
 import com.qelasticsearch.dsl.DynamicField
 import com.qelasticsearch.dsl.MultiField
