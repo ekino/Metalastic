@@ -113,6 +113,7 @@ class NestedClassProcessor(
     fieldGenerators: FieldGenerators,
     fieldTypeExtractor: FieldTypeExtractor,
     objectFieldRegistry: ObjectFieldRegistry,
+    importContext: ImportContext,
   ) {
     val nestedClasses = getNestedClassesForDocument(documentClass)
 
@@ -123,6 +124,7 @@ class NestedClassProcessor(
           fieldGenerators,
           fieldTypeExtractor,
           objectFieldRegistry,
+          importContext,
         )
       parentObjectBuilder.addType(nestedObjectBuilder.build())
     }
@@ -135,6 +137,7 @@ class NestedClassProcessor(
     fieldGenerators: FieldGenerators,
     fieldTypeExtractor: FieldTypeExtractor,
     objectFieldRegistry: ObjectFieldRegistry,
+    importContext: ImportContext,
   ) {
     val nestedClasses = getNestedClassesForClass(parentClass)
 
@@ -145,6 +148,7 @@ class NestedClassProcessor(
           fieldGenerators,
           fieldTypeExtractor,
           objectFieldRegistry,
+          importContext,
         )
       parentObjectBuilder.addType(nestedObjectBuilder.build())
     }
@@ -156,6 +160,7 @@ class NestedClassProcessor(
     fieldGenerators: FieldGenerators,
     fieldTypeExtractor: FieldTypeExtractor,
     objectFieldRegistry: ObjectFieldRegistry,
+    importContext: ImportContext,
   ): TypeSpec.Builder {
     val nestedClassName = objectFieldInfo.classDeclaration.simpleName.asString()
 
@@ -194,6 +199,7 @@ class NestedClassProcessor(
       fieldGenerators,
       fieldTypeExtractor,
       objectFieldRegistry,
+      importContext,
     )
 
     // Recursively add nested objects for this class
@@ -203,6 +209,7 @@ class NestedClassProcessor(
       fieldGenerators,
       fieldTypeExtractor,
       objectFieldRegistry,
+      importContext,
     )
 
     return objectBuilder
@@ -215,8 +222,8 @@ class NestedClassProcessor(
     fieldGenerators: FieldGenerators,
     fieldTypeExtractor: FieldTypeExtractor,
     objectFieldRegistry: ObjectFieldRegistry,
+    importContext: ImportContext,
   ) {
-    val importContext = ImportContext()
     val typeParameterResolver = classDeclaration.typeParameters.toTypeParameterResolver()
 
     processUniqueProperties(classDeclaration) { property ->

@@ -165,6 +165,7 @@ class QElasticsearchSymbolProcessor(
       fieldGenerators,
       fieldTypeExtractor,
       objectFieldRegistry,
+      importContext,
     )
   }
 
@@ -232,6 +233,7 @@ class QElasticsearchSymbolProcessor(
       fieldGenerators,
       fieldTypeExtractor,
       objectFieldRegistry,
+      importContext,
     )
 
     return createObjectFieldFileSpec(objectFieldInfo, objectBuilder, importContext)
@@ -309,11 +311,10 @@ class QElasticsearchSymbolProcessor(
       fileBuilder.addImport(DSLConstants.DSL_PACKAGE, className)
     }
 
-    // Add delegate helper function imports
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "objectField")
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "nestedField")
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "multiField")
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "dynamicField")
+    // Add delegate helper function imports - only the ones actually used
+    importContext.usedDelegationFunctions.forEach { delegationFunction ->
+      fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", delegationFunction)
+    }
 
     // Add type imports
     importContext.typeImports.forEach { qualifiedName ->
