@@ -226,6 +226,16 @@ class QElasticsearchSymbolProcessor(
       }
     }
 
+    // Process annotated getter methods for interfaces
+    nestedClassProcessor.processAnnotatedGetterMethods(objectFieldInfo.classDeclaration) { method ->
+      fieldGenerators.processAnnotatedMethod(
+        method,
+        objectBuilder,
+        importContext,
+        typeParameterResolver,
+      )
+    }
+
     // Add nested objects
     nestedClassProcessor.addNestedObjectsToBuilder(
       objectFieldInfo.classDeclaration,

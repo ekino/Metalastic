@@ -2,6 +2,7 @@ package com.qelasticsearch.processor
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.qelasticsearch.dsl.QDynamicField
 import com.squareup.kotlinpoet.ClassName
@@ -19,6 +20,12 @@ class FieldGenerators(
   private val fieldTypeMappings: Map<FieldType, FieldTypeMapping>,
   private val codeGenUtils: CodeGenerationUtils,
 ) {
+
+  companion object {
+    private const val GETTER_PREFIX_LENGTH = 3
+    private const val BOOLEAN_PREFIX_LENGTH = 2
+  }
+
   /** Context for field property generation. */
   data class FieldGenerationContext(
     val objectBuilder: TypeSpec.Builder,
@@ -108,6 +115,85 @@ class FieldGenerators(
         }
       }
     }
+  }
+
+  /** Processes an annotated method and generates appropriate field property. */
+  fun processAnnotatedMethod(
+    method: KSFunctionDeclaration,
+    objectBuilder: TypeSpec.Builder,
+    importContext: ImportContext,
+    typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
+  ) {
+    val fieldAnnotation =
+      method.findFunctionAnnotation(org.springframework.data.elasticsearch.annotations.Field::class)
+    if (fieldAnnotation == null) {
+      logger.info("Method ${method.simpleName.asString()} has no @Field annotation, ignoring")
+      return
+    }
+
+    val methodName = method.simpleName.asString()
+    val propertyName = extractPropertyNameFromMethod(methodName)
+
+    logger.info("Processing annotated method: $methodName -> property: $propertyName")
+
+    // Create a ProcessedFieldType from the method return type and annotation
+    val fieldType = codeGenUtils.extractFieldTypeFromAnnotation(fieldAnnotation)
+    val returnType =
+      method.returnType
+        ?: run {
+          logger.warn("Method $methodName has no return type, skipping")
+          return
+        }
+
+    val processedFieldType =
+      ProcessedFieldType(
+        elasticsearchType = fieldType,
+        kotlinType = returnType,
+        kotlinTypeName = codeGenUtils.getSimpleTypeName(returnType),
+        isObjectType = false, // For now, assume getter methods return simple types
+      )
+
+    // Generate the field property using the same logic as regular properties
+    val context =
+      FieldGenerationContext(
+        objectBuilder,
+        // Create a synthetic property from the method for compatibility
+        createSyntheticPropertyFromMethod(method, propertyName),
+        propertyName,
+        processedFieldType,
+        importContext,
+        typeParameterResolver,
+      )
+    generateSimpleFieldProperty(context)
+  }
+
+  /** Helper function to extract property name from method name by removing common prefixes. */
+  private fun extractPropertyNameFromMethod(methodName: String): String {
+    return when {
+      methodName.startsWith("get") &&
+        methodName.length > GETTER_PREFIX_LENGTH &&
+        methodName[GETTER_PREFIX_LENGTH].isUpperCase() -> {
+        methodName.removePrefix("get").replaceFirstChar { it.lowercase() }
+      }
+      methodName.startsWith("is") &&
+        methodName.length > BOOLEAN_PREFIX_LENGTH &&
+        methodName[BOOLEAN_PREFIX_LENGTH].isUpperCase() -> {
+        methodName.removePrefix("is").replaceFirstChar { it.lowercase() }
+      }
+      else -> {
+        // For any other method name, use as-is (convert first char to lowercase if needed)
+        methodName.replaceFirstChar { it.lowercase() }
+      }
+    }
+  }
+
+  /** Creates a synthetic KSPropertyDeclaration from a getter method for compatibility. */
+  private fun createSyntheticPropertyFromMethod(
+    method: KSFunctionDeclaration,
+    propertyName: String,
+  ): KSPropertyDeclaration {
+    // For now, we'll create a minimal wrapper that provides the essential information
+    return SyntheticPropertyFromMethod(method, propertyName)
   }
 
   /**
@@ -340,4 +426,13 @@ class FieldGenerators(
   // Extension function to get argument values
   private inline fun <reified T> KSAnnotation.getArgumentValue(name: String): T? =
     arguments.find { it.name?.asString() == name }?.value as? T
+
+  // Extension function to find annotations on functions
+  private fun KSFunctionDeclaration.findFunctionAnnotation(
+    annotationClass: kotlin.reflect.KClass<*>
+  ): KSAnnotation? =
+    annotations.find {
+      it.annotationType.resolve().declaration.qualifiedName?.asString() ==
+        annotationClass.qualifiedName
+    }
 }
