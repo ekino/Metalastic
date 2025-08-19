@@ -93,16 +93,12 @@ abstract class ObjectField(
 
   // Object field delegates
   @Suppress("MemberNameEqualsClassName")
-  inline fun <reified T : ObjectField> objectField(
-    nested: Boolean = false
-  ): ObjectFieldDelegate<T> {
-    val delegate = ObjectFieldDelegate(T::class, nested)
-    return delegate
+  inline fun <reified T : ObjectField> objectField(): ObjectFieldDelegate<T> {
+    return ObjectFieldDelegate(T::class, nested = false)
   }
 
   inline fun <reified T : ObjectField> nestedField(): ObjectFieldDelegate<T> {
-    val delegate = ObjectFieldDelegate(T::class, nested = true)
-    return delegate
+    return ObjectFieldDelegate(T::class, nested = true)
   }
 
   inline fun <reified T : MultiField<*>> multiField(): MultiFieldDelegate<T> {
