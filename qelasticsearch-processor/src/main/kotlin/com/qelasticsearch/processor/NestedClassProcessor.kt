@@ -5,6 +5,7 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeSpec
@@ -57,7 +58,11 @@ class NestedClassProcessor(
         .getAllFiles()
         .flatMap { it.declarations }
         .forEach { declaration ->
-          if (declaration is KSClassDeclaration && declaration.classKind == ClassKind.CLASS) {
+          if (
+            declaration is KSClassDeclaration &&
+              (declaration.classKind == ClassKind.CLASS ||
+                declaration.classKind == ClassKind.INTERFACE)
+          ) {
             allClasses.add(declaration)
             collectNestedClasses(declaration, allClasses)
           }
@@ -237,6 +242,18 @@ class NestedClassProcessor(
       )
     }
 
+    // Process annotated getter methods for interfaces
+    logger.info("Checking class ${classDeclaration.simpleName.asString()} for getter methods...")
+    processAnnotatedGetterMethods(classDeclaration) { method ->
+      logger.info("Found annotated getter method: ${method.simpleName.asString()}")
+      fieldGenerators.processAnnotatedMethod(
+        method,
+        objectBuilder,
+        importContext,
+        typeParameterResolver,
+      )
+    }
+
     // Don't add nested objects here to avoid duplicates
     // They will be added as top-level objects
   }
@@ -277,7 +294,9 @@ class NestedClassProcessor(
     allClasses: MutableList<KSClassDeclaration>,
   ) {
     parentClass.declarations.filterIsInstance<KSClassDeclaration>().forEach { nestedClass ->
-      if (nestedClass.classKind == ClassKind.CLASS) {
+      if (
+        nestedClass.classKind == ClassKind.CLASS || nestedClass.classKind == ClassKind.INTERFACE
+      ) {
         allClasses.add(nestedClass)
         collectNestedClasses(nestedClass, allClasses)
       }
@@ -373,11 +392,7 @@ class NestedClassProcessor(
     onNestedClassFound: (KSClassDeclaration) -> Unit,
   ) {
     classDeclaration.getAllProperties().forEach { property ->
-      val fieldAnnotation = property.findAnnotation(Field::class)
-
-      if (fieldAnnotation == null) {
-        return@forEach
-      }
+      val fieldAnnotation = property.findAnnotation(Field::class) ?: return@forEach
 
       val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation)
 
@@ -429,4 +444,42 @@ class NestedClassProcessor(
       it.annotationType.resolve().declaration.qualifiedName?.asString() ==
         annotationClass.qualifiedName
     }
+
+  /** Checks if a function is annotated with @Field. */
+  private fun isAnnotatedMethod(method: KSFunctionDeclaration): Boolean {
+    return method.parameters.isEmpty() &&
+      method.returnType != null &&
+      method.findFunctionAnnotation(Field::class) != null
+  }
+
+  /** Extension function to find annotations on functions. */
+  private fun KSFunctionDeclaration.findFunctionAnnotation(
+    annotationClass: kotlin.reflect.KClass<*>
+  ): KSAnnotation? =
+    annotations.find {
+      it.annotationType.resolve().declaration.qualifiedName?.asString() ==
+        annotationClass.qualifiedName
+    }
+
+  /** Processes annotated getter methods from a class declaration. */
+  fun processAnnotatedGetterMethods(
+    classDeclaration: KSClassDeclaration,
+    processor: (KSFunctionDeclaration) -> Unit,
+  ) {
+    val processedMethodNames = mutableSetOf<String>()
+    val allMethods = classDeclaration.getAllFunctions().toList()
+    logger.info("Found ${allMethods.size} methods in ${classDeclaration.simpleName.asString()}")
+
+    allMethods.forEach { method ->
+      val methodName = method.simpleName.asString()
+      logger.info("Checking method: $methodName, isAnnotated: ${isAnnotatedMethod(method)}")
+      if (methodName !in processedMethodNames && isAnnotatedMethod(method)) {
+        processor(method)
+        processedMethodNames.add(methodName)
+      }
+    }
+    logger.info(
+      "Processed ${processedMethodNames.size} getter methods for ${classDeclaration.simpleName.asString()}"
+    )
+  }
 }
