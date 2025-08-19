@@ -1,18 +1,19 @@
-package com.qelasticsearch.dsl.delegate
+package com.qelasticsearch.dsl.delegation
 
-import com.qelasticsearch.dsl.Field
+import com.qelasticsearch.dsl.MultiField
 import com.qelasticsearch.dsl.ObjectField
 import kotlin.properties.ReadOnlyProperty
+import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
+import kotlin.reflect.full.primaryConstructor
 
-/** Property delegate for field creation */
-class FieldDelegate<T : Field>(private val fieldFactory: (parent: ObjectField, path: String) -> T) :
+class MultiFieldDelegate<T : MultiField<*>>(private val clazz: KClass<T>) :
   ReadOnlyProperty<ObjectField, T> {
   private lateinit var field: T
 
   override fun getValue(thisRef: ObjectField, property: KProperty<*>): T {
     if (!this::field.isInitialized) {
-      field = fieldFactory(thisRef, thisRef.appendPath(property))
+      field = clazz.primaryConstructor!!.call(thisRef, thisRef.appendPath(property))
     }
     return field
   }

@@ -310,10 +310,10 @@ class QElasticsearchSymbolProcessor(
     }
 
     // Add delegate helper function imports
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "objectField")
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "nestedField")
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "multiField")
-    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegate", "dynamicField")
+    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "objectField")
+    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "nestedField")
+    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "multiField")
+    fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", "dynamicField")
 
     // Add type imports
     importContext.typeImports.forEach { qualifiedName ->
