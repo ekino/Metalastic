@@ -22,6 +22,7 @@ class ObjectFieldRegistry(
     property: KSPropertyDeclaration,
     propertyName: String,
     fieldType: ProcessedFieldType,
+    importContext: ImportContext,
   ) {
     val actualClassDeclaration = findActualClassDeclaration(fieldType)
     if (actualClassDeclaration == null) {
@@ -64,6 +65,10 @@ class ObjectFieldRegistry(
         .delegate(delegateCall)
         .build()
     )
+
+    // Track used delegation function
+    val delegateFunction = if (isNested) "nestedField" else "objectField"
+    importContext.usedDelegationFunctions.add(delegateFunction)
   }
 
   private fun findActualClassDeclaration(fieldType: ProcessedFieldType): KSClassDeclaration? {

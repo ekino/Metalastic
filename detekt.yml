@@ -3,7 +3,8 @@ complexity:
     thresholdInClasses: 50
   LongMethod:
     threshold: 80
-
+  LongParameterList:
+    functionThreshold: 7
 style:
   MaxLineLength:
     maxLineLength: 160

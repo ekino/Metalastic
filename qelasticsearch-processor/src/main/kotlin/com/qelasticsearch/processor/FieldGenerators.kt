@@ -92,6 +92,7 @@ class FieldGenerators(
             property,
             propertyName,
             fieldType,
+            importContext,
           )
         } else {
           val context =
@@ -276,6 +277,9 @@ class FieldGenerators(
         .delegate("multiField()")
         .build()
     )
+
+    // Track used delegation function
+    importContext.usedDelegationFunctions.add("multiField")
   }
 
   /** Get the DSL delegate method name for a given field type. */
@@ -321,6 +325,7 @@ class FieldGenerators(
 
     // Add DynamicField to imports
     importContext.usedImports.add("DynamicField")
+    importContext.usedDelegationFunctions.add("dynamicField")
   }
 
   // Extension function to find annotations
