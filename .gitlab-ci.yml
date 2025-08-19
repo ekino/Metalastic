@@ -2,6 +2,7 @@ stages:
   - build
   - test
   - publish
+  - manual_publish
 
 variables:
   GRADLE_OPTS: "-Dorg.gradle.daemon=false"
@@ -53,11 +54,15 @@ publish:
       - "*/build/libs/"
     expire_in: 1 week
 
-publish-snapshot:
-  stage: publish
+manual-publish:
+  stage: manual_publish
   image: openjdk:21-jdk-slim
   script:
     - ./gradlew publish
   rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
   allow_failure: true
+  environment:
+    name: mr-snapshot
+    deployment_tier: development
