@@ -126,16 +126,16 @@ repositories {
 #### For Kotlin Projects
 ```kotlin
 dependencies {
-    implementation("com.qelasticsearch:qelasticsearch-dsl:1.0-SNAPSHOT")
-    ksp("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
+    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
+    ksp("com.qelasticsearch:processor:1.0-SNAPSHOT")
 }
 ```
 
 #### For Java Projects  
 ```kotlin
 dependencies {
-    implementation("com.qelasticsearch:qelasticsearch-dsl:1.0-SNAPSHOT")
-    annotationProcessor("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
+    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
+    annotationProcessor("com.qelasticsearch:processor:1.0-SNAPSHOT")
 }
 ```
 

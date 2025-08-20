@@ -5,7 +5,7 @@ plugins {
 rootProject.name = "QElasticsearch"
 
 include(
-    ":qelasticsearch-dsl",
-    ":qelasticsearch-processor", 
-    ":qelasticsearch-test"
+    ":core",
+    ":processor", 
+    ":test"
 )

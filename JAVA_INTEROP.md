@@ -137,8 +137,8 @@ plugins {
 
 dependencies {
     // QElasticsearch
-    implementation 'com.qelasticsearch:qelasticsearch-dsl:1.0.0'
-    ksp 'com.qelasticsearch:qelasticsearch-processor:1.0.0'
+    implementation 'com.qelasticsearch:core:1.0.0'
+    ksp 'com.qelasticsearch:processor:1.0.0'
     
     // Spring Data Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
@@ -159,7 +159,7 @@ dependencies {
     <!-- QElasticsearch -->
     <dependency>
         <groupId>com.qelasticsearch</groupId>
-        <artifactId>qelasticsearch-dsl</artifactId>
+        <artifactId>core</artifactId>
         <version>1.0.0</version>
     </dependency>
     
@@ -186,7 +186,7 @@ dependencies {
             <dependencies>
                 <dependency>
                     <groupId>com.qelasticsearch</groupId>
-                    <artifactId>qelasticsearch-processor</artifactId>
+                    <artifactId>processor</artifactId>
                     <version>1.0.0</version>
                 </dependency>
             </dependencies>
