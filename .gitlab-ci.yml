@@ -1,68 +1,44 @@
-stages:
-  - build
-  - test
-  - publish
-  - manual_publish
-
 variables:
-  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
-  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.gradle"
+  generatedFile: ".gitlab-ci-generated.yml"
 
-cache:
-  paths:
-    - .gradle/wrapper
-    - .gradle/caches
-
-before_script:
-  - chmod +x ./gradlew
-
-build:
-  stage: build
-  image: openjdk:21-jdk-slim
-  script:
-    - ./gradlew build -x test
-  artifacts:
-    paths:
-      - "*/build/libs/"
-    expire_in: 1 hour
-
-test:
-  stage: test
-  image: openjdk:21-jdk-slim
-  script:
-    - ./gradlew test
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - "*/build/test-results/test/TEST-*.xml"
-    paths:
-      - "*/build/test-results/"
-      - "*/build/reports/"
-    expire_in: 1 week
-
-publish:
-  stage: publish
-  image: openjdk:21-jdk-slim
-  script:
-    - ./gradlew publish
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_TAG
-  artifacts:
-    paths:
-      - "*/build/libs/"
-    expire_in: 1 week
-
-manual-publish:
-  stage: manual_publish
-  image: openjdk:21-jdk-slim
-  script:
-    - ./gradlew publish
+# Rules to avoid conflicts between push events when merge requests exist on the same branch
+# See: https://docs.gitlab.com/ee/ci/yaml/workflow.html#switch-between-branch-pipelines-and-merge-request-pipelines
+workflow:
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
-      when: manual
-  allow_failure: true
-  environment:
-    name: mr-snapshot
-    deployment_tier: development
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - if: $CI_PIPELINE_SOURCE == "web" # allow to start a pipeline on a specific branch via the web interface of GitLab
+
+default:
+  tags:
+    - "aws"
+    - "docker"
+    - "ekino"
+    - "france"
+
+stages:
+  - prepare
+  - run
+
+generate:
+  image: registry.ekino.com/iperia/docker-build/ci-kotlin:2024.01.08
+  stage: prepare
+  script:
+    - |
+      set -e
+      ./.gitlab-ci.main.kts > ${generatedFile}
+  artifacts:
+    paths:
+      - ${generatedFile}
+
+start:
+  stage: run
+  when: on_success
+  needs:
+    - generate
+  trigger:
+    include:
+      - artifact: ${generatedFile}
+        job: generate
+    strategy: depend

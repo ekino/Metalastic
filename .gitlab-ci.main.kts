@@ -40,7 +40,6 @@ enum class Stages {
     build,
     test,
     publish,
-    manual_publish,
 }
 
 val ciCommitRefName by lazy {
@@ -76,7 +75,7 @@ fun onReleaseTag() = ciCommitTag?.let { semVerRegex.matches(it.name) } == true
 
 fun extractVersionFromGradleProperties(): String? =
     Properties().apply {
-        load(File("build.gradle.kts").inputStream())
+        load(File("gradle.properties").inputStream())
     }.getProperty("version")?.takeIf { it.isNotBlank() }
 
 fun String.cleanChars() = replace(Regex("\\W+"), "_")
@@ -106,8 +105,27 @@ fun printPipeline(block: GitlabCiDsl.() -> Unit) {
 */
 printPipeline {
     
+    // Calculate actual artifact version for job names
+    val projectVersion = "1.0-SNAPSHOT" // matches build.gradle.kts version
+    val tagName = ciCommitTag?.name
+    
+    val artifactVersion = when {
+        tagName != null -> tagName.removePrefix("v") // v1.2.3 -> 1.2.3  
+        else -> projectVersion // 1.0-SNAPSHOT
+    }
+    
+    // Workflow rules for child pipeline - essential for parent_pipeline source
+    workflow {
+        rules {
+            rule {
+                ifCondition = "\$CI_PIPELINE_SOURCE == \"parent_pipeline\""
+            }
+        }
+    }
+    
     // Global variables
     variables {
+        "generatedFile" to ".gitlab-ci-generated.yml"
         "GRADLE_OPTS" to "-Dorg.gradle.daemon=false"
         "GRADLE_USER_HOME" to "\$CI_PROJECT_DIR/.gradle"
     }
@@ -124,7 +142,7 @@ printPipeline {
     stagesOf<Stages>()
     
     // Build stage
-    val buildJob = job("build") {
+    job("build") {
         stage(Stages.build)
         
         script {
@@ -145,7 +163,7 @@ printPipeline {
     }
     
     // Test stage
-    val testJob = job("test") {
+    job("test") {
         stage(Stages.test)
         
         script {
@@ -172,8 +190,8 @@ printPipeline {
         )
     }
     
-    // Publish stage (automatic for master/tags)
-    job("publish") {
+    // Publish job - auto for master and tags only
+    job("publish ($artifactVersion)") {
         stage(Stages.publish)
         
         script {
@@ -202,9 +220,9 @@ printPipeline {
         )
     }
     
-    // Manual publish stage (for MRs only)
-    job("manual-publish") {
-        stage(Stages.manual_publish)
+    // Manual publish for MRs and feature branches
+    job("publish-manual ($artifactVersion)") {
+        stage(Stages.publish)
         
         script {
             +"$gradlewCmd publish"
@@ -218,9 +236,13 @@ printPipeline {
                 ifCondition = "\$CI_PIPELINE_SOURCE == \"merge_request_event\""
                 whenRun = WhenRunType.MANUAL
             }
+            rule {
+                ifCondition = "\$CI_COMMIT_BRANCH != \$CI_DEFAULT_BRANCH && \$CI_COMMIT_TAG == null"
+                whenRun = WhenRunType.MANUAL
+            }
         }
         
-        environment("mr-snapshot")
+        environment("feature-snapshot")
         
         cache(
             ".gradle/wrapper",

@@ -10,9 +10,10 @@ This project uses Kotlin DSL for GitLab CI configuration to improve maintainabil
 ## Making Changes
 
 1. **Edit the Kotlin DSL**: Modify `.gitlab-ci.main.kts`
-2. **Generate YAML**: Run `./.gitlab-ci.main.kts > .gitlab-ci-temp.yml`
-3. **Update GitLab CI**: Copy the generated content to `.gitlab-ci.yml` 
-4. **Commit both files**: The DSL source and the generated YAML
+2. **Generate YAML**: Run `./.gitlab-ci.main.kts > .gitlab-ci.yml`
+3. **Commit both files**: The DSL source and the generated YAML
+
+The `generatedFile` variable in the YAML indicates this file is generated from the Kotlin DSL.
 
 ## Benefits
 
