@@ -1,20 +1,17 @@
 plugins { alias(libs.plugins.ksp) }
 
-dependencies {
-  // DSL runtime dependency
-  implementation(project(":qelasticsearch-dsl"))
+// Generated code is automatically excluded by Spotless configuration in parent build.gradle.kts
 
-  // Spring Data Elasticsearch for annotations
+dependencies {
+  // DSL runtime needed for generated code
+  implementation(project(":core"))
+  api(libs.jakarta.annotation.api)
+  ksp(project(":processor"))
+
+  // Spring Data Elasticsearch for real document classes
   implementation(libs.spring.data.elasticsearch)
 
-  // KSP and Code generation
-  implementation(libs.ksp.api)
-  implementation(libs.kotlinpoet)
-  implementation(libs.kotlinpoet.ksp)
-
-  implementation(libs.jakarta.annotation.api)
-
-  // Testing annotation processing
+  // Testing dependencies
   testImplementation(libs.kotlin.compile.testing)
   testImplementation(libs.kotlin.compile.testing.ksp)
   testImplementation(libs.mockk)

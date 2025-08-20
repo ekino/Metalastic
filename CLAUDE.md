@@ -10,9 +10,9 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 
 ## Multi-Module Structure
 
-- **qelasticsearch-dsl**: Core DSL runtime library containing field definitions, index abstractions, and the DSL API
-- **qelasticsearch-processor**: Annotation processor that generates QIndex classes from @Document annotated classes
-- **qelasticsearch-test**: Integration tests that verify the annotation processor works correctly with real Spring Data Elasticsearch documents
+- **core**: Core DSL runtime library containing field definitions, index abstractions, and the DSL API
+- **processor**: Annotation processor that generates QIndex classes from @Document annotated classes
+- **test**: Integration tests that verify the annotation processor works correctly with real Spring Data Elasticsearch documents
 
 ## Goals
 
@@ -41,9 +41,9 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 ## Development Notes
 
 - Multi-module project structure using Gradle with Kotlin DSL
-- **qelasticsearch-dsl** module: Core DSL runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
-- **qelasticsearch-processor** module: Annotation processor implementation
-- **qelasticsearch-test** module: Integration tests for the entire library
+- **core** module: Core DSL runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
+- **processor** module: Annotation processor implementation
+- **test** module: Integration tests for the entire library
 - Annotation processor will scan for `@Document` annotations from Spring Data Elasticsearch
 - Generated QIndex classes will follow Q* naming convention (similar to QueryDSL)
 - Library will be published for consumption by other projects
@@ -57,9 +57,9 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 - Format code: `./gradlew spotlessApply`
 - Check formatting: `./gradlew spotlessCheck`
 - Run all checks: `./gradlew check`
-- Test DSL module: `./gradlew :qelasticsearch-dsl:test`
-- Test processor module: `./gradlew :qelasticsearch-processor:test`
-- Test integration: `./gradlew :qelasticsearch-test:test`
+- Test DSL module: `./gradlew :core:test`
+- Test processor module: `./gradlew :processor:test`
+- Test integration: `./gradlew :test:test`
 - Publish locally: `./gradlew publishToMavenLocal`
 
 ## Code Style Guidelines
@@ -228,8 +228,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.qelasticsearch:qelasticsearch-dsl:1.0-SNAPSHOT")
-    ksp("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
+    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
+    ksp("com.qelasticsearch:processor:1.0-SNAPSHOT")
 }
 ```
 

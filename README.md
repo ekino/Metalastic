@@ -240,8 +240,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.qelasticsearch:qelasticsearch-dsl:1.0-SNAPSHOT")
-    ksp("com.qelasticsearch:qelasticsearch-processor:1.0-SNAPSHOT")
+    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
+    ksp("com.qelasticsearch:processor:1.0-SNAPSHOT")
 }
 ```
 
@@ -263,9 +263,9 @@ cd qelasticsearch
 - **Format code**: `./gradlew spotlessApply`
 - **Check formatting**: `./gradlew spotlessCheck`
 - **Run all checks**: `./gradlew check`
-- **Test DSL module**: `./gradlew :qelasticsearch-dsl:test`
-- **Test processor module**: `./gradlew :qelasticsearch-processor:test`
-- **Test integration**: `./gradlew :qelasticsearch-test:test`
+- **Test DSL module**: `./gradlew :core:test`
+- **Test processor module**: `./gradlew :processor:test`
+- **Test integration**: `./gradlew :test:test`
 - **Publish locally**: `./gradlew publishToMavenLocal`
 
 ## Version Compatibility
@@ -369,21 +369,21 @@ This project follows strict code quality standards:
 QElasticsearch/
 ├── build.gradle.kts              # Root build configuration
 ├── settings.gradle.kts           # Multi-module settings
-├── qelasticsearch-dsl/          # Core DSL runtime
+├── core/                        # Core DSL runtime
 │   ├── src/main/kotlin/         # DSL classes (Index, ObjectFields, etc.)
 │   └── src/test/kotlin/         # DSL unit tests
-├── qelasticsearch-processor/    # Annotation processor
+├── processor/                   # Annotation processor
 │   ├── src/main/kotlin/         # Processor implementation
 │   └── src/test/kotlin/         # Processor tests
-└── qelasticsearch-test/         # Integration tests
+└── test/                        # Integration tests
     └── src/test/kotlin/         # End-to-end tests
 ```
 
 ### Key Components
 
-1. **qelasticsearch-dsl** - Core DSL runtime with field definitions and base classes
-2. **qelasticsearch-processor** - Annotation processor that scans `@Document` classes
-3. **qelasticsearch-test** - Integration tests ensuring the processor works correctly
+1. **core** - Core DSL runtime with field definitions and base classes
+2. **processor** - Annotation processor that scans `@Document` classes
+3. **test** - Integration tests ensuring the processor works correctly
 4. **Path Traversal** - Dotted notation support for nested fields
 
 ## Contributing
