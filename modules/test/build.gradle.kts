@@ -4,9 +4,9 @@ plugins { alias(libs.plugins.ksp) }
 
 dependencies {
   // DSL runtime needed for generated code
-  implementation(project(":core"))
+  implementation(project(":modules:core"))
   api(libs.jakarta.annotation.api)
-  ksp(project(":processor"))
+  ksp(project(":modules:processor"))
 
   // Spring Data Elasticsearch for real document classes
   implementation(libs.spring.data.elasticsearch)

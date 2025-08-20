@@ -263,9 +263,9 @@ cd qelasticsearch
 - **Format code**: `./gradlew spotlessApply`
 - **Check formatting**: `./gradlew spotlessCheck`
 - **Run all checks**: `./gradlew check`
-- **Test DSL module**: `./gradlew :core:test`
-- **Test processor module**: `./gradlew :processor:test`
-- **Test integration**: `./gradlew :test:test`
+- **Test DSL module**: `./gradlew :modules:core:test`
+- **Test processor module**: `./gradlew :modules:processor:test`
+- **Test integration**: `./gradlew :modules:test:test`
 - **Publish locally**: `./gradlew publishToMavenLocal`
 
 ## Version Compatibility
@@ -369,14 +369,15 @@ This project follows strict code quality standards:
 QElasticsearch/
 ├── build.gradle.kts              # Root build configuration
 ├── settings.gradle.kts           # Multi-module settings
-├── core/                        # Core DSL runtime
-│   ├── src/main/kotlin/         # DSL classes (Index, ObjectFields, etc.)
-│   └── src/test/kotlin/         # DSL unit tests
-├── processor/                   # Annotation processor
-│   ├── src/main/kotlin/         # Processor implementation
-│   └── src/test/kotlin/         # Processor tests
-└── test/                        # Integration tests
-    └── src/test/kotlin/         # End-to-end tests
+├── modules/                     # All project modules
+│   ├── core/                    # Core DSL runtime
+│   │   ├── src/main/kotlin/     # DSL classes (Index, ObjectFields, etc.)
+│   │   └── src/test/kotlin/     # DSL unit tests
+│   ├── processor/               # Annotation processor
+│   │   ├── src/main/kotlin/     # Processor implementation
+│   │   └── src/test/kotlin/     # Processor tests
+│   └── test/                    # Integration tests
+│       └── src/test/kotlin/     # End-to-end tests
 ```
 
 ### Key Components

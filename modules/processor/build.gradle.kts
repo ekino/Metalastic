@@ -2,7 +2,7 @@ plugins { alias(libs.plugins.ksp) }
 
 dependencies {
   // DSL runtime dependency
-  implementation(project(":core"))
+  implementation(project(":modules:core"))
 
   // Spring Data Elasticsearch for annotations
   implementation(libs.spring.data.elasticsearch)
