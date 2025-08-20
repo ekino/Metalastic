@@ -1,4 +1,4 @@
-// Add this to your test/build.gradle.kts to enable debugging
+// Add this to your modules/test/build.gradle.kts to enable debugging
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     kotlinOptions {

@@ -41,9 +41,9 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 ## Development Notes
 
 - Multi-module project structure using Gradle with Kotlin DSL
-- **core** module: Core DSL runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
-- **processor** module: Annotation processor implementation
-- **test** module: Integration tests for the entire library
+- **modules/core** module: Core DSL runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
+- **modules/processor** module: Annotation processor implementation
+- **modules/test** module: Integration tests for the entire library
 - Annotation processor will scan for `@Document` annotations from Spring Data Elasticsearch
 - Generated QIndex classes will follow Q* naming convention (similar to QueryDSL)
 - Library will be published for consumption by other projects
@@ -57,9 +57,9 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 - Format code: `./gradlew spotlessApply`
 - Check formatting: `./gradlew spotlessCheck`
 - Run all checks: `./gradlew check`
-- Test DSL module: `./gradlew :core:test`
-- Test processor module: `./gradlew :processor:test`
-- Test integration: `./gradlew :test:test`
+- Test DSL module: `./gradlew :modules:core:test`
+- Test processor module: `./gradlew :modules:processor:test`
+- Test integration: `./gradlew :modules:test:test`
 - Publish locally: `./gradlew publishToMavenLocal`
 
 ## Code Style Guidelines
