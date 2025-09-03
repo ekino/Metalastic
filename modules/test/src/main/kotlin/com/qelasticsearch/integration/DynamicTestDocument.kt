@@ -1,6 +1,6 @@
 package com.qelasticsearch.integration
 
-import com.qelasticsearch.dsl.QDynamicField
+import com.qelasticsearch.core.QDynamicField
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType

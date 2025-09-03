@@ -1,4 +1,4 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe

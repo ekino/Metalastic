@@ -1,4 +1,4 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
 /**
  * Annotation to mark fields that should be included in the generated Q-index as DynamicField<T>.

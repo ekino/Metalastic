@@ -1,8 +1,8 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
-import com.qelasticsearch.dsl.delegation.multiField
-import com.qelasticsearch.dsl.delegation.nestedField
-import com.qelasticsearch.dsl.delegation.objectField
+import com.qelasticsearch.core.delegation.multiField
+import com.qelasticsearch.core.delegation.nestedField
+import com.qelasticsearch.core.delegation.objectField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

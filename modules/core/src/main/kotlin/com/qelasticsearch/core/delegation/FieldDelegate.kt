@@ -1,7 +1,7 @@
-package com.qelasticsearch.dsl.delegation
+package com.qelasticsearch.core.delegation
 
-import com.qelasticsearch.dsl.Field
-import com.qelasticsearch.dsl.ObjectField
+import com.qelasticsearch.core.Field
+import com.qelasticsearch.core.ObjectField
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 

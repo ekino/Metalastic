@@ -1,4 +1,4 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
 /** Yellow */
 @DslMarker @Target(AnnotationTarget.FUNCTION) annotation class YellowColor

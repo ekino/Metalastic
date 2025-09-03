@@ -183,7 +183,7 @@ class NestedClassProcessor(
                     """
             .trimIndent()
         )
-        .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
+        .superclass(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.OBJECT_FIELDS_CLASS))
         .addSuperclassConstructorParameter("parent")
         .addSuperclassConstructorParameter("path")
         .addSuperclassConstructorParameter("nested")
@@ -191,7 +191,7 @@ class NestedClassProcessor(
           com.squareup.kotlinpoet.FunSpec.constructorBuilder()
             .addParameter(
               "parent",
-              ClassName(DSLConstants.DSL_PACKAGE, "ObjectField").copy(nullable = true),
+              ClassName(CoreConstants.CORE_PACKAGE, "ObjectField").copy(nullable = true),
             )
             .addParameter("path", String::class)
             .addParameter("nested", Boolean::class)

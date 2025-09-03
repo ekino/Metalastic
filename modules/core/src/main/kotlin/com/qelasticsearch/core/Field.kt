@@ -1,4 +1,4 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
 /**
  * Sealed class for all field types in the DSL. Provides path traversal functionality for nested

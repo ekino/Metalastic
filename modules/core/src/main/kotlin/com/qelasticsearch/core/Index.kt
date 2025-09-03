@@ -1,4 +1,4 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
 /**
  * Base class for index definitions. Represents the root of an Elasticsearch index.

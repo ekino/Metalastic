@@ -1,8 +1,8 @@
-package com.qelasticsearch.dsl.delegation
+package com.qelasticsearch.core.delegation
 
-import com.qelasticsearch.dsl.DynamicField
-import com.qelasticsearch.dsl.MultiField
-import com.qelasticsearch.dsl.ObjectField
+import com.qelasticsearch.core.DynamicField
+import com.qelasticsearch.core.MultiField
+import com.qelasticsearch.core.ObjectField
 import kotlin.reflect.KProperty
 
 internal fun ObjectField.appendPath(property: KProperty<*>): String =

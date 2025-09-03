@@ -1,6 +1,6 @@
-package com.qelasticsearch.dsl
+package com.qelasticsearch.core
 
-import com.qelasticsearch.dsl.delegation.FieldDelegate
+import com.qelasticsearch.core.delegation.FieldDelegate
 
 /**
  * Base class for object fields that can contain nested fields. Used for both nested objects and the
