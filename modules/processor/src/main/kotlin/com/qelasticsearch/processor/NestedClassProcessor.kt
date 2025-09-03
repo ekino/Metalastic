@@ -1,7 +1,6 @@
 package com.qelasticsearch.processor
 
 import com.google.devtools.ksp.processing.KSPLogger
-import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.ClassKind
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
@@ -12,13 +11,9 @@ import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
-import org.springframework.data.elasticsearch.annotations.MultiField
 
 /** Handles processing of nested classes and object field registration. */
-class NestedClassProcessor(
-  private val logger: KSPLogger,
-  private val codeGenUtils: CodeGenerationUtils,
-) {
+class NestedClassProcessor(private val logger: KSPLogger) {
   private val globalObjectFields = mutableMapOf<String, ObjectFieldInfo>()
 
   /** Collects all object fields from a document class. */
@@ -45,46 +40,6 @@ class NestedClassProcessor(
         registerObjectField(referencedClass, documentClass)
         collectObjectFieldsFromClass(referencedClass, fieldTypeExtractor)
       }
-    }
-  }
-
-  /** Collects all possible object fields from the entire classpath. */
-  @Suppress("TooGenericExceptionCaught")
-  fun collectAllPossibleObjectFields(resolver: Resolver) {
-    try {
-      val allClasses = mutableListOf<KSClassDeclaration>()
-
-      resolver
-        .getAllFiles()
-        .flatMap { it.declarations }
-        .forEach { declaration ->
-          if (
-            declaration is KSClassDeclaration &&
-              (declaration.classKind == ClassKind.CLASS ||
-                declaration.classKind == ClassKind.INTERFACE)
-          ) {
-            allClasses.add(declaration)
-            collectNestedClasses(declaration, allClasses)
-          }
-        }
-
-      val filteredClasses =
-        allClasses.filter { !codeGenUtils.isStandardLibraryType(it.packageName.asString()) }
-
-      logger.info("Scanning ${filteredClasses.size} classes for Elasticsearch annotations...")
-
-      filteredClasses.forEach { classDeclaration ->
-        val hasElasticsearchAnnotations = hasElasticsearchAnnotations(classDeclaration)
-        val objectFieldKey = generateObjectFieldKey(classDeclaration)
-
-        if (hasElasticsearchAnnotations && objectFieldKey !in globalObjectFields) {
-          registerObjectField(classDeclaration, null)
-        }
-      }
-
-      logger.info("Total registered ObjectFields: ${globalObjectFields.size}")
-    } catch (e: Exception) {
-      logger.warn("Error collecting all possible object fields: ${e.message}")
     }
   }
 
@@ -264,7 +219,7 @@ class NestedClassProcessor(
   ) {
     val targetPackage = classDeclaration.packageName.asString()
 
-    if (codeGenUtils.isStandardLibraryType(targetPackage)) {
+    if (isStandardLibraryType(targetPackage)) {
       return
     }
 
@@ -407,8 +362,8 @@ class NestedClassProcessor(
 
   /** Extracts nested class from property, handling both collections and direct object types. */
   private fun extractNestedClassFromProperty(property: KSPropertyDeclaration): KSClassDeclaration? =
-    if (codeGenUtils.isCollectionType(codeGenUtils.getSimpleTypeName(property.type))) {
-      codeGenUtils.getCollectionElementType(property)
+    if (isCollectionType(getSimpleTypeName(property.type))) {
+      getCollectionElementType(property)
     } else {
       property.type.resolve().declaration as? KSClassDeclaration
     }
@@ -427,14 +382,6 @@ class NestedClassProcessor(
       }
     }
   }
-
-  /** Checks if a class has any Elasticsearch annotations. */
-  private fun hasElasticsearchAnnotations(classDeclaration: KSClassDeclaration): Boolean =
-    classDeclaration.getAllProperties().any { property ->
-      val hasField = property.findAnnotation(Field::class) != null
-      val hasMultiField = property.findAnnotation(MultiField::class) != null
-      hasField || hasMultiField
-    }
 
   // Extension function to find annotations
   private fun KSPropertyDeclaration.findAnnotation(

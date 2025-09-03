@@ -8,10 +8,7 @@ import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /** Handles extraction and determination of field types. */
-class FieldTypeExtractor(
-  private val logger: KSPLogger,
-  private val codeGenUtils: CodeGenerationUtils,
-) {
+class FieldTypeExtractor(private val logger: KSPLogger) {
   /** Determines the field type for a property based on annotations. */
   fun determineFieldType(
     property: KSPropertyDeclaration,
@@ -20,7 +17,7 @@ class FieldTypeExtractor(
     val propertyName = property.simpleName.asString()
 
     // Extract field type from @Field annotation
-    val fieldType = codeGenUtils.extractFieldTypeFromAnnotation(fieldAnnotation)
+    val fieldType = extractFieldTypeFromAnnotation(fieldAnnotation)
     logger.info("Property $propertyName has @Field annotation with type: $fieldType")
 
     // Handle nested/object types - including collections
@@ -29,10 +26,10 @@ class FieldTypeExtractor(
         FieldType.Object,
         FieldType.Nested -> {
           // For collections, check the element type
-          if (codeGenUtils.isCollectionType(codeGenUtils.getSimpleTypeName(property.type))) {
-            val elementType = codeGenUtils.getCollectionElementType(property)
+          if (isCollectionType(getSimpleTypeName(property.type))) {
+            val elementType = getCollectionElementType(property)
             elementType != null &&
-              !codeGenUtils.isStandardLibraryType(elementType.packageName.asString()) &&
+              !isStandardLibraryType(elementType.packageName.asString()) &&
               elementType.classKind != ClassKind.ENUM_CLASS &&
               (elementType.classKind == ClassKind.CLASS ||
                 elementType.classKind == ClassKind.INTERFACE)
@@ -43,18 +40,18 @@ class FieldTypeExtractor(
               typeDeclaration.classKind != ClassKind.ENUM_CLASS &&
               (typeDeclaration.classKind == ClassKind.CLASS ||
                 typeDeclaration.classKind == ClassKind.INTERFACE) &&
-              !codeGenUtils.isStandardLibraryType(typeDeclaration.packageName.asString())
+              !isStandardLibraryType(typeDeclaration.packageName.asString())
           }
         }
         else -> false
       }
 
     val kotlinTypeName =
-      if (codeGenUtils.isCollectionType(codeGenUtils.getSimpleTypeName(property.type))) {
-        codeGenUtils.getCollectionElementType(property)?.simpleName?.asString()
-          ?: codeGenUtils.getSimpleTypeName(property.type)
+      if (isCollectionType(getSimpleTypeName(property.type))) {
+        getCollectionElementType(property)?.simpleName?.asString()
+          ?: getSimpleTypeName(property.type)
       } else {
-        codeGenUtils.getSimpleTypeName(property.type)
+        getSimpleTypeName(property.type)
       }
 
     return ProcessedFieldType(

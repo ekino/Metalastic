@@ -32,10 +32,9 @@ class QElasticsearchSymbolProcessor(
     FieldTypeMappingBuilder(logger).build()
   }
 
-  private val codeGenUtils = CodeGenerationUtils()
-  private val fieldTypeExtractor = FieldTypeExtractor(logger, codeGenUtils)
-  private val nestedClassProcessor = NestedClassProcessor(logger, codeGenUtils)
-  private val fieldGenerators = FieldGenerators(logger, fieldTypeMappings, codeGenUtils)
+  private val fieldTypeExtractor = FieldTypeExtractor(logger)
+  private val nestedClassProcessor = NestedClassProcessor(logger)
+  private val fieldGenerators = FieldGenerators(logger, fieldTypeMappings)
 
   private val generatedFiles = mutableSetOf<String>()
 
@@ -63,14 +62,13 @@ class QElasticsearchSymbolProcessor(
 
         logger.info("Processing ${documentClasses.size} document classes")
 
-        // Collect all object fields
+        // Collect object fields from document classes (recursive)
         documentClasses.forEach { documentClass ->
           nestedClassProcessor.collectObjectFields(documentClass, fieldTypeExtractor)
         }
-        nestedClassProcessor.collectAllPossibleObjectFields(resolver)
 
         val globalObjectFields = nestedClassProcessor.getGlobalObjectFields()
-        val objectFieldRegistry = ObjectFieldRegistry(logger, codeGenUtils, globalObjectFields)
+        val objectFieldRegistry = ObjectFieldRegistry(logger, globalObjectFields)
 
         // Generate document classes
         documentClasses.forEach { documentClass ->
