@@ -13,9 +13,7 @@ import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 
 /** Handles processing of nested classes and object field registration. */
-class NestedClassProcessor(
-  private val logger: KSPLogger,
-) {
+class NestedClassProcessor(private val logger: KSPLogger) {
   private val globalObjectFields = mutableMapOf<String, ObjectFieldInfo>()
 
   /** Collects all object fields from a document class. */
@@ -221,7 +219,7 @@ class NestedClassProcessor(
   ) {
     val targetPackage = classDeclaration.packageName.asString()
 
-    if (CodeGenerationUtils.isStandardLibraryType(targetPackage)) {
+    if (isStandardLibraryType(targetPackage)) {
       return
     }
 
@@ -364,8 +362,8 @@ class NestedClassProcessor(
 
   /** Extracts nested class from property, handling both collections and direct object types. */
   private fun extractNestedClassFromProperty(property: KSPropertyDeclaration): KSClassDeclaration? =
-    if (CodeGenerationUtils.isCollectionType(CodeGenerationUtils.getSimpleTypeName(property.type))) {
-      CodeGenerationUtils.getCollectionElementType(property)
+    if (isCollectionType(getSimpleTypeName(property.type))) {
+      getCollectionElementType(property)
     } else {
       property.type.resolve().declaration as? KSClassDeclaration
     }

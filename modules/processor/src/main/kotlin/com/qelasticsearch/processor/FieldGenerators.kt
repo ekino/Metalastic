@@ -136,7 +136,7 @@ class FieldGenerators(
     logger.info("Processing annotated method: $methodName -> property: $propertyName")
 
     // Create a ProcessedFieldType from the method return type and annotation
-    val fieldType = CodeGenerationUtils.extractFieldTypeFromAnnotation(fieldAnnotation)
+    val fieldType = extractFieldTypeFromAnnotation(fieldAnnotation)
     val returnType =
       method.returnType
         ?: run {
@@ -148,7 +148,7 @@ class FieldGenerators(
       ProcessedFieldType(
         elasticsearchType = fieldType,
         kotlinType = returnType,
-        kotlinTypeName = CodeGenerationUtils.getSimpleTypeName(returnType),
+        kotlinTypeName = getSimpleTypeName(returnType),
         isObjectType = false, // For now, assume getter methods return simple types
       )
 
@@ -226,10 +226,10 @@ class FieldGenerators(
 
     // Create KotlinPoet TypeName directly from KSType
     val kotlinType = context.fieldType.kotlinType.resolve()
-    val typeParam = CodeGenerationUtils.createKotlinPoetTypeName(kotlinType, context.typeParameterResolver)
+    val typeParam = createKotlinPoetTypeName(kotlinType, context.typeParameterResolver)
     val delegateCall = "$methodName()"
     val finalTypeName = ClassName(CoreConstants.CORE_PACKAGE, fieldClass).parameterizedBy(typeParam)
-    val kdoc = CodeGenerationUtils.generateFieldKDoc(context.property, context.fieldType)
+    val kdoc = generateFieldKDoc(context.property, context.fieldType)
 
     context.objectBuilder.addProperty(
       PropertySpec.builder(context.propertyName, finalTypeName)
@@ -260,7 +260,7 @@ class FieldGenerators(
         else -> emptyList()
       }
 
-    val mainFieldType = CodeGenerationUtils.extractFieldTypeFromAnnotation(mainFieldAnnotation)
+    val mainFieldType = extractFieldTypeFromAnnotation(mainFieldAnnotation)
 
     generateComplexMultiField(
       objectBuilder,
@@ -309,7 +309,7 @@ class FieldGenerators(
     // Add fields for each inner field
     innerFields.forEach { innerFieldAnnotation ->
       val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
-      val innerFieldType = CodeGenerationUtils.extractFieldTypeFromAnnotation(innerFieldAnnotation)
+      val innerFieldType = extractFieldTypeFromAnnotation(innerFieldAnnotation)
       val innerFieldClass = getFieldClass(innerFieldType)
       val innerFieldDelegate = getFieldDelegate(innerFieldType)
 
@@ -345,12 +345,12 @@ class FieldGenerators(
       ProcessedFieldType(
         elasticsearchType = mainFieldType,
         kotlinType = property.type,
-        kotlinTypeName = CodeGenerationUtils.getSimpleTypeName(property.type),
+        kotlinTypeName = getSimpleTypeName(property.type),
         isObjectType = false,
       )
     val innerFieldsList = innerFields.map { it.getArgumentValue<String>("suffix") ?: "unknown" }
     val kdoc =
-      CodeGenerationUtils.generateFieldKDoc(
+      generateFieldKDoc(
         property,
         complexFieldType,
         listOf("@MultiField", "inner fields: ${innerFieldsList.joinToString(", ")}"),
@@ -385,7 +385,7 @@ class FieldGenerators(
   ) {
     // Create KotlinPoet TypeName directly from KSType
     val kotlinType = property.type.resolve()
-    val typeParam = CodeGenerationUtils.createKotlinPoetTypeName(kotlinType, typeParameterResolver)
+    val typeParam = createKotlinPoetTypeName(kotlinType, typeParameterResolver)
     val finalTypeName =
       ClassName(CoreConstants.CORE_PACKAGE, "DynamicField").parameterizedBy(typeParam)
 
@@ -395,7 +395,7 @@ class FieldGenerators(
 
         **Original Property:**
         - Annotated with @QDynamicField
-        - Kotlin Type: `${CodeGenerationUtils.getSimpleTypeName(property.type)}`
+        - Kotlin Type: `${getSimpleTypeName(property.type)}`
 
         @see ${property.parentDeclaration?.qualifiedName?.asString()}.${propertyName}
         """

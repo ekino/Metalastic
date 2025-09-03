@@ -45,11 +45,7 @@ class ObjectFieldRegistry(
 
     val isNested = fieldType.elasticsearchType == FieldType.Nested
     val kdoc =
-      CodeGenerationUtils.generateFieldKDoc(
-        property,
-        fieldType,
-        listOf("@${fieldType.elasticsearchType.name}"),
-      )
+      generateFieldKDoc(property, fieldType, listOf("@${fieldType.elasticsearchType.name}"))
 
     val delegateCall =
       if (isNested) {
@@ -73,9 +69,7 @@ class ObjectFieldRegistry(
   private fun findActualClassDeclaration(fieldType: ProcessedFieldType): KSClassDeclaration? {
     val kotlinType = fieldType.kotlinType.resolve()
 
-    return if (
-      CodeGenerationUtils.isCollectionType(CodeGenerationUtils.getSimpleTypeName(fieldType.kotlinType))
-    ) {
+    return if (isCollectionType(getSimpleTypeName(fieldType.kotlinType))) {
       // For collections, get the element type
       val typeArguments = kotlinType.arguments
       if (typeArguments.isNotEmpty()) {
