@@ -13,7 +13,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 /** Handles object field registration and generation. */
 class ObjectFieldRegistry(
   private val logger: KSPLogger,
-  private val codeGenUtils: CodeGenerationUtils,
   private val globalObjectFields: Map<String, ObjectFieldInfo>,
 ) {
   /** Generates an object field property. */
@@ -46,7 +45,7 @@ class ObjectFieldRegistry(
 
     val isNested = fieldType.elasticsearchType == FieldType.Nested
     val kdoc =
-      codeGenUtils.generateFieldKDoc(
+      CodeGenerationUtils.generateFieldKDoc(
         property,
         fieldType,
         listOf("@${fieldType.elasticsearchType.name}"),
@@ -75,7 +74,7 @@ class ObjectFieldRegistry(
     val kotlinType = fieldType.kotlinType.resolve()
 
     return if (
-      codeGenUtils.isCollectionType(codeGenUtils.getSimpleTypeName(fieldType.kotlinType))
+      CodeGenerationUtils.isCollectionType(CodeGenerationUtils.getSimpleTypeName(fieldType.kotlinType))
     ) {
       // For collections, get the element type
       val typeArguments = kotlinType.arguments

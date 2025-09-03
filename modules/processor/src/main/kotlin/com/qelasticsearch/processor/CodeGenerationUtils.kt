@@ -13,7 +13,8 @@ import com.squareup.kotlinpoet.ksp.toTypeName
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /** Utility functions for code generation. */
-class CodeGenerationUtils {
+@Suppress("TooManyFunctions")
+object CodeGenerationUtils {
   /** Checks if a type is a collection type. */
   fun isCollectionType(typeName: String): Boolean =
     typeName in

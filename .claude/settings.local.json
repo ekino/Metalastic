@@ -21,7 +21,8 @@
       "Bash(gradle :qelasticsearch-processor:compileKotlin:*)",
       "Bash(git branch:*)",
       "Bash(git pull:*)",
-      "Bash(./.gitlab-ci.main.kts)"
+      "Bash(./.gitlab-ci.main.kts)",
+      "Bash(git checkout:*)"
     ],
     "deny": []
   }
