@@ -1,4 +1,7 @@
 dependencies {
+  // Jakarta annotations for generated code
+  api(libs.jakarta.annotation.api)
+
   // Spring Data Elasticsearch for annotations
   implementation(libs.spring.data.elasticsearch)
 

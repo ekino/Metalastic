@@ -110,7 +110,7 @@ class QElasticsearchSymbolProcessor(
     packageName: String,
     objectFieldRegistry: ObjectFieldRegistry,
   ): FileSpec {
-    val qIndexClassName = "${DSLConstants.Q_PREFIX}$className"
+    val qIndexClassName = "${CoreConstants.Q_PREFIX}$className"
     val importContext = ImportContext()
     val typeParameterResolver = documentClass.typeParameters.toTypeParameterResolver()
 
@@ -119,7 +119,7 @@ class QElasticsearchSymbolProcessor(
         .addKdoc(createClassKDoc(documentClass, indexName))
         .addModifiers(KModifier.DATA)
         .addAnnotation(generatedAnnotation)
-        .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.INDEX_CLASS))
+        .superclass(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.INDEX_CLASS))
         .addSuperclassConstructorParameter("%S", indexName)
         .addOriginatingKSFile(documentClass.containingFile!!)
 
@@ -193,7 +193,7 @@ class QElasticsearchSymbolProcessor(
       TypeSpec.classBuilder(objectFieldInfo.className)
         .addKdoc(createObjectFieldKDoc(objectFieldInfo))
         .addAnnotation(generatedAnnotation)
-        .superclass(ClassName(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS))
+        .superclass(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.OBJECT_FIELDS_CLASS))
         .addSuperclassConstructorParameter("parent")
         .addSuperclassConstructorParameter("path")
         .addSuperclassConstructorParameter("nested")
@@ -201,7 +201,7 @@ class QElasticsearchSymbolProcessor(
           com.squareup.kotlinpoet.FunSpec.constructorBuilder()
             .addParameter(
               "parent",
-              ClassName(DSLConstants.DSL_PACKAGE, "ObjectField").copy(nullable = true),
+              ClassName(CoreConstants.CORE_PACKAGE, "ObjectField").copy(nullable = true),
             )
             .addParameter("path", String::class)
             .addParameter("nested", Boolean::class)
@@ -290,7 +290,7 @@ class QElasticsearchSymbolProcessor(
     val fileBuilder =
       FileSpec.builder(packageName, qIndexClassName)
         .addType(objectBuilder.build())
-        .addImport(DSLConstants.DSL_PACKAGE, DSLConstants.INDEX_CLASS)
+        .addImport(CoreConstants.CORE_PACKAGE, CoreConstants.INDEX_CLASS)
         .addAnnotation(
           AnnotationSpec.builder(JvmName::class).addMember("%S", qIndexClassName).build()
         )
@@ -308,7 +308,7 @@ class QElasticsearchSymbolProcessor(
     val fileBuilder =
       FileSpec.builder(objectFieldInfo.packageName, objectFieldInfo.className)
         .addType(objectBuilder.build())
-        .addImport(DSLConstants.DSL_PACKAGE, DSLConstants.OBJECT_FIELDS_CLASS)
+        .addImport(CoreConstants.CORE_PACKAGE, CoreConstants.OBJECT_FIELDS_CLASS)
         .indent("    ")
 
     addImportsToFileBuilder(fileBuilder, importContext)
@@ -316,14 +316,14 @@ class QElasticsearchSymbolProcessor(
   }
 
   private fun addImportsToFileBuilder(fileBuilder: FileSpec.Builder, importContext: ImportContext) {
-    // Add DSL imports
+    // Add Core imports
     importContext.usedImports.forEach { className ->
-      fileBuilder.addImport(DSLConstants.DSL_PACKAGE, className)
+      fileBuilder.addImport(CoreConstants.CORE_PACKAGE, className)
     }
 
     // Add delegate helper function imports - only the ones actually used
     importContext.usedDelegationFunctions.forEach { delegationFunction ->
-      fileBuilder.addImport("${DSLConstants.DSL_PACKAGE}.delegation", delegationFunction)
+      fileBuilder.addImport("${CoreConstants.CORE_PACKAGE}.delegation", delegationFunction)
     }
 
     // Add type imports
@@ -340,7 +340,7 @@ class QElasticsearchSymbolProcessor(
   private fun writeGeneratedFile(fileSpec: FileSpec, packageName: String, className: String) {
     val fileKey = "$packageName.$className"
     if (fileKey in generatedFiles) {
-      logger.info("Skipping duplicate file generation for: $fileKey")
+      logger.info("Skipping duplicate file generation for:  $fileKey")
       return
     }
 

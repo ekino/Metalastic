@@ -31,9 +31,9 @@ data class ObjectFieldInfo(
   val parentDocumentClass: KSClassDeclaration? = null,
 )
 
-/** Constants for DSL generation. */
-object DSLConstants {
-  const val DSL_PACKAGE = "com.qelasticsearch.dsl"
+/** Constants for Core logic generation. */
+object CoreConstants {
+  const val CORE_PACKAGE = "com.qelasticsearch.core"
   const val Q_PREFIX = "Q"
   const val INDEX_CLASS = "Index"
   const val OBJECT_FIELDS_CLASS = "ObjectField"

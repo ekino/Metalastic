@@ -1,6 +1,6 @@
 package com.qelasticsearch.integration
 
-import com.qelasticsearch.dsl.KeywordField
+import com.qelasticsearch.core.KeywordField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

@@ -7,8 +7,16 @@ import io.kotest.matchers.shouldNotBe
 /** Test that demonstrates the generated QTestDocument class works correctly */
 class GeneratedCodeSpec :
   ShouldSpec({
-    should("have correct index name for generated QTestDocument") {
+    should("have correct indexName for generated QTestDocument") {
       QTestDocument.indexName shouldBe "test_document"
+    }
+
+    should("have correct index path for generated QTestDocument") {
+      QTestDocument.path() shouldBe ""
+    }
+
+    should("have correct index name for generated QTestDocument") {
+      QTestDocument.name() shouldBe ""
     }
 
     should("have all expected fields in generated QTestDocument") {

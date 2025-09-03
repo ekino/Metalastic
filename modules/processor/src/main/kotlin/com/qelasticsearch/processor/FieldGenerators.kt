@@ -4,7 +4,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.qelasticsearch.dsl.QDynamicField
+import com.qelasticsearch.core.QDynamicField
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -14,7 +14,7 @@ import com.squareup.kotlinpoet.asTypeName
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField
 
-/** Handles generation of field properties for the DSL classes. */
+/** Handles generation of field properties for the core classes. */
 class FieldGenerators(
   private val logger: KSPLogger,
   private val fieldTypeMappings: Map<FieldType, FieldTypeMapping>,
@@ -229,7 +229,7 @@ class FieldGenerators(
     val kotlinType = context.fieldType.kotlinType.resolve()
     val typeParam = codeGenUtils.createKotlinPoetTypeName(kotlinType, context.typeParameterResolver)
     val delegateCall = "$methodName()"
-    val finalTypeName = ClassName(DSLConstants.DSL_PACKAGE, fieldClass).parameterizedBy(typeParam)
+    val finalTypeName = ClassName(CoreConstants.CORE_PACKAGE, fieldClass).parameterizedBy(typeParam)
     val kdoc = codeGenUtils.generateFieldKDoc(context.property, context.fieldType)
 
     context.objectBuilder.addProperty(
@@ -286,7 +286,7 @@ class FieldGenerators(
     val multiFieldClassName = "${propertyName.replaceFirstChar { it.uppercase() }}MultiField"
     val mainFieldClass = getFieldClass(mainFieldType)
     val mainFieldTypeName =
-      ClassName(DSLConstants.DSL_PACKAGE, mainFieldClass)
+      ClassName(CoreConstants.CORE_PACKAGE, mainFieldClass)
         .parameterizedBy(String::class.asTypeName())
 
     importContext.usedImports.add(mainFieldClass)
@@ -296,11 +296,11 @@ class FieldGenerators(
     val multiFieldClass =
       TypeSpec.classBuilder(multiFieldClassName)
         .superclass(
-          ClassName(DSLConstants.DSL_PACKAGE, "MultiField").parameterizedBy(mainFieldTypeName)
+          ClassName(CoreConstants.CORE_PACKAGE, "MultiField").parameterizedBy(mainFieldTypeName)
         )
         .primaryConstructor(
           FunSpec.constructorBuilder()
-            .addParameter("parent", ClassName(DSLConstants.DSL_PACKAGE, "ObjectField"))
+            .addParameter("parent", ClassName(CoreConstants.CORE_PACKAGE, "ObjectField"))
             .addParameter("path", String::class)
             .build()
         )
@@ -329,7 +329,7 @@ class FieldGenerators(
       multiFieldClass.addProperty(
         PropertySpec.builder(
             suffix,
-            ClassName(DSLConstants.DSL_PACKAGE, innerFieldClass)
+            ClassName(CoreConstants.CORE_PACKAGE, innerFieldClass)
               .parameterizedBy(String::class.asTypeName()),
           )
           .addKdoc(kdocForInnerField)
@@ -388,7 +388,7 @@ class FieldGenerators(
     val kotlinType = property.type.resolve()
     val typeParam = codeGenUtils.createKotlinPoetTypeName(kotlinType, typeParameterResolver)
     val finalTypeName =
-      ClassName(DSLConstants.DSL_PACKAGE, "DynamicField").parameterizedBy(typeParam)
+      ClassName(CoreConstants.CORE_PACKAGE, "DynamicField").parameterizedBy(typeParam)
 
     val kdoc =
       """
