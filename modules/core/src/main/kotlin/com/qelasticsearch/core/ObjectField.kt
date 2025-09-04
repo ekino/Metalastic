@@ -1,90 +1,95 @@
 package com.qelasticsearch.core
 
-import com.qelasticsearch.core.delegation.FieldDelegate
-
 /**
  * Base class for object fields that can contain nested fields. Used for both nested objects and the
  * root index.
  */
 abstract class ObjectField(
   parent: ObjectField? = null,
-  path: String = "",
-  protected val nested: Boolean = false,
-) : Field(parent, path) {
+  fieldName: String = "",
+  private val nested: Boolean = false,
+) : Field(parent, fieldName) {
   @YellowColor fun nested(): Boolean = nested
 
-  // Text field delegates
-  inline fun <reified T> text() = FieldDelegate { parent, path -> TextField<T>(parent, path) }
+  // Field creation helper methods for cleaner generated code
 
-  // Keyword field delegates
-  inline fun <reified T> keyword() = FieldDelegate { parent, path -> KeywordField<T>(parent, path) }
+  // Text field helpers
+  inline fun <reified T> textField(fieldName: String): TextField<T> = TextField(this, fieldName)
 
-  // Numeric field delegates
-  inline fun <reified T> long() = FieldDelegate { parent, path -> LongField<T>(parent, path) }
+  // Keyword field helpers
+  inline fun <reified T> keywordField(fieldName: String): KeywordField<T> =
+    KeywordField(this, fieldName)
 
-  inline fun <reified T> integer() = FieldDelegate { parent, path -> IntegerField<T>(parent, path) }
+  // Numeric field helpers
+  inline fun <reified T> longField(fieldName: String): LongField<T> = LongField(this, fieldName)
 
-  inline fun <reified T> short() = FieldDelegate { parent, path -> ShortField<T>(parent, path) }
+  inline fun <reified T> integerField(fieldName: String): IntegerField<T> =
+    IntegerField(this, fieldName)
 
-  inline fun <reified T> byte() = FieldDelegate { parent, path -> ByteField<T>(parent, path) }
+  inline fun <reified T> shortField(fieldName: String): ShortField<T> = ShortField(this, fieldName)
 
-  inline fun <reified T> double() = FieldDelegate { parent, path -> DoubleField<T>(parent, path) }
+  inline fun <reified T> byteField(fieldName: String): ByteField<T> = ByteField(this, fieldName)
 
-  inline fun <reified T> float() = FieldDelegate { parent, path -> FloatField<T>(parent, path) }
+  inline fun <reified T> doubleField(fieldName: String): DoubleField<T> =
+    DoubleField(this, fieldName)
 
-  fun halfFloat() = FieldDelegate { parent, path -> HalfFloatField(parent, path) }
+  inline fun <reified T> floatField(fieldName: String): FloatField<T> = FloatField(this, fieldName)
 
-  fun scaledFloat() = FieldDelegate { parent, path -> ScaledFloatField(parent, path) }
+  fun halfFloatField(fieldName: String): HalfFloatField = HalfFloatField(this, fieldName)
 
-  // Date field delegates
-  inline fun <reified T> date() = FieldDelegate { parent, path -> DateField<T>(parent, path) }
+  fun scaledFloatField(fieldName: String): ScaledFloatField = ScaledFloatField(this, fieldName)
 
-  fun dateNanos() = FieldDelegate { parent, path -> DateNanosField(parent, path) }
+  // Date field helpers
+  inline fun <reified T> dateField(fieldName: String): DateField<T> = DateField(this, fieldName)
 
-  // Boolean field delegate
-  inline fun <reified T> boolean() = FieldDelegate { parent, path -> BooleanField<T>(parent, path) }
+  fun dateNanosField(fieldName: String): DateNanosField = DateNanosField(this, fieldName)
 
-  // Binary field delegate
-  fun binary() = FieldDelegate { parent, path -> BinaryField(parent, path) }
+  // Boolean field helper
+  inline fun <reified T> booleanField(fieldName: String): BooleanField<T> =
+    BooleanField(this, fieldName)
 
-  // Geo field delegates
-  fun ip() = FieldDelegate { parent, path -> IpField(parent, path) }
+  // Binary field helper
+  fun binaryField(fieldName: String): BinaryField = BinaryField(this, fieldName)
 
-  fun geoPoint() = FieldDelegate { parent, path -> GeoPointField(parent, path) }
+  // Geo field helpers
+  fun ipField(fieldName: String): IpField = IpField(this, fieldName)
 
-  fun geoShape() = FieldDelegate { parent, path -> GeoShapeField(parent, path) }
+  fun geoPointField(fieldName: String): GeoPointField = GeoPointField(this, fieldName)
 
-  // Specialized field delegates
-  fun completion() = FieldDelegate { parent, path -> CompletionField(parent, path) }
+  fun geoShapeField(fieldName: String): GeoShapeField = GeoShapeField(this, fieldName)
 
-  fun tokenCount() = FieldDelegate { parent, path -> TokenCountField(parent, path) }
+  // Specialized field helpers
+  fun completionField(fieldName: String): CompletionField = CompletionField(this, fieldName)
 
-  fun percolator() = FieldDelegate { parent, path -> PercolatorField(parent, path) }
+  fun tokenCountField(fieldName: String): TokenCountField = TokenCountField(this, fieldName)
 
-  fun rankFeature() = FieldDelegate { parent, path -> RankFeatureField(parent, path) }
+  fun percolatorField(fieldName: String): PercolatorField = PercolatorField(this, fieldName)
 
-  fun rankFeatures() = FieldDelegate { parent, path -> RankFeaturesField(parent, path) }
+  fun rankFeatureField(fieldName: String): RankFeatureField = RankFeatureField(this, fieldName)
 
-  fun flattened() = FieldDelegate { parent, path -> FlattenedField(parent, path) }
+  fun rankFeaturesField(fieldName: String): RankFeaturesField = RankFeaturesField(this, fieldName)
 
-  fun shape() = FieldDelegate { parent, path -> ShapeField(parent, path) }
+  fun flattenedField(fieldName: String): FlattenedField = FlattenedField(this, fieldName)
 
-  fun point() = FieldDelegate { parent, path -> PointField(parent, path) }
+  fun shapeField(fieldName: String): ShapeField = ShapeField(this, fieldName)
 
-  fun constantKeyword() = FieldDelegate { parent, path -> ConstantKeywordField(parent, path) }
+  fun pointField(fieldName: String): PointField = PointField(this, fieldName)
 
-  fun wildcard() = FieldDelegate { parent, path -> WildcardField(parent, path) }
+  fun constantKeywordField(fieldName: String): ConstantKeywordField =
+    ConstantKeywordField(this, fieldName)
 
-  // Range field delegates
-  fun integerRange() = FieldDelegate { parent, path -> IntegerRangeField(parent, path) }
+  fun wildcardField(fieldName: String): WildcardField = WildcardField(this, fieldName)
 
-  fun floatRange() = FieldDelegate { parent, path -> FloatRangeField(parent, path) }
+  // Range field helpers
+  fun integerRangeField(fieldName: String): IntegerRangeField = IntegerRangeField(this, fieldName)
 
-  fun longRange() = FieldDelegate { parent, path -> LongRangeField(parent, path) }
+  fun floatRangeField(fieldName: String): FloatRangeField = FloatRangeField(this, fieldName)
 
-  fun doubleRange() = FieldDelegate { parent, path -> DoubleRangeField(parent, path) }
+  fun longRangeField(fieldName: String): LongRangeField = LongRangeField(this, fieldName)
 
-  fun dateRange() = FieldDelegate { parent, path -> DateRangeField(parent, path) }
+  fun doubleRangeField(fieldName: String): DoubleRangeField = DoubleRangeField(this, fieldName)
 
-  fun ipRange() = FieldDelegate { parent, path -> IpRangeField(parent, path) }
+  fun dateRangeField(fieldName: String): DateRangeField = DateRangeField(this, fieldName)
+
+  fun ipRangeField(fieldName: String): IpRangeField = IpRangeField(this, fieldName)
 }

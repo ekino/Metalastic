@@ -12,15 +12,19 @@ import io.kotest.matchers.shouldBe
 class InterfaceGetterMethodTest :
   ShouldSpec({
     should("generate Q-class fields from interface getter methods") {
-      // Get delegate fields (the actual backing fields for Kotlin properties)
-      val delegateFields =
-        QTestItem::class.java.declaredFields.filter { field -> field.name.endsWith("\$delegate") }
+      // Get all declared fields - @JvmField makes properties accessible as Java fields
+      val publicFields =
+        QTestItem::class.java.declaredFields.filter { field ->
+          java.lang.reflect.Modifier.isPublic(field.modifiers) &&
+            !java.lang.reflect.Modifier.isStatic(field.modifiers) &&
+            !field.name.contains("\$") // Exclude synthetic fields
+        }
 
       // Verify that TestItem interface getter methods are processed into Q-class properties
-      delegateFields.size shouldBe 4
+      publicFields.size shouldBe 4
 
-      // Extract property names from delegate field names (remove $delegate suffix)
-      val fieldNames = delegateFields.map { it.name.removeSuffix("\$delegate") }.toSet()
+      // Extract property names from field names
+      val fieldNames = publicFields.map { it.name }.toSet()
       fieldNames shouldBe setOf("category", "displayName", "priority", "active")
     }
 

@@ -314,15 +314,37 @@ class QElasticsearchSymbolProcessor(
   }
 
   private fun addImportsToFileBuilder(fileBuilder: FileSpec.Builder, importContext: ImportContext) {
-    // Add Core imports
-    importContext.usedImports.forEach { className ->
-      fileBuilder.addImport(CoreConstants.CORE_PACKAGE, className)
+    importContext.usedImports.forEach { import ->
+      when {
+        import.contains(".Companion.") -> addCompanionImport(fileBuilder, import)
+        import.startsWith(CoreConstants.CORE_PACKAGE) -> addCorePackageImport(fileBuilder, import)
+        else -> addDefaultCoreImport(fileBuilder, import)
+      }
     }
+  }
 
-    // Add delegate helper function imports - only the ones actually used
-    importContext.usedDelegationFunctions.forEach { delegationFunction ->
-      fileBuilder.addImport("${CoreConstants.CORE_PACKAGE}.delegation", delegationFunction)
-    }
+  private fun addCompanionImport(fileBuilder: FileSpec.Builder, import: String) {
+    val parts = import.split(".Companion.")
+    if (parts.size != 2) return
+
+    val (classPath, functionName) = parts
+    val lastDotIndex = classPath.lastIndexOf(".")
+    if (lastDotIndex == -1) return
+
+    val packageName = classPath.substring(0, lastDotIndex)
+    val className = classPath.substring(lastDotIndex + 1)
+    fileBuilder.addImport("$packageName.$className.Companion", functionName)
+  }
+
+  private fun addCorePackageImport(fileBuilder: FileSpec.Builder, import: String) {
+    fileBuilder.addImport(
+      CoreConstants.CORE_PACKAGE,
+      import.substringAfter("${CoreConstants.CORE_PACKAGE}."),
+    )
+  }
+
+  private fun addDefaultCoreImport(fileBuilder: FileSpec.Builder, import: String) {
+    fileBuilder.addImport(CoreConstants.CORE_PACKAGE, import)
   }
 
   private fun writeGeneratedFile(fileSpec: FileSpec, packageName: String, className: String) {

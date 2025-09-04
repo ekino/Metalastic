@@ -5,13 +5,10 @@ import com.google.devtools.ksp.symbol.KSTypeReference
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /** Context for import management during code generation. */
-data class ImportContext(
-  val usedImports: MutableSet<String> = mutableSetOf(),
-  val usedDelegationFunctions: MutableSet<String> = mutableSetOf(),
-)
+data class ImportContext(val usedImports: MutableSet<String> = mutableSetOf())
 
-/** Field type mapping for generating DSL methods and classes. */
-data class FieldTypeMapping(val delegate: String, val className: String)
+/** Field type mapping for generating DSL classes. */
+data class FieldTypeMapping(val className: String)
 
 /** Processed field type information. */
 data class ProcessedFieldType(

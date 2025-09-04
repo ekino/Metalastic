@@ -32,7 +32,7 @@ class SpecificQClassFieldsSpec :
     }
 
     should("provide correct path structure for document") {
-      QNestedTestDocument.indexName shouldBe "nested_test_document"
+      QNestedTestDocument.indexName() shouldBe "nested_test_document"
 
       // Test nested path construction
       QNestedTestDocument.operation.active.path() shouldBe "operation.active"

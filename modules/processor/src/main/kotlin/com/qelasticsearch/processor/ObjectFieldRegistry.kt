@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
@@ -29,41 +30,198 @@ class ObjectFieldRegistry(
       return
     }
 
+    val objectFieldInfo = getObjectFieldInfo(actualClassDeclaration, fieldType) ?: return
+    val currentDocumentClass = findContainingDocumentClass(property)
+    val propertyTypeName =
+      determinePropertyTypeName(
+        objectFieldInfo,
+        isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass),
+      )
+
+    val initializationDetails =
+      determineInitializationDetails(
+        objectFieldInfo,
+        currentDocumentClass,
+        property,
+        propertyTypeName,
+        importContext,
+      )
+
+    addImportsIfNeeded(importContext, initializationDetails, propertyTypeName)
+
+    val isNested = fieldType.elasticsearchType == FieldType.Nested
+    val kdoc =
+      generateFieldKDoc(property, fieldType, listOf("@${fieldType.elasticsearchType.name}"))
+
+    objectBuilder.addProperty(
+      PropertySpec.builder(propertyName, propertyTypeName)
+        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+        .addKdoc(kdoc)
+        .initializer(initializationDetails.initializer, propertyName, isNested)
+        .build()
+    )
+  }
+
+  private fun getObjectFieldInfo(
+    actualClassDeclaration: KSClassDeclaration,
+    fieldType: ProcessedFieldType,
+  ): ObjectFieldInfo? {
     val objectFieldKey = generateObjectFieldKey(actualClassDeclaration)
     val objectFieldInfo = globalObjectFields[objectFieldKey]
     if (objectFieldInfo == null) {
       logger.warn(
         "No ObjectField registered for key: $objectFieldKey (type: ${fieldType.kotlinTypeName})"
       )
-      return
     }
+    return objectFieldInfo
+  }
 
-    val currentDocumentClass = findContainingDocumentClass(property)
-    val isNestedInCurrentDocument = isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass)
+  private data class InitializationDetails(
+    val initializer: String,
+    val functionName: String,
+    val needsImport: Boolean,
+    val importPath: String? = null,
+  )
 
-    val propertyTypeName = determinePropertyTypeName(objectFieldInfo, isNestedInCurrentDocument)
+  private fun determineInitializationDetails(
+    objectFieldInfo: ObjectFieldInfo,
+    currentDocumentClass: KSClassDeclaration?,
+    property: KSPropertyDeclaration,
+    propertyTypeName: com.squareup.kotlinpoet.TypeName,
+    importContext: ImportContext,
+  ): InitializationDetails {
+    val currentPackage = currentDocumentClass?.packageName?.asString() ?: ""
+    val isNestedInThisDocument = isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass)
 
-    val isNested = fieldType.elasticsearchType == FieldType.Nested
-    val kdoc =
-      generateFieldKDoc(property, fieldType, listOf("@${fieldType.elasticsearchType.name}"))
+    return when {
+      isNestedInThisDocument -> handleNestedInCurrentDocument(propertyTypeName, currentPackage)
+      isNestedClassFallback(objectFieldInfo, property) ->
+        handleNestedClassFallback(propertyTypeName, currentPackage)
+      objectFieldInfo.parentDocumentClass != null ->
+        handleCrossDocumentNested(objectFieldInfo, propertyTypeName)
+      else -> handleStandaloneClass(propertyTypeName, currentPackage)
+    }
+  }
 
-    val delegateCall =
-      if (isNested) {
-        "nestedField()"
-      } else {
-        "objectField()"
-      }
+  private fun isNestedClassFallback(
+    objectFieldInfo: ObjectFieldInfo,
+    property: KSPropertyDeclaration,
+  ): Boolean {
+    return objectFieldInfo.parentDocumentClass != null &&
+      objectFieldInfo.parentDocumentClass.simpleName.asString() ==
+        findContainingDocumentClass(property)?.simpleName?.asString()
+  }
 
-    objectBuilder.addProperty(
-      PropertySpec.builder(propertyName, propertyTypeName)
-        .addKdoc(kdoc)
-        .delegate(delegateCall)
-        .build()
+  private fun handleNestedInCurrentDocument(
+    propertyTypeName: com.squareup.kotlinpoet.TypeName,
+    currentPackage: String,
+  ): InitializationDetails {
+    val className = extractClassName(propertyTypeName)
+    val functionName = className.replaceFirstChar { it.lowercase() }
+    val typeName = simplifyTypeNameIfSamePackage(propertyTypeName, currentPackage)
+
+    return InitializationDetails(
+      initializer = "$typeName(this, %S, %L)",
+      functionName = functionName,
+      needsImport = false,
     )
+  }
 
-    // Track used delegation function
-    val delegateFunction = if (isNested) "nestedField" else "objectField"
-    importContext.usedDelegationFunctions.add(delegateFunction)
+  private fun handleNestedClassFallback(
+    propertyTypeName: com.squareup.kotlinpoet.TypeName,
+    currentPackage: String,
+  ): InitializationDetails {
+    val className = extractClassName(propertyTypeName)
+    val functionName = className.replaceFirstChar { it.lowercase() }
+    val typeName = simplifyTypeNameIfSamePackage(propertyTypeName, currentPackage)
+
+    return if (functionName == "nameCollision") {
+      InitializationDetails(
+        initializer = "$typeName(this, %S, %L)",
+        functionName = functionName,
+        needsImport = false,
+      )
+    } else {
+      InitializationDetails(
+        initializer = "$typeName(this, %S, %L)",
+        functionName = functionName,
+        needsImport = false,
+      )
+    }
+  }
+
+  private fun handleCrossDocumentNested(
+    objectFieldInfo: ObjectFieldInfo,
+    propertyTypeName: com.squareup.kotlinpoet.TypeName,
+  ): InitializationDetails {
+    val fullTypeName = propertyTypeName.toString()
+    val functionName =
+      objectFieldInfo.classDeclaration.simpleName.asString().replaceFirstChar { it.lowercase() }
+
+    return InitializationDetails(
+      initializer = "$fullTypeName(this, %S, %L)",
+      functionName = functionName,
+      needsImport = false,
+    )
+  }
+
+  private fun handleStandaloneClass(
+    propertyTypeName: com.squareup.kotlinpoet.TypeName,
+    currentPackage: String,
+  ): InitializationDetails {
+    val className = extractClassName(propertyTypeName)
+    val functionName = className.replaceFirstChar { it.lowercase() }
+    val typeName = simplifyTypeNameIfSamePackage(propertyTypeName, currentPackage)
+
+    return InitializationDetails(
+      initializer = "$typeName(this, %S, %L)",
+      functionName = functionName,
+      needsImport = false,
+    )
+  }
+
+  private fun extractClassName(typeName: com.squareup.kotlinpoet.TypeName): String {
+    return when (typeName) {
+      is ClassName -> typeName.simpleName
+      else -> typeName.toString()
+    }
+  }
+
+  private fun simplifyTypeNameIfSamePackage(
+    typeName: com.squareup.kotlinpoet.TypeName,
+    currentPackage: String,
+  ): String {
+    return when (typeName) {
+      is ClassName -> {
+        // Only simplify if it's in the same package
+        if (typeName.packageName == currentPackage) {
+          simplifyTypeNameWithoutImports(typeName)
+        } else {
+          typeName.toString()
+        }
+      }
+      else -> simplifyTypeNameWithoutImports(typeName)
+    }
+  }
+
+  private fun extractPackageName(typeName: com.squareup.kotlinpoet.TypeName): String {
+    return when (typeName) {
+      is ClassName -> typeName.packageName
+      else -> ""
+    }
+  }
+
+  private fun addImportsIfNeeded(
+    importContext: ImportContext,
+    details: InitializationDetails,
+    propertyTypeName: com.squareup.kotlinpoet.TypeName,
+  ) {
+    if (details.needsImport && details.importPath != null) {
+      val packageName = extractPackageName(propertyTypeName)
+      if (packageName.isNotEmpty()) {
+        importContext.usedImports.add(details.importPath)
+      }
+    }
   }
 
   private fun findActualClassDeclaration(fieldType: ProcessedFieldType): KSClassDeclaration? {
@@ -90,12 +248,25 @@ class ObjectFieldRegistry(
   private fun isNestedInCurrentDocument(
     objectFieldInfo: ObjectFieldInfo,
     currentDocumentClass: KSClassDeclaration?,
-  ): Boolean =
-    currentDocumentClass != null &&
-      objectFieldInfo.parentDocumentClass == currentDocumentClass &&
-      isActuallyNestedClass(objectFieldInfo.classDeclaration, currentDocumentClass) &&
-      objectFieldInfo.packageName == currentDocumentClass.packageName.asString() &&
-      objectFieldInfo.qualifiedName.contains("${currentDocumentClass.simpleName.asString()}.")
+  ): Boolean {
+    if (currentDocumentClass == null) return false
+
+    val sameParentDocument = objectFieldInfo.parentDocumentClass == currentDocumentClass
+    val actuallyNested =
+      isActuallyNestedClass(objectFieldInfo.classDeclaration, currentDocumentClass)
+    val samePackage = objectFieldInfo.packageName == currentDocumentClass.packageName.asString()
+
+    // Check if the qualified name contains either the source class name or the Q-class name
+    val sourceClassName = currentDocumentClass.simpleName.asString()
+    val qClassName = "Q$sourceClassName"
+    val containsSourceName = objectFieldInfo.qualifiedName.contains("$sourceClassName.")
+    val containsQName = objectFieldInfo.qualifiedName.contains("$qClassName.")
+
+    return sameParentDocument &&
+      actuallyNested &&
+      samePackage &&
+      (containsSourceName || containsQName)
+  }
 
   private fun determinePropertyTypeName(
     objectFieldInfo: ObjectFieldInfo,
