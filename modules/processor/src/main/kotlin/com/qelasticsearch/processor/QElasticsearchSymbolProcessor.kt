@@ -323,16 +323,6 @@ class QElasticsearchSymbolProcessor(
     importContext.usedDelegationFunctions.forEach { delegationFunction ->
       fileBuilder.addImport("${CoreConstants.CORE_PACKAGE}.delegation", delegationFunction)
     }
-
-    // Add type imports
-    importContext.typeImports.forEach { qualifiedName ->
-      if (qualifiedName.contains('.')) {
-        val parts = qualifiedName.split('.')
-        val className = parts.last()
-        val packageName = parts.dropLast(1).joinToString(".")
-        fileBuilder.addImport(packageName, className)
-      }
-    }
   }
 
   private fun writeGeneratedFile(fileSpec: FileSpec, packageName: String, className: String) {
