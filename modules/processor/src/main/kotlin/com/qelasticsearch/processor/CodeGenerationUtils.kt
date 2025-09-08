@@ -153,20 +153,18 @@ fun generateFieldKDoc(
   val propertyName = property.simpleName.asString()
   val elasticsearchType = fieldType.elasticsearchType.name
 
-  val annotationInfo =
-    if (annotations.isNotEmpty()) {
-      " with ${annotations.joinToString(", ")}"
-    } else {
-      ""
-    }
+  if (annotations.isNotEmpty()) {
+    " with ${annotations.joinToString(", ")}"
+  } else {
+    ""
+  }
 
   return """
-          |Elasticsearch field for property [$containingClassName.$propertyName].
           |
           |**Original Property:**
-          |- Elasticsearch Type: `$elasticsearchType`$annotationInfo
+          |- [$containingClassName.$propertyName]
+          |- Elasticsearch Type: `$elasticsearchType`
           |
-          |@see $containingClassName.$propertyName
       """
     .trimMargin()
 }

@@ -197,9 +197,11 @@ data class ObjectFieldInfo(
 /** Constants for Core logic generation. */
 object CoreConstants {
   const val CORE_PACKAGE = "com.qelasticsearch.core"
+  const val METAMODELS_PACKAGE = "com.qelasticsearch"
   const val Q_PREFIX = "Q"
   const val INDEX_CLASS = "Index"
   const val OBJECT_FIELDS_CLASS = "ObjectField"
   const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
   const val METAMODELS_CLASS_NAME = "Metamodels"
+  const val PRODUCT_NAME = "QElasticsearch"
 }
