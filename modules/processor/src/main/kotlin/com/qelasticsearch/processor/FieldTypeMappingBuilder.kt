@@ -44,7 +44,7 @@ class FieldTypeMappingBuilder(private val logger: KSPLogger) {
 
     // Specialized field types
     safeAddMapping(mappings, "Object", "ObjectField")
-    safeAddMapping(mappings, "Nested", "NestedField")
+    safeAddMapping(mappings, "Nested", "ObjectField")
     safeAddMapping(mappings, "Ip", "IpField")
     safeAddMapping(mappings, "TokenCount", "TokenCountField")
     safeAddMapping(mappings, "Percolator", "PercolatorField")

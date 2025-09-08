@@ -36,6 +36,29 @@ class FieldGenerators(
     val typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
   )
 
+  /** Collects all types that will be used by a property for import optimization. */
+  fun collectPropertyTypes(
+    property: KSPropertyDeclaration,
+    importContext: ImportContext,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val fieldAnnotation =
+      property.findAnnotation(org.springframework.data.elasticsearch.annotations.Field::class)
+    val multiFieldAnnotation = property.findAnnotation(MultiField::class)
+    val qDynamicFieldAnnotation = property.findAnnotation(QDynamicField::class)
+
+    when {
+      multiFieldAnnotation != null -> collectMultiFieldTypes(multiFieldAnnotation, importContext)
+      qDynamicFieldAnnotation != null -> collectDynamicFieldTypes(importContext)
+      fieldAnnotation != null ->
+        collectBasicFieldTypes(property, fieldAnnotation, importContext, objectFieldRegistry)
+      else ->
+        logger.warn(
+          "Property ${property.simpleName.asString()} has no @Field, @MultiField, or @QDynamicField annotation"
+        )
+    }
+  }
+
   /** Processes a property and generates appropriate field property. */
   fun processProperty(
     property: KSPropertyDeclaration,
@@ -507,4 +530,59 @@ class FieldGenerators(
       it.annotationType.resolve().declaration.qualifiedName?.asString() ==
         annotationClass.qualifiedName
     }
+
+  // ================== Type Collection Methods for Import Optimization ==================
+
+  private fun collectBasicFieldTypes(
+    property: KSPropertyDeclaration,
+    fieldAnnotation: KSAnnotation,
+    importContext: ImportContext,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val fieldTypeExtractor = FieldTypeExtractor(logger)
+    val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation)
+
+    if (fieldType.isObjectType) {
+      // For object/nested types, let ObjectFieldRegistry handle the type collection
+      objectFieldRegistry.collectObjectFieldType(property, fieldType, importContext)
+    } else {
+      // For basic field types, register the field class
+      val fieldClass = getFieldClass(fieldType.elasticsearchType)
+      importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.$fieldClass")
+    }
+  }
+
+  private fun collectMultiFieldTypes(
+    multiFieldAnnotation: KSAnnotation,
+    importContext: ImportContext,
+  ) {
+    // Register MultiField type
+    importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.MultiField")
+
+    // Collect main field type
+    val mainField =
+      multiFieldAnnotation.arguments.find { it.name?.asString() == "mainField" }?.value
+        as? KSAnnotation
+    if (mainField != null) {
+      val mainFieldType = extractFieldTypeFromAnnotation(mainField)
+      val mainFieldClass = getFieldClass(mainFieldType)
+      importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.$mainFieldClass")
+    }
+
+    // Collect inner field types
+    val otherFields =
+      multiFieldAnnotation.arguments.find { it.name?.asString() == "otherFields" }?.value
+        as? List<*>
+    otherFields?.forEach { otherField ->
+      if (otherField is KSAnnotation) {
+        val innerFieldType = extractFieldTypeFromAnnotation(otherField)
+        val innerFieldClass = getFieldClass(innerFieldType)
+        importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.$innerFieldClass")
+      }
+    }
+  }
+
+  private fun collectDynamicFieldTypes(importContext: ImportContext) {
+    importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.DynamicField")
+  }
 }

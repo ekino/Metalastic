@@ -16,6 +16,32 @@ class ObjectFieldRegistry(
   private val logger: KSPLogger,
   private val globalObjectFields: Map<String, ObjectFieldInfo>,
 ) {
+  /** Collects object field types for import optimization. */
+  fun collectObjectFieldType(
+    property: KSPropertyDeclaration,
+    fieldType: ProcessedFieldType,
+    importContext: ImportContext,
+  ) {
+    val actualClassDeclaration = findActualClassDeclaration(fieldType)
+    if (actualClassDeclaration == null) {
+      logger.warn("Could not find class declaration for field type: ${fieldType.kotlinTypeName}")
+      return
+    }
+
+    val objectFieldInfo = getObjectFieldInfo(actualClassDeclaration, fieldType) ?: return
+    val currentDocumentClass = findContainingDocumentClass(property)
+
+    // Instead of using complex KotlinPoet TypeName manipulation,
+    // register the actual qualified class name directly
+    val qualifiedName =
+      determineQualifiedClassName(
+        objectFieldInfo,
+        isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass),
+      )
+
+    importContext.registerTypeUsage(qualifiedName)
+  }
+
   /** Generates an object field property. */
   fun generateObjectFieldProperty(
     objectBuilder: TypeSpec.Builder,
@@ -38,26 +64,38 @@ class ObjectFieldRegistry(
         isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass),
       )
 
-    val initializationDetails =
-      determineInitializationDetails(
-        objectFieldInfo,
-        currentDocumentClass,
-        property,
-        propertyTypeName,
-        importContext,
-      )
-
-    addImportsIfNeeded(importContext, initializationDetails, propertyTypeName)
-
     val isNested = fieldType.elasticsearchType == FieldType.Nested
     val kdoc =
       generateFieldKDoc(property, fieldType, listOf("@${fieldType.elasticsearchType.name}"))
+
+    // Determine the optimal type name for constructor call
+    val qualifiedName =
+      determineQualifiedClassName(
+        objectFieldInfo,
+        isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass),
+      )
+
+    // If the qualified name would reference a nested class within the current Q-class,
+    // use simple name instead
+    val currentQClassName =
+      if (currentDocumentClass != null) {
+        "Q${currentDocumentClass.simpleName.asString()}"
+      } else null
+
+    val optimalTypeName =
+      if (currentQClassName != null && qualifiedName.contains(".$currentQClassName.")) {
+        // This is a nested class within the current Q-class, use simple name
+        objectFieldInfo.classDeclaration.simpleName.asString()
+      } else {
+        // Use the import context to resolve the optimal name
+        importContext.getOptimalTypeName(qualifiedName)
+      }
 
     objectBuilder.addProperty(
       PropertySpec.builder(propertyName, propertyTypeName)
         .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
-        .initializer(initializationDetails.initializer, propertyName, isNested)
+        .initializer("$optimalTypeName(this, %S, %L)", propertyName, isNested)
         .build()
     )
   }
@@ -74,154 +112,6 @@ class ObjectFieldRegistry(
       )
     }
     return objectFieldInfo
-  }
-
-  private data class InitializationDetails(
-    val initializer: String,
-    val functionName: String,
-    val needsImport: Boolean,
-    val importPath: String? = null,
-  )
-
-  private fun determineInitializationDetails(
-    objectFieldInfo: ObjectFieldInfo,
-    currentDocumentClass: KSClassDeclaration?,
-    property: KSPropertyDeclaration,
-    propertyTypeName: com.squareup.kotlinpoet.TypeName,
-    importContext: ImportContext,
-  ): InitializationDetails {
-    val currentPackage = currentDocumentClass?.packageName?.asString() ?: ""
-    val isNestedInThisDocument = isNestedInCurrentDocument(objectFieldInfo, currentDocumentClass)
-
-    return when {
-      isNestedInThisDocument -> handleNestedInCurrentDocument(propertyTypeName, currentPackage)
-      isNestedClassFallback(objectFieldInfo, property) ->
-        handleNestedClassFallback(propertyTypeName, currentPackage)
-      objectFieldInfo.parentDocumentClass != null ->
-        handleCrossDocumentNested(objectFieldInfo, propertyTypeName)
-      else -> handleStandaloneClass(propertyTypeName, currentPackage)
-    }
-  }
-
-  private fun isNestedClassFallback(
-    objectFieldInfo: ObjectFieldInfo,
-    property: KSPropertyDeclaration,
-  ): Boolean {
-    return objectFieldInfo.parentDocumentClass != null &&
-      objectFieldInfo.parentDocumentClass.simpleName.asString() ==
-        findContainingDocumentClass(property)?.simpleName?.asString()
-  }
-
-  private fun handleNestedInCurrentDocument(
-    propertyTypeName: com.squareup.kotlinpoet.TypeName,
-    currentPackage: String,
-  ): InitializationDetails {
-    val className = extractClassName(propertyTypeName)
-    val functionName = className.replaceFirstChar { it.lowercase() }
-    val typeName = simplifyTypeNameIfSamePackage(propertyTypeName, currentPackage)
-
-    return InitializationDetails(
-      initializer = "$typeName(this, %S, %L)",
-      functionName = functionName,
-      needsImport = false,
-    )
-  }
-
-  private fun handleNestedClassFallback(
-    propertyTypeName: com.squareup.kotlinpoet.TypeName,
-    currentPackage: String,
-  ): InitializationDetails {
-    val className = extractClassName(propertyTypeName)
-    val functionName = className.replaceFirstChar { it.lowercase() }
-    val typeName = simplifyTypeNameIfSamePackage(propertyTypeName, currentPackage)
-
-    return if (functionName == "nameCollision") {
-      InitializationDetails(
-        initializer = "$typeName(this, %S, %L)",
-        functionName = functionName,
-        needsImport = false,
-      )
-    } else {
-      InitializationDetails(
-        initializer = "$typeName(this, %S, %L)",
-        functionName = functionName,
-        needsImport = false,
-      )
-    }
-  }
-
-  private fun handleCrossDocumentNested(
-    objectFieldInfo: ObjectFieldInfo,
-    propertyTypeName: com.squareup.kotlinpoet.TypeName,
-  ): InitializationDetails {
-    val fullTypeName = propertyTypeName.toString()
-    val functionName =
-      objectFieldInfo.classDeclaration.simpleName.asString().replaceFirstChar { it.lowercase() }
-
-    return InitializationDetails(
-      initializer = "$fullTypeName(this, %S, %L)",
-      functionName = functionName,
-      needsImport = false,
-    )
-  }
-
-  private fun handleStandaloneClass(
-    propertyTypeName: com.squareup.kotlinpoet.TypeName,
-    currentPackage: String,
-  ): InitializationDetails {
-    val className = extractClassName(propertyTypeName)
-    val functionName = className.replaceFirstChar { it.lowercase() }
-    val typeName = simplifyTypeNameIfSamePackage(propertyTypeName, currentPackage)
-
-    return InitializationDetails(
-      initializer = "$typeName(this, %S, %L)",
-      functionName = functionName,
-      needsImport = false,
-    )
-  }
-
-  private fun extractClassName(typeName: com.squareup.kotlinpoet.TypeName): String {
-    return when (typeName) {
-      is ClassName -> typeName.simpleName
-      else -> typeName.toString()
-    }
-  }
-
-  private fun simplifyTypeNameIfSamePackage(
-    typeName: com.squareup.kotlinpoet.TypeName,
-    currentPackage: String,
-  ): String {
-    return when (typeName) {
-      is ClassName -> {
-        // Only simplify if it's in the same package
-        if (typeName.packageName == currentPackage) {
-          simplifyTypeNameWithoutImports(typeName)
-        } else {
-          typeName.toString()
-        }
-      }
-      else -> simplifyTypeNameWithoutImports(typeName)
-    }
-  }
-
-  private fun extractPackageName(typeName: com.squareup.kotlinpoet.TypeName): String {
-    return when (typeName) {
-      is ClassName -> typeName.packageName
-      else -> ""
-    }
-  }
-
-  private fun addImportsIfNeeded(
-    importContext: ImportContext,
-    details: InitializationDetails,
-    propertyTypeName: com.squareup.kotlinpoet.TypeName,
-  ) {
-    if (details.needsImport && details.importPath != null) {
-      val packageName = extractPackageName(propertyTypeName)
-      if (packageName.isNotEmpty()) {
-        importContext.usedImports.add(details.importPath)
-      }
-    }
   }
 
   private fun findActualClassDeclaration(fieldType: ProcessedFieldType): KSClassDeclaration? {
@@ -251,21 +141,13 @@ class ObjectFieldRegistry(
   ): Boolean {
     if (currentDocumentClass == null) return false
 
+    // Simple check: if the parent document class matches the current document class,
+    // and they are actually nested (one contains the other), then it's nested in current document
     val sameParentDocument = objectFieldInfo.parentDocumentClass == currentDocumentClass
     val actuallyNested =
       isActuallyNestedClass(objectFieldInfo.classDeclaration, currentDocumentClass)
-    val samePackage = objectFieldInfo.packageName == currentDocumentClass.packageName.asString()
 
-    // Check if the qualified name contains either the source class name or the Q-class name
-    val sourceClassName = currentDocumentClass.simpleName.asString()
-    val qClassName = "Q$sourceClassName"
-    val containsSourceName = objectFieldInfo.qualifiedName.contains("$sourceClassName.")
-    val containsQName = objectFieldInfo.qualifiedName.contains("$qClassName.")
-
-    return sameParentDocument &&
-      actuallyNested &&
-      samePackage &&
-      (containsSourceName || containsQName)
+    return sameParentDocument && actuallyNested
   }
 
   private fun determinePropertyTypeName(
@@ -388,4 +270,31 @@ class ObjectFieldRegistry(
     }
     return null
   }
+
+  private fun determineQualifiedClassName(
+    objectFieldInfo: ObjectFieldInfo,
+    isNestedInCurrentDocument: Boolean,
+  ): String =
+    if (isNestedInCurrentDocument) {
+      // For nested classes within the same document, use the parent Q-class + nested path
+      val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass!!)
+      val parentQClassName = generateUniqueQClassName(rootDocumentClass)
+      val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
+      "${objectFieldInfo.packageName}.${parentQClassName}.${nestedPath}"
+    } else if (objectFieldInfo.parentDocumentClass != null) {
+      // For nested classes in other documents, use the parent Q-class + nested path
+      val rootDocumentClass = findRootDocumentClass(objectFieldInfo.parentDocumentClass)
+      val parentQClassName = generateUniqueQClassName(rootDocumentClass)
+      val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
+      "${objectFieldInfo.packageName}.${parentQClassName}.${nestedPath}"
+    } else {
+      // For standalone classes, use the Q-prefixed class name
+      val qClassName =
+        if (objectFieldInfo.className.startsWith("Q")) {
+          objectFieldInfo.className
+        } else {
+          "Q${objectFieldInfo.classDeclaration.simpleName.asString()}"
+        }
+      "${objectFieldInfo.packageName}.$qClassName"
+    }
 }

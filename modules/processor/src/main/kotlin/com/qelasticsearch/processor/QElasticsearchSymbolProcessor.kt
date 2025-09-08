@@ -109,7 +109,7 @@ class QElasticsearchSymbolProcessor(
     objectFieldRegistry: ObjectFieldRegistry,
   ): FileSpec {
     val qIndexClassName = "${CoreConstants.Q_PREFIX}$className"
-    val importContext = ImportContext()
+    val importContext = ImportContext(packageName)
     val typeParameterResolver = documentClass.typeParameters.toTypeParameterResolver()
 
     val objectBuilder =
@@ -121,7 +121,13 @@ class QElasticsearchSymbolProcessor(
         .addSuperclassConstructorParameter("%S", indexName)
         .addOriginatingKSFile(documentClass.containingFile!!)
 
-    // Add properties
+    // Phase 1: Collect all types that will be used
+    collectDocumentTypes(documentClass, importContext, objectFieldRegistry)
+
+    // Phase 2: Finalize import decisions based on conflicts and proximity
+    importContext.finalizeImportDecisions()
+
+    // Phase 3: Generate properties with optimal type names
     addPropertiesToObjectBuilder(
       documentClass,
       objectBuilder,
@@ -131,6 +137,34 @@ class QElasticsearchSymbolProcessor(
     )
 
     return createFileSpec(packageName, qIndexClassName, objectBuilder, importContext)
+  }
+
+  private fun collectDocumentTypes(
+    documentClass: KSClassDeclaration,
+    importContext: ImportContext,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    // Register locally defined nested classes that will be generated in this document
+    nestedClassProcessor.getNestedClassesForDocument(documentClass).forEach { objectFieldInfo ->
+      // Register both the source class name and the generated Q-class name
+      importContext.registerLocallyDefinedNestedClass(objectFieldInfo.qualifiedName)
+
+      // Also register the generated Q-class qualified name
+      val qClassName = "Q${documentClass.simpleName.asString()}"
+      val packageName = documentClass.packageName.asString()
+      val nestedClassName = objectFieldInfo.classDeclaration.simpleName.asString()
+      val qClassQualifiedName = "$packageName.$qClassName.$nestedClassName"
+      importContext.registerLocallyDefinedNestedClass(qClassQualifiedName)
+    }
+
+    val processedPropertyNames = mutableSetOf<String>()
+    documentClass.getAllProperties().forEach { property ->
+      val propertyName = property.simpleName.asString()
+      if (propertyName !in processedPropertyNames) {
+        fieldGenerators.collectPropertyTypes(property, importContext, objectFieldRegistry)
+        processedPropertyNames.add(propertyName)
+      }
+    }
   }
 
   private fun addPropertiesToObjectBuilder(
@@ -183,7 +217,7 @@ class QElasticsearchSymbolProcessor(
     objectFieldInfo: ObjectFieldInfo,
     objectFieldRegistry: ObjectFieldRegistry,
   ): FileSpec {
-    val importContext = ImportContext()
+    val importContext = ImportContext(objectFieldInfo.packageName)
     val typeParameterResolver =
       objectFieldInfo.classDeclaration.typeParameters.toTypeParameterResolver()
 
@@ -207,7 +241,54 @@ class QElasticsearchSymbolProcessor(
         )
         .addOriginatingKSFile(objectFieldInfo.classDeclaration.containingFile!!)
 
-    // Add properties
+    // Phase 1: Collect all types that will be used
+    collectObjectFieldTypes(objectFieldInfo, importContext, objectFieldRegistry)
+
+    // Phase 2: Finalize import decisions based on conflicts and proximity
+    importContext.finalizeImportDecisions()
+
+    // Phase 3: Generate properties with optimal type names
+    addPropertiesToObjectBuilder(
+      objectFieldInfo,
+      objectBuilder,
+      importContext,
+      typeParameterResolver,
+      objectFieldRegistry,
+    )
+
+    return createObjectFieldFileSpec(objectFieldInfo, objectBuilder, importContext)
+  }
+
+  private fun collectObjectFieldTypes(
+    objectFieldInfo: ObjectFieldInfo,
+    importContext: ImportContext,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val processedPropertyNames = mutableSetOf<String>()
+    objectFieldInfo.classDeclaration.getAllProperties().forEach { property ->
+      val propertyName = property.simpleName.asString()
+      if (propertyName !in processedPropertyNames) {
+        fieldGenerators.collectPropertyTypes(property, importContext, objectFieldRegistry)
+        processedPropertyNames.add(propertyName)
+      }
+    }
+
+    nestedClassProcessor.collectAnnotatedGetterMethodTypes(objectFieldInfo.classDeclaration)
+    nestedClassProcessor.collectNestedObjectTypes(
+      objectFieldInfo.classDeclaration,
+      importContext,
+      fieldGenerators,
+      objectFieldRegistry,
+    )
+  }
+
+  private fun addPropertiesToObjectBuilder(
+    objectFieldInfo: ObjectFieldInfo,
+    objectBuilder: TypeSpec.Builder,
+    importContext: ImportContext,
+    typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
     val processedPropertyNames = mutableSetOf<String>()
     objectFieldInfo.classDeclaration.getAllProperties().forEach { property ->
       val propertyName = property.simpleName.asString()
@@ -224,7 +305,6 @@ class QElasticsearchSymbolProcessor(
       }
     }
 
-    // Process annotated getter methods for interfaces
     nestedClassProcessor.processAnnotatedGetterMethods(objectFieldInfo.classDeclaration) { method ->
       fieldGenerators.processAnnotatedMethod(
         method,
@@ -234,7 +314,6 @@ class QElasticsearchSymbolProcessor(
       )
     }
 
-    // Add nested objects
     nestedClassProcessor.addNestedObjectsToBuilder(
       objectFieldInfo.classDeclaration,
       objectBuilder,
@@ -243,8 +322,6 @@ class QElasticsearchSymbolProcessor(
       objectFieldRegistry,
       importContext,
     )
-
-    return createObjectFieldFileSpec(objectFieldInfo, objectBuilder, importContext)
   }
 
   private fun createClassKDoc(documentClass: KSClassDeclaration, indexName: String): String =
@@ -344,7 +421,15 @@ class QElasticsearchSymbolProcessor(
   }
 
   private fun addDefaultCoreImport(fileBuilder: FileSpec.Builder, import: String) {
-    fileBuilder.addImport(CoreConstants.CORE_PACKAGE, import)
+    val lastDotIndex = import.lastIndexOf(".")
+    if (lastDotIndex != -1) {
+      val packageName = import.substring(0, lastDotIndex)
+      val className = import.substring(lastDotIndex + 1)
+      fileBuilder.addImport(packageName, className)
+    } else {
+      // Fallback for imports without package (shouldn't happen normally)
+      fileBuilder.addImport(CoreConstants.CORE_PACKAGE, import)
+    }
   }
 
   private fun writeGeneratedFile(fileSpec: FileSpec, packageName: String, className: String) {

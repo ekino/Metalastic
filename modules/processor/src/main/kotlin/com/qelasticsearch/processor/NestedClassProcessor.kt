@@ -429,4 +429,43 @@ class NestedClassProcessor(private val logger: KSPLogger) {
       "Processed ${processedMethodNames.size} getter methods for ${classDeclaration.simpleName.asString()}"
     )
   }
+
+  /** Collects types from annotated getter methods for import optimization. */
+  fun collectAnnotatedGetterMethodTypes(classDeclaration: KSClassDeclaration) {
+    val processedMethodNames = mutableSetOf<String>()
+    val allMethods = classDeclaration.getAllFunctions().toList()
+
+    allMethods.forEach { method ->
+      val methodName = method.simpleName.asString()
+      if (methodName !in processedMethodNames && isAnnotatedMethod(method)) {
+        // For annotated methods, we would collect the return types here
+        // This is a placeholder - actual implementation would depend on the method types
+        processedMethodNames.add(methodName)
+      }
+    }
+  }
+
+  /** Collects types from nested objects for import optimization. */
+  fun collectNestedObjectTypes(
+    classDeclaration: KSClassDeclaration,
+    importContext: ImportContext,
+    fieldGenerators: FieldGenerators,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val nestedClasses = classDeclaration.declarations.filterIsInstance<KSClassDeclaration>()
+
+    nestedClasses.forEach { nestedClass ->
+      val nestedClassName = nestedClass.simpleName.asString()
+      logger.info("Collecting types for nested class: $nestedClassName")
+
+      // Register the nested class type itself
+      val qualifiedName = nestedClass.qualifiedName?.asString() ?: nestedClassName
+      importContext.registerTypeUsage(qualifiedName)
+
+      // Recursively collect types from nested class properties
+      nestedClass.getAllProperties().forEach { property ->
+        fieldGenerators.collectPropertyTypes(property, importContext, objectFieldRegistry)
+      }
+    }
+  }
 }
