@@ -201,4 +201,5 @@ object CoreConstants {
   const val INDEX_CLASS = "Index"
   const val OBJECT_FIELDS_CLASS = "ObjectField"
   const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
+  const val METAMODELS_CLASS_NAME = "Metamodels"
 }

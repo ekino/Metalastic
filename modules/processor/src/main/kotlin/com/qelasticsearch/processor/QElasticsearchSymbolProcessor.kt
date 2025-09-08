@@ -482,14 +482,16 @@ class QElasticsearchSymbolProcessor(
   }
 
   /**
-   * Generates Metamodels.kt file containing a data object with instances of all Q-classes for
-   * convenient access to all metamodels.
+   * Generates [CoreConstants.METAMODELS_CLASS_NAME].kt file containing a data object with instances
+   * of all Q-classes for convenient access to all metamodels.
    */
   private fun generateMetamodelsFile(documentClasses: List<KSClassDeclaration>) {
-    logger.info("Generating Metamodels.kt with ${documentClasses.size} Q-class instances")
+    logger.info(
+      "Generating ${CoreConstants.METAMODELS_CLASS_NAME}.kt with ${documentClasses.size} Q-class instances"
+    )
 
     val metamodelsBuilder =
-      TypeSpec.objectBuilder("Metamodels")
+      TypeSpec.objectBuilder(CoreConstants.METAMODELS_CLASS_NAME)
         .addModifiers(KModifier.DATA)
         .addAnnotation(generatedAnnotation)
         .addKdoc(
@@ -532,7 +534,7 @@ class QElasticsearchSymbolProcessor(
     importContext.finalizeImportDecisions()
 
     val fileSpec =
-      FileSpec.builder("com.qelasticsearch", "Metamodels")
+      FileSpec.builder("com.qelasticsearch", CoreConstants.METAMODELS_CLASS_NAME)
         .addType(metamodelsBuilder.build())
         .apply {
           importContext.usedImports.forEach { import ->
@@ -541,11 +543,15 @@ class QElasticsearchSymbolProcessor(
             addImport(packageName, className)
           }
         }
-        .addAnnotation(AnnotationSpec.builder(JvmName::class).addMember("%S", "Metamodels").build())
+        .addAnnotation(
+          AnnotationSpec.builder(JvmName::class)
+            .addMember("%S", CoreConstants.METAMODELS_CLASS_NAME)
+            .build()
+        )
         .indent("    ")
         .build()
 
-    writeGeneratedFile(fileSpec, "com.qelasticsearch", "Metamodels")
+    writeGeneratedFile(fileSpec, "com.qelasticsearch", CoreConstants.METAMODELS_CLASS_NAME)
   }
 
   // Extension function to find annotations
