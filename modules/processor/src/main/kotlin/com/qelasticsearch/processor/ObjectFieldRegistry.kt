@@ -79,7 +79,7 @@ class ObjectFieldRegistry(
     // use simple name instead
     val currentQClassName =
       if (currentDocumentClass != null) {
-        "Q${currentDocumentClass.simpleName.asString()}"
+        "${CoreConstants.Q_PREFIX}${currentDocumentClass.simpleName.asString()}"
       } else null
 
     val optimalTypeName =
@@ -183,10 +183,10 @@ class ObjectFieldRegistry(
     } else {
       // For standalone classes, use the Q-prefixed class name
       val qClassName =
-        if (objectFieldInfo.className.startsWith("Q")) {
+        if (objectFieldInfo.className.startsWith(CoreConstants.Q_PREFIX)) {
           objectFieldInfo.className
         } else {
-          "Q${objectFieldInfo.classDeclaration.simpleName.asString()}"
+          "${CoreConstants.Q_PREFIX}${objectFieldInfo.classDeclaration.simpleName.asString()}"
         }
       ClassName(objectFieldInfo.packageName, qClassName)
     }
@@ -195,7 +195,7 @@ class ObjectFieldRegistry(
     val simpleName = classDeclaration.simpleName.asString()
 
     // Always use the simple Q class name to avoid naming conflicts
-    return "Q$simpleName"
+    return "${CoreConstants.Q_PREFIX}$simpleName"
   }
 
   private fun extractNestedPath(
@@ -290,10 +290,10 @@ class ObjectFieldRegistry(
     } else {
       // For standalone classes, use the Q-prefixed class name
       val qClassName =
-        if (objectFieldInfo.className.startsWith("Q")) {
+        if (objectFieldInfo.className.startsWith(CoreConstants.Q_PREFIX)) {
           objectFieldInfo.className
         } else {
-          "Q${objectFieldInfo.classDeclaration.simpleName.asString()}"
+          "${CoreConstants.Q_PREFIX}${objectFieldInfo.classDeclaration.simpleName.asString()}"
         }
       "${objectFieldInfo.packageName}.$qClassName"
     }

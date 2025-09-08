@@ -101,21 +101,21 @@ public class Person {
 
 ```kotlin
 object QPerson : Index("person") {
-    val id by keyword<String>()
-    val name by text<String>()
-    val age by integer<Int>()
-    val address by objectField<QAddress>()
-    val activities by nestedField<QActivity>()
+    val id: KeywordField<String> = keywordField<String>("id")
+    val name: TextField<String> = textField<String>("name")
+    val age: IntegerField<Int> = integerField<Int>("age")
+    val address: QAddress = QAddress(this, "address", false)
+    val activities: QActivity = QActivity(this, "activities", true)
 }
 
 class QAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
-    val city by text<String>()
-    val country by keyword<String>()
+    val city: TextField<String> = textField<String>("city")
+    val country: KeywordField<String> = keywordField<String>("country")
 }
 
 class QActivity(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
-    val name by text<String>()
-    val timestamp by date<String>()
+    val name: TextField<String> = textField<String>("name")
+    val timestamp: DateField<String> = dateField<String>("timestamp")
 }
 ```
 
@@ -159,38 +159,38 @@ val searchRequest = SearchRequest()
 
 The library supports all Spring Data Elasticsearch field types:
 
-| Elasticsearch Type | Kotlin DSL Method | Java Type Support |
-|-------------------|-------------------|-------------------|
-| `text` | `text()` | String |
-| `keyword` | `keyword()` | String |
-| `long` | `long()` | Long |
-| `integer` | `integer()` | Integer |
-| `short` | `short()` | Short |
-| `byte` | `byte()` | Byte |
-| `double` | `double()` | Double |
-| `float` | `float()` | Float |
-| `half_float` | `halfFloat()` | Float |
-| `scaled_float` | `scaledFloat()` | Float |
-| `date` | `date()` | Date, LocalDate, LocalDateTime |
-| `date_nanos` | `dateNanos()` | Date, LocalDateTime |
-| `boolean` | `boolean()` | Boolean |
-| `binary` | `binary()` | byte[] |
-| `object` | `objectField()` | Custom Objects |
-| `nested` | `nestedField()` | Collections |
-| `ip` | `ip()` | String |
-| `geo_point` | `geoPoint()` | GeoPoint |
-| `geo_shape` | `geoShape()` | GeoShape |
-| `completion` | `completion()` | String |
-| `token_count` | `tokenCount()` | Integer |
-| `percolator` | `percolator()` | String |
-| `rank_feature` | `rankFeature()` | Float |
-| `rank_features` | `rankFeatures()` | Map |
-| `flattened` | `flattened()` | Map |
-| `shape` | `shape()` | Shape |
-| `point` | `point()` | Point |
-| `constant_keyword` | `constantKeyword()` | String |
-| `wildcard` | `wildcard()` | String |
-| `*_range` | `*Range()` | Range types |
+| Elasticsearch Type | Kotlin DSL Method | Generated Field Type |
+|-------------------|-------------------|---------------------|
+| `text` | `textField()` | `TextField<String>` |
+| `keyword` | `keywordField()` | `KeywordField<String>` |
+| `long` | `longField()` | `LongField<Long>` |
+| `integer` | `integerField()` | `IntegerField<Integer>` |
+| `short` | `shortField()` | `ShortField<Short>` |
+| `byte` | `byteField()` | `ByteField<Byte>` |
+| `double` | `doubleField()` | `DoubleField<Double>` |
+| `float` | `floatField()` | `FloatField<Float>` |
+| `half_float` | `halfFloatField()` | `HalfFloatField` |
+| `scaled_float` | `scaledFloatField()` | `ScaledFloatField` |
+| `date` | `dateField()` | `DateField<T>` |
+| `date_nanos` | `dateNanosField()` | `DateNanosField` |
+| `boolean` | `booleanField()` | `BooleanField<Boolean>` |
+| `binary` | `binaryField()` | `BinaryField` |
+| `object` | Object constructor | `QObjectClass` |
+| `nested` | Object constructor | `QNestedClass` |
+| `ip` | `ipField()` | `IpField` |
+| `geo_point` | `geoPointField()` | `GeoPointField` |
+| `geo_shape` | `geoShapeField()` | `GeoShapeField` |
+| `completion` | `completionField()` | `CompletionField` |
+| `token_count` | `tokenCountField()` | `TokenCountField` |
+| `percolator` | `percolatorField()` | `PercolatorField` |
+| `rank_feature` | `rankFeatureField()` | `RankFeatureField` |
+| `rank_features` | `rankFeaturesField()` | `RankFeaturesField` |
+| `flattened` | `flattenedField()` | `FlattenedField` |
+| `shape` | `shapeField()` | `ShapeField` |
+| `point` | `pointField()` | `PointField` |
+| `constant_keyword` | `constantKeywordField()` | `ConstantKeywordField` |
+| `wildcard` | `wildcardField()` | `WildcardField` |
+| `*_range` | `*RangeField()` | `*RangeField` |
 
 ## Multi-field Support
 
@@ -210,13 +210,17 @@ private String multiFieldName;
 Generates:
 
 ```kotlin
-object QMultiFieldName : MultiField<TextField<String>>(parent, TextField(parent, "multiFieldName")) {
-    val keyword by keyword<String>()
-    val search by text<String>()
-}
-
 // Usage in index:
-val multiFieldName by multiField<QMultiFieldName>()
+val multiFieldName: MultiFieldNameMultiField = MultiFieldNameMultiField(this, "multiFieldName")
+
+// Generated multi-field class:
+class MultiFieldNameMultiField(
+    parent: ObjectField,
+    path: String,
+) : MultiField<TextField<String>>(parent, TextField(parent, path)) {
+    val keyword: KeywordField<String> = keywordField<String>("keyword")
+    val search: TextField<String> = textField<String>("search")
+}
 
 // Access patterns:
 multiFieldName.path() shouldBe "multiFieldName"           // main field
@@ -284,16 +288,15 @@ The annotation processor uses a sophisticated version compatibility system that:
 ### Implementation Details
 
 ```kotlin
-// Runtime detection approach in QElasticsearchSymbolProcessor
+// Runtime detection approach in FieldTypeMappingBuilder
 private fun safeAddMapping(
     mappings: MutableMap<FieldType, FieldTypeMapping>,
     fieldTypeName: String,
-    delegate: String,
     className: String,
 ) {
     try {
         val fieldType = FieldType.valueOf(fieldTypeName)
-        mappings[fieldType] = FieldTypeMapping(delegate, className)
+        mappings[fieldType] = FieldTypeMapping(className)
     } catch (e: IllegalArgumentException) {
         // FieldType enum value doesn't exist in this version - skip it
         logger.info("Skipping unsupported FieldType: $fieldTypeName")

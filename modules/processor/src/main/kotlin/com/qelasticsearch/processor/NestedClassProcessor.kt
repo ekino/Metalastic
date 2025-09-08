@@ -277,9 +277,9 @@ class NestedClassProcessor(private val logger: KSPLogger) {
     val parentClass = classDeclaration.parentDeclaration as? KSClassDeclaration
 
     return if (parentClass != null) {
-      "Q${parentClass.simpleName.asString()}$simpleName"
+      "${CoreConstants.Q_PREFIX}${parentClass.simpleName.asString()}$simpleName"
     } else {
-      "Q$simpleName"
+      "${CoreConstants.Q_PREFIX}$simpleName"
     }
   }
 

@@ -98,7 +98,7 @@ class QElasticsearchSymbolProcessor(
 
     val qIndexClass =
       generateQIndexClass(documentClass, indexName, className, packageName, objectFieldRegistry)
-    writeGeneratedFile(qIndexClass, packageName, "Q$className")
+    writeGeneratedFile(qIndexClass, packageName, "${CoreConstants.Q_PREFIX}$className")
   }
 
   private fun generateQIndexClass(
@@ -150,7 +150,7 @@ class QElasticsearchSymbolProcessor(
       importContext.registerLocallyDefinedNestedClass(objectFieldInfo.qualifiedName)
 
       // Also register the generated Q-class qualified name
-      val qClassName = "Q${documentClass.simpleName.asString()}"
+      val qClassName = "${CoreConstants.Q_PREFIX}${documentClass.simpleName.asString()}"
       val packageName = documentClass.packageName.asString()
       val nestedClassName = objectFieldInfo.classDeclaration.simpleName.asString()
       val qClassQualifiedName = "$packageName.$qClassName.$nestedClassName"

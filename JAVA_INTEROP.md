@@ -104,23 +104,23 @@ public class Product {
 var product = QProduct.INSTANCE;
 
 // Access index name
-String indexName = product.getIndexName(); // "product"
+String indexName = product.indexName(); // "product"
 
-// Access fields with proper Java getters
-var idField = product.getId();
-var nameField = product.getName();
-var descriptionField = product.getDescription();
-var priceField = product.getPrice();
-var isActiveField = product.isActive(); // Note: boolean properties use isXxx()
-var createdAtField = product.getCreatedAt();
-var categoryField = product.getCategory();
-var tagsField = product.getTags();
-var searchableTitleField = product.getSearchableTitle();
+// Access fields directly (no getters needed for Java interop)
+var idField = product.id;
+var nameField = product.name;
+var descriptionField = product.description;
+var priceField = product.price;
+var isActiveField = product.isActive;
+var createdAtField = product.createdAt;
+var categoryField = product.category;
+var tagsField = product.tags;
+var searchableTitleField = product.searchableTitle;
 
 // Get field paths for Elasticsearch queries
-String idPath = idField.getPath(); // "id"
-String namePath = nameField.getPath(); // "name"
-String isActivePath = isActiveField.getPath(); // "isActive"
+String idPath = idField.path(); // "id"
+String namePath = nameField.path(); // "name"  
+String isActivePath = isActiveField.path(); // "isActive"
 ```
 
 ## Build Configuration
@@ -245,13 +245,13 @@ public class SearchService {
 
 QElasticsearch follows Java naming conventions when generating accessors:
 
-| Java Property | Generated Accessor | Field Path |
-|---------------|-------------------|------------|
-| `private String name` | `getName()` | `"name"` |
-| `private Integer age` | `getAge()` | `"age"` |
-| `private Boolean isActive` | `isActive()` | `"isActive"` |
-| `private Boolean enabled` | `getEnabled()` | `"enabled"` |
-| `private Date createdAt` | `getCreatedAt()` | `"createdAt"` |
+| Java Property | Generated Field | Field Path |
+|---------------|-----------------|------------|
+| `private String name` | `TextField<String> name` | `"name"` |
+| `private Integer age` | `IntegerField<Integer> age` | `"age"` |  
+| `private Boolean isActive` | `BooleanField<Boolean> isActive` | `"isActive"` |
+| `private Boolean enabled` | `BooleanField<Boolean> enabled` | `"enabled"` |
+| `private Date createdAt` | `DateField<Date> createdAt` | `"createdAt"` |
 
 ### Java POJO Integration
 
@@ -283,8 +283,8 @@ public class User {
 }
 
 // Generated QUser provides:
-QUser.INSTANCE.getUsername()  // Access to username field
-QUser.INSTANCE.isActive()     // Access to isActive field (follows boolean convention)
+QUser.INSTANCE.username  // Access to username field
+QUser.INSTANCE.isActive  // Access to isActive field
 ```
 
 ## Best Practices
@@ -312,14 +312,14 @@ public class ProductSearchService {
         var product = QProduct.INSTANCE;
         
         var query = QueryBuilders.boolQuery()
-            .must(QueryBuilders.matchQuery(product.getName().getPath(), searchTerm));
+            .must(QueryBuilders.matchQuery(product.name.path(), searchTerm));
             
         if (activeOnly) {
-            query.filter(QueryBuilders.termQuery(product.isActive().getPath(), true));
+            query.filter(QueryBuilders.termQuery(product.isActive.path(), true));
         }
         
         return new SearchRequest()
-            .indices(product.getIndexName())
+            .indices(product.indexName())
             .source(new SearchSourceBuilder().query(query));
     }
 }
@@ -357,8 +357,8 @@ public class SearchService {
     
     public void search() {
         // Type-safe field access
-        var query = QueryBuilders.termQuery(product.isActive().getPath(), true);
-        var nameQuery = QueryBuilders.matchQuery(product.getName().getPath(), "search");
+        var query = QueryBuilders.termQuery(product.isActive.path(), true);
+        var nameQuery = QueryBuilders.matchQuery(product.name.path(), "search");
     }
 }
 ```
@@ -368,8 +368,8 @@ public class SearchService {
 ### Common Issues
 
 1. **Generated classes not found**: Ensure KSP is properly configured in your build tool
-2. **Boolean accessor naming**: Use `isXxx()` for boolean properties, not `getIsXxx()`
-3. **Missing getters/setters**: Ensure all fields have proper getter and setter methods
+2. **Field access**: Use direct field access (`product.name`) instead of getters
+3. **Path access**: Use `.path()` method to get field paths for query building
 
 ### Debugging
 
