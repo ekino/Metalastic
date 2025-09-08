@@ -41,7 +41,7 @@ class NestedTestDocument {
     @Field(type = FieldType.Object) var states: List<OperationState> = emptyList()
   }
 
-  // Nested static class - similar to IndexMandateOperationState
+  // Nested static class
   class OperationState {
     @Field(type = FieldType.Keyword) var id: String = ""
 

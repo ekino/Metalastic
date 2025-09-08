@@ -1,5 +1,6 @@
 package com.qelasticsearch.integration
 
+import com.qelasticsearch.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 
@@ -40,22 +41,22 @@ class InterfaceGetterMethodTest :
 
     should("integrate interface fields in document Q-classes") {
       // Verify that the document Q-class correctly references the interface Q-class
-      QGetterMethodTestDocument.items::class.java.simpleName shouldBe "QTestItem"
+      Metamodels.getterMethodTestDocument.items::class.java.simpleName shouldBe "QTestItem"
     }
 
     should("support path traversal for interface fields") {
       // Verify path construction works for interface fields
-      QGetterMethodTestDocument.items.category.path() shouldBe "items.category"
-      QGetterMethodTestDocument.items.displayName.path() shouldBe "items.displayName"
-      QGetterMethodTestDocument.items.priority.path() shouldBe "items.priority"
-      QGetterMethodTestDocument.items.active.path() shouldBe "items.active"
+      Metamodels.getterMethodTestDocument.items.category.path() shouldBe "items.category"
+      Metamodels.getterMethodTestDocument.items.displayName.path() shouldBe "items.displayName"
+      Metamodels.getterMethodTestDocument.items.priority.path() shouldBe "items.priority"
+      Metamodels.getterMethodTestDocument.items.active.path() shouldBe "items.active"
     }
 
     should("support nested path information") {
       // Verify nested field path information
-      QGetterMethodTestDocument.items.category.isNestedPath() shouldBe true
-      QGetterMethodTestDocument.items.category.nestedPaths().count() shouldBe 1
-      QGetterMethodTestDocument.items.category.nestedPaths().first() shouldBe "items"
+      Metamodels.getterMethodTestDocument.items.category.isNestedPath() shouldBe true
+      Metamodels.getterMethodTestDocument.items.category.nestedPaths().count() shouldBe 1
+      Metamodels.getterMethodTestDocument.items.category.nestedPaths().first() shouldBe "items"
     }
 
     should("ignore non-annotated getter methods") {

@@ -1,5 +1,6 @@
 package com.qelasticsearch.integration
 
+import com.qelasticsearch.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 
@@ -7,21 +8,21 @@ class RealWorldPathSpec :
   ShouldSpec({
     should("have proper path information for generated Q-classes") {
       // Test simple field paths
-      QJavaTestDocument.title.path() shouldBe "title"
+      Metamodels.javaTestDocument.title.path() shouldBe "title"
 
       // Test object field paths (not nested)
-      QJavaTestDocument.address.city.path() shouldBe "address.city"
+      Metamodels.javaTestDocument.address.city.path() shouldBe "address.city"
 
       // Test nested field paths
-      QJavaTestDocument.tags.name.path() shouldBe "tags.name"
+      Metamodels.javaTestDocument.tags.name.path() shouldBe "tags.name"
     }
 
     should("show complete hierarchy properly for nested document") {
       // Test simple field in nested document
-      QNestedTestDocument.status.path() shouldBe "status"
+      Metamodels.nestedTestDocument.status.path() shouldBe "status"
 
       // Test object field (operation is an object, not nested)
-      QNestedTestDocument.operation.active.path() shouldBe "operation.active"
+      Metamodels.nestedTestDocument.operation.active.path() shouldBe "operation.active"
 
       // Test nested field (activities is a nested field)
       // Since it uses QTestActivity (interface with no @Field annotations), we can't access
@@ -31,7 +32,7 @@ class RealWorldPathSpec :
     }
 
     should("maintain correct path information for MultiField") {
-      val multiField = QJavaTestDocument.multiFieldName
+      val multiField = Metamodels.javaTestDocument.multiFieldName
       multiField.path() shouldBe "multiFieldName"
 
       // Test that inner fields return their complete dotted path (this was fixed!)

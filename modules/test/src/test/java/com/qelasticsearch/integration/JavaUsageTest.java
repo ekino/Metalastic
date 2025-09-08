@@ -1,5 +1,7 @@
 package com.qelasticsearch.integration;
 
+import com.qelasticsearch.Metamodels;
+
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -15,35 +17,35 @@ public class JavaUsageTest {
     @Test
     public void shouldAccessGeneratedFieldsFromJava() {
         // Test accessing the generated Q-class from Java
-        assertEquals("java_test_document", QJavaTestDocument.INSTANCE.indexName());
+        assertEquals("java_test_document", Metamodels.javaTestDocument.indexName());
         // Test direct field access (new approach)
-        assertNotNull(QJavaTestDocument.id);
-        assertNotNull(QJavaTestDocument.title);
-        assertNotNull(QJavaTestDocument.description);
-        assertNotNull(QJavaTestDocument.priority);
-        assertNotNull(QJavaTestDocument.isActive);
-        assertNotNull(QJavaTestDocument.createdAt);
-        assertNotNull(QJavaTestDocument.score);
-        assertNotNull(QJavaTestDocument.category);
-        assertNotNull(QJavaTestDocument.address);
-        assertNotNull(QJavaTestDocument.tags);
-        assertNotNull(QJavaTestDocument.multiFieldName);
+        assertNotNull(Metamodels.javaTestDocument.id);
+        assertNotNull(Metamodels.javaTestDocument.title);
+        assertNotNull(Metamodels.javaTestDocument.description);
+        assertNotNull(Metamodels.javaTestDocument.priority);
+        assertNotNull(Metamodels.javaTestDocument.isActive);
+        assertNotNull(Metamodels.javaTestDocument.createdAt);
+        assertNotNull(Metamodels.javaTestDocument.score);
+        assertNotNull(Metamodels.javaTestDocument.category);
+        assertNotNull(Metamodels.javaTestDocument.address);
+        assertNotNull(Metamodels.javaTestDocument.tags);
+        assertNotNull(Metamodels.javaTestDocument.multiFieldName);
     }
 
     @Test
     public void shouldProvideCorrectPathsFromJava() {
         // Verify paths are accessible from Java using direct field access
-        assertEquals("id", QJavaTestDocument.id.path());
-        assertEquals("title", QJavaTestDocument.title.path());
-        assertEquals("description", QJavaTestDocument.description.path());
-        assertEquals("priority", QJavaTestDocument.priority.path());
-        assertEquals("isActive", QJavaTestDocument.isActive.path());
-        assertEquals("createdAt", QJavaTestDocument.createdAt.path());
-        assertEquals("score", QJavaTestDocument.score.path());
-        assertEquals("category", QJavaTestDocument.category.path());
-        assertEquals("address.city", QJavaTestDocument.address.city.path());
-        assertEquals("tags.name", QJavaTestDocument.tags.name.path());
-        assertEquals("multiFieldName", QJavaTestDocument.multiFieldName.path());
+        assertEquals("id", Metamodels.javaTestDocument.id.path());
+        assertEquals("title", Metamodels.javaTestDocument.title.path());
+        assertEquals("description", Metamodels.javaTestDocument.description.path());
+        assertEquals("priority", Metamodels.javaTestDocument.priority.path());
+        assertEquals("isActive", Metamodels.javaTestDocument.isActive.path());
+        assertEquals("createdAt", Metamodels.javaTestDocument.createdAt.path());
+        assertEquals("score", Metamodels.javaTestDocument.score.path());
+        assertEquals("category", Metamodels.javaTestDocument.category.path());
+        assertEquals("address.city", Metamodels.javaTestDocument.address.city.path());
+        assertEquals("tags.name", Metamodels.javaTestDocument.tags.name.path());
+        assertEquals("multiFieldName", Metamodels.javaTestDocument.multiFieldName.path());
     }
 
     @Test
@@ -51,9 +53,9 @@ public class JavaUsageTest {
         // Demonstrate QueryDSL-like usage patterns from Java using direct field access
         
         // This is how it would be used in QueryDSL-style queries - much cleaner now!
-        var idField = QJavaTestDocument.id;
-        var titleField = QJavaTestDocument.title;
-        var isActiveField = QJavaTestDocument.isActive;
+        var idField = Metamodels.javaTestDocument.id;
+        var titleField = Metamodels.javaTestDocument.title;
+        var isActiveField = Metamodels.javaTestDocument.isActive;
 
         // Field names should match the original property names
         assertEquals("id", idField.name());
@@ -83,46 +85,46 @@ public class JavaUsageTest {
         assertTrue(testDoc.getIsActive());
 
         // And our Q-class was generated from this Java class
-        assertNotNull(QJavaTestDocument.INSTANCE);
+        assertNotNull(Metamodels.javaTestDocument);
     }
 
     @Test
     public void shouldEnableDirectFieldAccessFromJava() {
         // Test the new direct @JvmField access pattern - this is what we wanted!
-        // Now Java code can access QJavaTestDocument.id directly instead of QJavaTestDocument.INSTANCE.getId()
+        // Now Java code can access Metamodels.javaTestDocument.id directly instead of Metamodels.javaTestDocument.INSTANCE.getId()
         
         // Verify direct field access works
-        assertNotNull(QJavaTestDocument.id);
-        assertNotNull(QJavaTestDocument.title);
-        assertNotNull(QJavaTestDocument.description);
-        assertNotNull(QJavaTestDocument.priority);
-        assertNotNull(QJavaTestDocument.isActive);
-        assertNotNull(QJavaTestDocument.createdAt);
-        assertNotNull(QJavaTestDocument.score);
-        assertNotNull(QJavaTestDocument.category);
-        assertNotNull(QJavaTestDocument.address);
-        assertNotNull(QJavaTestDocument.tags);
+        assertNotNull(Metamodels.javaTestDocument.id);
+        assertNotNull(Metamodels.javaTestDocument.title);
+        assertNotNull(Metamodels.javaTestDocument.description);
+        assertNotNull(Metamodels.javaTestDocument.priority);
+        assertNotNull(Metamodels.javaTestDocument.isActive);
+        assertNotNull(Metamodels.javaTestDocument.createdAt);
+        assertNotNull(Metamodels.javaTestDocument.score);
+        assertNotNull(Metamodels.javaTestDocument.category);
+        assertNotNull(Metamodels.javaTestDocument.address);
+        assertNotNull(Metamodels.javaTestDocument.tags);
         
         // Verify field paths work correctly
-        assertEquals("id", QJavaTestDocument.id.path());
-        assertEquals("title", QJavaTestDocument.title.path());
-        assertEquals("address", QJavaTestDocument.address.path());
-        assertEquals("tags", QJavaTestDocument.tags.path());
+        assertEquals("id", Metamodels.javaTestDocument.id.path());
+        assertEquals("title", Metamodels.javaTestDocument.title.path());
+        assertEquals("address", Metamodels.javaTestDocument.address.path());
+        assertEquals("tags", Metamodels.javaTestDocument.tags.path());
         
         // Verify field names work correctly  
-        assertEquals("id", QJavaTestDocument.id.name());
-        assertEquals("title", QJavaTestDocument.title.name());
-        assertEquals("address", QJavaTestDocument.address.name());
-        assertEquals("tags", QJavaTestDocument.tags.name());
+        assertEquals("id", Metamodels.javaTestDocument.id.name());
+        assertEquals("title", Metamodels.javaTestDocument.title.name());
+        assertEquals("address", Metamodels.javaTestDocument.address.name());
+        assertEquals("tags", Metamodels.javaTestDocument.tags.name());
 
         // Test nested field access
-        assertEquals("address.city", QJavaTestDocument.address.city.path());
-        assertEquals("tags.name", QJavaTestDocument.tags.name.path());
+        assertEquals("address.city", Metamodels.javaTestDocument.address.city.path());
+        assertEquals("tags.name", Metamodels.javaTestDocument.tags.name.path());
         
         // This is exactly what the user wanted: clean, direct access!
-        var idField = QJavaTestDocument.id;        // Instead of QJavaTestDocument.INSTANCE.getId()
-        var titleField = QJavaTestDocument.title;  // Instead of QJavaTestDocument.INSTANCE.getTitle()
-        var addressField = QJavaTestDocument.address; // Instead of QJavaTestDocument.INSTANCE.getAddress()
+        var idField = Metamodels.javaTestDocument.id;        // Instead of Metamodels.javaTestDocument.INSTANCE.getId()
+        var titleField = Metamodels.javaTestDocument.title;  // Instead of Metamodels.javaTestDocument.INSTANCE.getTitle()
+        var addressField = Metamodels.javaTestDocument.address; // Instead of Metamodels.javaTestDocument.INSTANCE.getAddress()
         
         assertNotNull(idField);
         assertNotNull(titleField);
