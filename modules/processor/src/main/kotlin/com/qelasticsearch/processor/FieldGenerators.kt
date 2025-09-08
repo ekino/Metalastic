@@ -5,6 +5,7 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.qelasticsearch.core.QDynamicField
+import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
@@ -35,8 +36,30 @@ class FieldGenerators(
     val typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
   )
 
+  /** Collects all types that will be used by a property for import optimization. */
+  fun collectPropertyTypes(
+    property: KSPropertyDeclaration,
+    importContext: ImportContext,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val fieldAnnotation =
+      property.findAnnotation(org.springframework.data.elasticsearch.annotations.Field::class)
+    val multiFieldAnnotation = property.findAnnotation(MultiField::class)
+    val qDynamicFieldAnnotation = property.findAnnotation(QDynamicField::class)
+
+    when {
+      multiFieldAnnotation != null -> collectMultiFieldTypes(multiFieldAnnotation, importContext)
+      qDynamicFieldAnnotation != null -> collectDynamicFieldTypes(importContext)
+      fieldAnnotation != null ->
+        collectBasicFieldTypes(property, fieldAnnotation, importContext, objectFieldRegistry)
+      else ->
+        logger.warn(
+          "Property ${property.simpleName.asString()} has no @Field, @MultiField, or @QDynamicField annotation"
+        )
+    }
+  }
+
   /** Processes a property and generates appropriate field property. */
-  @Suppress("LongParameterList")
   fun processProperty(
     property: KSPropertyDeclaration,
     objectBuilder: TypeSpec.Builder,
@@ -211,30 +234,36 @@ class FieldGenerators(
 
     // For Nested/Object types that are not actually object types (like enums),
     // treat them as keyword fields instead
-    val (fieldClass, basicDelegate) =
+    val fieldClass =
       if (
         (context.fieldType.elasticsearchType == FieldType.Nested ||
           context.fieldType.elasticsearchType == FieldType.Object) &&
           !context.fieldType.isObjectType
       ) {
-        "KeywordField" to "keyword()"
+        "KeywordField"
       } else {
-        getFieldClass(context.fieldType.elasticsearchType) to
-          getFieldDelegate(context.fieldType.elasticsearchType)
+        getFieldClass(context.fieldType.elasticsearchType)
       }
-    val methodName = basicDelegate.substringBefore("()")
 
     // Create KotlinPoet TypeName directly from KSType
     val kotlinType = context.fieldType.kotlinType.resolve()
     val typeParam = createKotlinPoetTypeName(kotlinType, context.typeParameterResolver)
-    val delegateCall = "$methodName()"
     val finalTypeName = ClassName(CoreConstants.CORE_PACKAGE, fieldClass).parameterizedBy(typeParam)
     val kdoc = generateFieldKDoc(context.property, context.fieldType)
 
+    // Use ObjectField helper method for cleaner generated code
+    val helperMethodName = getHelperMethodName(context.fieldType.elasticsearchType)
+    val typeArguments =
+      if (needsTypeArgument(context.fieldType.elasticsearchType))
+        "<${simplifyTypeNameWithoutImports(typeParam)}>"
+      else ""
+    val initializer = "${helperMethodName}${typeArguments}(%S)"
+
     context.objectBuilder.addProperty(
       PropertySpec.builder(context.propertyName, finalTypeName)
+        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
-        .delegate(delegateCall)
+        .initializer(initializer, context.propertyName)
         .build()
     )
   }
@@ -272,7 +301,6 @@ class FieldGenerators(
     )
   }
 
-  @Suppress("LongParameterList")
   private fun generateComplexMultiField(
     objectBuilder: TypeSpec.Builder,
     property: KSPropertyDeclaration,
@@ -311,7 +339,6 @@ class FieldGenerators(
       val suffix = innerFieldAnnotation.getArgumentValue<String>("suffix") ?: "unknown"
       val innerFieldType = extractFieldTypeFromAnnotation(innerFieldAnnotation)
       val innerFieldClass = getFieldClass(innerFieldType)
-      val innerFieldDelegate = getFieldDelegate(innerFieldType)
 
       importContext.usedImports.add(innerFieldClass)
 
@@ -325,14 +352,19 @@ class FieldGenerators(
                 """
           .trimIndent()
 
+      val helperMethodName = getHelperMethodName(innerFieldType)
+      val typeArguments = if (needsTypeArgument(innerFieldType)) "<String>" else ""
+      val initializer = "${helperMethodName}${typeArguments}(%S)"
+
       multiFieldClass.addProperty(
         PropertySpec.builder(
             suffix,
             ClassName(CoreConstants.CORE_PACKAGE, innerFieldClass)
               .parameterizedBy(String::class.asTypeName()),
           )
+          .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
           .addKdoc(kdocForInnerField)
-          .delegate("${innerFieldDelegate.substringBefore("()")}<String>()")
+          .initializer(initializer, suffix)
           .build()
       )
     }
@@ -356,24 +388,83 @@ class FieldGenerators(
         listOf("@MultiField", "inner fields: ${innerFieldsList.joinToString(", ")}"),
       )
 
+    // Direct initialization instead of delegation for Java interop
+    val multiFieldTypeName = ClassName("", multiFieldClassName)
+    val initializer = "%T(this, %S)"
+
     objectBuilder.addProperty(
-      PropertySpec.builder(propertyName, ClassName("", multiFieldClassName))
+      PropertySpec.builder(propertyName, multiFieldTypeName)
+        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
-        .delegate("multiField()")
+        .initializer(initializer, multiFieldTypeName, propertyName)
         .build()
     )
-
-    // Track used delegation function
-    importContext.usedDelegationFunctions.add("multiField")
   }
-
-  /** Get the DSL delegate method name for a given field type. */
-  private fun getFieldDelegate(fieldType: FieldType): String =
-    fieldTypeMappings[fieldType]?.delegate ?: "keyword()"
 
   /** Get the DSL field class name for a given field type. */
   private fun getFieldClass(fieldType: FieldType): String =
     fieldTypeMappings[fieldType]?.className ?: "KeywordField"
+
+  /** Get the helper method name for a given field type. */
+  @Suppress("CyclomaticComplexMethod")
+  private fun getHelperMethodName(fieldType: FieldType): String =
+    when (fieldType) {
+      FieldType.Text -> "textField"
+      FieldType.Keyword -> "keywordField"
+      FieldType.Long -> "longField"
+      FieldType.Integer -> "integerField"
+      FieldType.Short -> "shortField"
+      FieldType.Byte -> "byteField"
+      FieldType.Double -> "doubleField"
+      FieldType.Float -> "floatField"
+      FieldType.Boolean -> "booleanField"
+      FieldType.Binary -> "binaryField"
+      FieldType.Date -> "dateField"
+      FieldType.Object -> "keywordField" // Object fields handled separately
+      FieldType.Nested -> "keywordField" // Nested fields handled separately
+      else -> {
+        // For advanced field types that may not exist in all versions, use safe access
+        when (fieldType.name) {
+          "Half_Float" -> "halfFloatField"
+          "Scaled_Float" -> "scaledFloatField"
+          "Date_Nanos" -> "dateNanosField"
+          "Ip" -> "ipField"
+          "Geo_Point" -> "geoPointField"
+          "Geo_Shape" -> "geoShapeField"
+          "Completion" -> "completionField"
+          "TokenCount" -> "tokenCountField"
+          "Percolator" -> "percolatorField"
+          "Rank_Feature" -> "rankFeatureField"
+          "Rank_Features" -> "rankFeaturesField"
+          "Flattened" -> "flattenedField"
+          "Wildcard" -> "wildcardField"
+          "Constant_Keyword" -> "constantKeywordField"
+          "Integer_Range" -> "integerRangeField"
+          "Float_Range" -> "floatRangeField"
+          "Long_Range" -> "longRangeField"
+          "Double_Range" -> "doubleRangeField"
+          "Date_Range" -> "dateRangeField"
+          "Ip_Range" -> "ipRangeField"
+          else -> "keywordField" // fallback to keyword
+        }
+      }
+    }
+
+  /** Check if the field type needs a type argument in the helper method call. */
+  private fun needsTypeArgument(fieldType: FieldType): Boolean =
+    when (fieldType) {
+      FieldType.Text,
+      FieldType.Keyword,
+      FieldType.Long,
+      FieldType.Integer,
+      FieldType.Short,
+      FieldType.Byte,
+      FieldType.Double,
+      FieldType.Float,
+      FieldType.Date,
+      FieldType.Boolean -> true
+      else -> false
+    }
 
   /** Generates a dynamic field property for @QDynamicField annotated fields. */
   fun generateDynamicFieldProperty(
@@ -401,16 +492,21 @@ class FieldGenerators(
         """
         .trimIndent()
 
+    // Use helper method for cleaner generated code - DynamicField doesn't have a helper yet, so use
+    // direct initialization
+    val dynamicFieldClassName = ClassName(CoreConstants.CORE_PACKAGE, "DynamicField")
+    val initializer = "%T(this, %S)"
+
     objectBuilder.addProperty(
       PropertySpec.builder(propertyName, finalTypeName)
+        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
-        .delegate("dynamicField()")
+        .initializer(initializer, dynamicFieldClassName, propertyName)
         .build()
     )
 
     // Add DynamicField to imports
     importContext.usedImports.add("DynamicField")
-    importContext.usedDelegationFunctions.add("dynamicField")
   }
 
   // Extension function to find annotations
@@ -434,4 +530,59 @@ class FieldGenerators(
       it.annotationType.resolve().declaration.qualifiedName?.asString() ==
         annotationClass.qualifiedName
     }
+
+  // ================== Type Collection Methods for Import Optimization ==================
+
+  private fun collectBasicFieldTypes(
+    property: KSPropertyDeclaration,
+    fieldAnnotation: KSAnnotation,
+    importContext: ImportContext,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val fieldTypeExtractor = FieldTypeExtractor(logger)
+    val fieldType = fieldTypeExtractor.determineFieldType(property, fieldAnnotation)
+
+    if (fieldType.isObjectType) {
+      // For object/nested types, let ObjectFieldRegistry handle the type collection
+      objectFieldRegistry.collectObjectFieldType(property, fieldType, importContext)
+    } else {
+      // For basic field types, register the field class
+      val fieldClass = getFieldClass(fieldType.elasticsearchType)
+      importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.$fieldClass")
+    }
+  }
+
+  private fun collectMultiFieldTypes(
+    multiFieldAnnotation: KSAnnotation,
+    importContext: ImportContext,
+  ) {
+    // Register MultiField type
+    importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.MultiField")
+
+    // Collect main field type
+    val mainField =
+      multiFieldAnnotation.arguments.find { it.name?.asString() == "mainField" }?.value
+        as? KSAnnotation
+    if (mainField != null) {
+      val mainFieldType = extractFieldTypeFromAnnotation(mainField)
+      val mainFieldClass = getFieldClass(mainFieldType)
+      importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.$mainFieldClass")
+    }
+
+    // Collect inner field types
+    val otherFields =
+      multiFieldAnnotation.arguments.find { it.name?.asString() == "otherFields" }?.value
+        as? List<*>
+    otherFields?.forEach { otherField ->
+      if (otherField is KSAnnotation) {
+        val innerFieldType = extractFieldTypeFromAnnotation(otherField)
+        val innerFieldClass = getFieldClass(innerFieldType)
+        importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.$innerFieldClass")
+      }
+    }
+  }
+
+  private fun collectDynamicFieldTypes(importContext: ImportContext) {
+    importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.DynamicField")
+  }
 }

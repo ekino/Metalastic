@@ -6,6 +6,7 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.qelasticsearch.processor.CoreConstants.OBJECT_FIELDS_CLASS
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
@@ -138,7 +139,7 @@ class NestedClassProcessor(private val logger: KSPLogger) {
                     """
             .trimIndent()
         )
-        .superclass(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.OBJECT_FIELDS_CLASS))
+        .superclass(ClassName(CoreConstants.CORE_PACKAGE, OBJECT_FIELDS_CLASS))
         .addSuperclassConstructorParameter("parent")
         .addSuperclassConstructorParameter("path")
         .addSuperclassConstructorParameter("nested")
@@ -146,7 +147,7 @@ class NestedClassProcessor(private val logger: KSPLogger) {
           com.squareup.kotlinpoet.FunSpec.constructorBuilder()
             .addParameter(
               "parent",
-              ClassName(CoreConstants.CORE_PACKAGE, "ObjectField").copy(nullable = true),
+              ClassName(CoreConstants.CORE_PACKAGE, OBJECT_FIELDS_CLASS).copy(nullable = true),
             )
             .addParameter("path", String::class)
             .addParameter("nested", Boolean::class)
@@ -428,5 +429,44 @@ class NestedClassProcessor(private val logger: KSPLogger) {
     logger.info(
       "Processed ${processedMethodNames.size} getter methods for ${classDeclaration.simpleName.asString()}"
     )
+  }
+
+  /** Collects types from annotated getter methods for import optimization. */
+  fun collectAnnotatedGetterMethodTypes(classDeclaration: KSClassDeclaration) {
+    val processedMethodNames = mutableSetOf<String>()
+    val allMethods = classDeclaration.getAllFunctions().toList()
+
+    allMethods.forEach { method ->
+      val methodName = method.simpleName.asString()
+      if (methodName !in processedMethodNames && isAnnotatedMethod(method)) {
+        // For annotated methods, we would collect the return types here
+        // This is a placeholder - actual implementation would depend on the method types
+        processedMethodNames.add(methodName)
+      }
+    }
+  }
+
+  /** Collects types from nested objects for import optimization. */
+  fun collectNestedObjectTypes(
+    classDeclaration: KSClassDeclaration,
+    importContext: ImportContext,
+    fieldGenerators: FieldGenerators,
+    objectFieldRegistry: ObjectFieldRegistry,
+  ) {
+    val nestedClasses = classDeclaration.declarations.filterIsInstance<KSClassDeclaration>()
+
+    nestedClasses.forEach { nestedClass ->
+      val nestedClassName = nestedClass.simpleName.asString()
+      logger.info("Collecting types for nested class: $nestedClassName")
+
+      // Register the nested class type itself
+      val qualifiedName = nestedClass.qualifiedName?.asString() ?: nestedClassName
+      importContext.registerTypeUsage(qualifiedName)
+
+      // Recursively collect types from nested class properties
+      nestedClass.getAllProperties().forEach { property ->
+        fieldGenerators.collectPropertyTypes(property, importContext, objectFieldRegistry)
+      }
+    }
   }
 }

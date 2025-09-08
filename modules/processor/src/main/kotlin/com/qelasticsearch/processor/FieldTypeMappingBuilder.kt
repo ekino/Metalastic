@@ -13,63 +13,63 @@ class FieldTypeMappingBuilder(private val logger: KSPLogger) {
     val mappings = mutableMapOf<FieldType, FieldTypeMapping>()
 
     // Core field types - available in all versions
-    safeAddMapping(mappings, "Text", "text()", "TextField")
-    safeAddMapping(mappings, "Keyword", "keyword()", "KeywordField")
-    safeAddMapping(mappings, "Binary", "binary()", "BinaryField")
+    safeAddMapping(mappings, "Text", "TextField")
+    safeAddMapping(mappings, "Keyword", "KeywordField")
+    safeAddMapping(mappings, "Binary", "BinaryField")
 
     // Numeric field types - available in all versions
-    safeAddMapping(mappings, "Long", "long()", "LongField")
-    safeAddMapping(mappings, "Integer", "integer()", "IntegerField")
-    safeAddMapping(mappings, "Short", "short()", "ShortField")
-    safeAddMapping(mappings, "Byte", "byte()", "ByteField")
-    safeAddMapping(mappings, "Double", "double()", "DoubleField")
-    safeAddMapping(mappings, "Float", "float()", "FloatField")
-    safeAddMapping(mappings, "Half_Float", "halfFloat()", "HalfFloatField")
-    safeAddMapping(mappings, "Scaled_Float", "scaledFloat()", "ScaledFloatField")
+    safeAddMapping(mappings, "Long", "LongField")
+    safeAddMapping(mappings, "Integer", "IntegerField")
+    safeAddMapping(mappings, "Short", "ShortField")
+    safeAddMapping(mappings, "Byte", "ByteField")
+    safeAddMapping(mappings, "Double", "DoubleField")
+    safeAddMapping(mappings, "Float", "FloatField")
+    safeAddMapping(mappings, "Half_Float", "HalfFloatField")
+    safeAddMapping(mappings, "Scaled_Float", "ScaledFloatField")
 
     // Date/time field types
-    safeAddMapping(mappings, "Date", "date()", "DateField")
-    safeAddMapping(mappings, "Date_Nanos", "dateNanos()", "DateNanosField")
+    safeAddMapping(mappings, "Date", "DateField")
+    safeAddMapping(mappings, "Date_Nanos", "DateNanosField")
 
     // Boolean field type
-    safeAddMapping(mappings, "Boolean", "boolean()", "BooleanField")
+    safeAddMapping(mappings, "Boolean", "BooleanField")
 
     // Range field types
-    safeAddMapping(mappings, "Integer_Range", "integerRange()", "IntegerRangeField")
-    safeAddMapping(mappings, "Float_Range", "floatRange()", "FloatRangeField")
-    safeAddMapping(mappings, "Long_Range", "longRange()", "LongRangeField")
-    safeAddMapping(mappings, "Double_Range", "doubleRange()", "DoubleRangeField")
-    safeAddMapping(mappings, "Date_Range", "dateRange()", "DateRangeField")
-    safeAddMapping(mappings, "Ip_Range", "ipRange()", "IpRangeField")
+    safeAddMapping(mappings, "Integer_Range", "IntegerRangeField")
+    safeAddMapping(mappings, "Float_Range", "FloatRangeField")
+    safeAddMapping(mappings, "Long_Range", "LongRangeField")
+    safeAddMapping(mappings, "Double_Range", "DoubleRangeField")
+    safeAddMapping(mappings, "Date_Range", "DateRangeField")
+    safeAddMapping(mappings, "Ip_Range", "IpRangeField")
 
     // Specialized field types
-    safeAddMapping(mappings, "Object", "objectField()", "ObjectField")
-    safeAddMapping(mappings, "Nested", "nestedField()", "NestedField")
-    safeAddMapping(mappings, "Ip", "ip()", "IpField")
-    safeAddMapping(mappings, "TokenCount", "tokenCount()", "TokenCountField")
-    safeAddMapping(mappings, "Percolator", "percolator()", "PercolatorField")
-    safeAddMapping(mappings, "Flattened", "flattened()", "FlattenedField")
-    safeAddMapping(mappings, "Search_As_You_Type", "searchAsYouType()", "SearchAsYouTypeField")
+    safeAddMapping(mappings, "Object", "ObjectField")
+    safeAddMapping(mappings, "Nested", "ObjectField")
+    safeAddMapping(mappings, "Ip", "IpField")
+    safeAddMapping(mappings, "TokenCount", "TokenCountField")
+    safeAddMapping(mappings, "Percolator", "PercolatorField")
+    safeAddMapping(mappings, "Flattened", "FlattenedField")
+    safeAddMapping(mappings, "Search_As_You_Type", "SearchAsYouTypeField")
 
     // Geo types
-    safeAddMapping(mappings, "Geo_Point", "geoPoint()", "GeoPointField")
-    safeAddMapping(mappings, "Geo_Shape", "geoShape()", "GeoShapeField")
+    safeAddMapping(mappings, "Geo_Point", "GeoPointField")
+    safeAddMapping(mappings, "Geo_Shape", "GeoShapeField")
 
     // Advanced field types - may not exist in older versions
-    safeAddMapping(mappings, "Auto", "auto()", "AutoField")
-    safeAddMapping(mappings, "Rank_Feature", "rankFeature()", "RankFeatureField")
-    safeAddMapping(mappings, "Rank_Features", "rankFeatures()", "RankFeaturesField")
-    safeAddMapping(mappings, "Wildcard", "wildcard()", "WildcardField")
-    safeAddMapping(mappings, "Dense_Vector", "denseVector()", "DenseVectorField")
-    safeAddMapping(mappings, "Sparse_Vector", "sparseVector()", "SparseVectorField")
-    safeAddMapping(mappings, "Constant_Keyword", "constantKeyword()", "ConstantKeywordField")
-    safeAddMapping(mappings, "Alias", "alias()", "AliasField")
-    safeAddMapping(mappings, "Version", "version()", "VersionField")
-    safeAddMapping(mappings, "Murmur3", "murmur3()", "Murmur3Field")
-    safeAddMapping(mappings, "Match_Only_Text", "matchOnlyText()", "MatchOnlyTextField")
-    safeAddMapping(mappings, "Annotated_Text", "annotatedText()", "AnnotatedTextField")
-    safeAddMapping(mappings, "Completion", "completion()", "CompletionField")
-    safeAddMapping(mappings, "Join", "join()", "JoinField")
+    safeAddMapping(mappings, "Auto", "AutoField")
+    safeAddMapping(mappings, "Rank_Feature", "RankFeatureField")
+    safeAddMapping(mappings, "Rank_Features", "RankFeaturesField")
+    safeAddMapping(mappings, "Wildcard", "WildcardField")
+    safeAddMapping(mappings, "Dense_Vector", "DenseVectorField")
+    safeAddMapping(mappings, "Sparse_Vector", "SparseVectorField")
+    safeAddMapping(mappings, "Constant_Keyword", "ConstantKeywordField")
+    safeAddMapping(mappings, "Alias", "AliasField")
+    safeAddMapping(mappings, "Version", "VersionField")
+    safeAddMapping(mappings, "Murmur3", "Murmur3Field")
+    safeAddMapping(mappings, "Match_Only_Text", "MatchOnlyTextField")
+    safeAddMapping(mappings, "Annotated_Text", "AnnotatedTextField")
+    safeAddMapping(mappings, "Completion", "CompletionField")
+    safeAddMapping(mappings, "Join", "JoinField")
 
     return mappings.toMap()
   }
@@ -78,12 +78,11 @@ class FieldTypeMappingBuilder(private val logger: KSPLogger) {
   private fun safeAddMapping(
     mappings: MutableMap<FieldType, FieldTypeMapping>,
     fieldTypeName: String,
-    delegate: String,
     className: String,
   ) {
     try {
       val fieldType = FieldType.valueOf(fieldTypeName)
-      mappings[fieldType] = FieldTypeMapping(delegate, className)
+      mappings[fieldType] = FieldTypeMapping(className)
     } catch (e: IllegalArgumentException) {
       // FieldType enum value doesn't exist in this version - skip it
       logger.info("Skipping unsupported FieldType: $fieldTypeName (${e.message})")

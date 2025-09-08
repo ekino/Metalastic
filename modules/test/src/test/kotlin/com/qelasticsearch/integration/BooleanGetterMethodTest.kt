@@ -7,18 +7,20 @@ class BooleanGetterMethodTest :
   ShouldSpec({
     context("Boolean getter method processing") {
       should("generate Q-class fields from boolean isXxx() getter methods") {
-        // Get delegate fields to verify properties exist
-        val delegateFields =
+        // Get all declared fields - @JvmField makes properties accessible as Java fields
+        val publicFields =
           QBooleanTestItem::class.java.declaredFields.filter { field ->
-            field.name.endsWith("\$delegate")
+            java.lang.reflect.Modifier.isPublic(field.modifiers) &&
+              !java.lang.reflect.Modifier.isStatic(field.modifiers) &&
+              !field.name.contains("\$") // Exclude synthetic fields
           }
 
         // Verify that BooleanTestItem interface annotated methods are processed into Q-class
         // properties
-        delegateFields.size shouldBe 4
+        publicFields.size shouldBe 4
 
-        // Extract property names from delegate field names
-        val fieldNames = delegateFields.map { it.name.removeSuffix("\$delegate") }.toSet()
+        // Extract property names from field names
+        val fieldNames = publicFields.map { it.name }.toSet()
         fieldNames shouldBe setOf("enabled", "verified", "published", "someOtherMethod")
       }
 

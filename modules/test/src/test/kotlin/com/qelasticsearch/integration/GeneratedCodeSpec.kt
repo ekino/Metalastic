@@ -8,7 +8,7 @@ import io.kotest.matchers.shouldNotBe
 class GeneratedCodeSpec :
   ShouldSpec({
     should("have correct indexName for generated QTestDocument") {
-      QTestDocument.indexName shouldBe "test_document"
+      QTestDocument.indexName() shouldBe "test_document"
     }
 
     should("have correct index path for generated QTestDocument") {

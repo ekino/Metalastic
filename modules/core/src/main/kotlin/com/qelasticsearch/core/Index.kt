@@ -5,4 +5,6 @@ package com.qelasticsearch.core
  *
  * @param indexName The name of the Elasticsearch index
  */
-abstract class Index(val indexName: String) : ObjectField()
+abstract class Index(private val indexName: String) : ObjectField() {
+  @YellowColor fun indexName(): String = indexName
+}

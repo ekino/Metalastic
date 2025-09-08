@@ -92,7 +92,7 @@ fun createKotlinPoetTypeName(
 ): TypeName = kotlinType.toTypeName(typeParameterResolver)
 
 /** Simplify TypeName to string without adding imports. */
-private fun simplifyTypeNameWithoutImports(typeName: TypeName): String =
+fun simplifyTypeNameWithoutImports(typeName: TypeName): String =
   when (typeName) {
     is ClassName -> typeName.simpleName
     is ParameterizedTypeName -> {
@@ -175,9 +175,7 @@ fun generateFieldKDoc(
 private fun extractFieldType(fieldAnnotation: KSAnnotation): FieldType? =
   runCatching {
       val typeArgument = fieldAnnotation.arguments.find { it.name?.asString() == "type" }
-      val value = typeArgument?.value
-
-      when (value) {
+      when (val value = typeArgument?.value) {
         is KSType -> {
           val enumName = value.declaration.simpleName.asString()
           FieldType.entries.find { it.name == enumName }
