@@ -200,4 +200,5 @@ object CoreConstants {
   const val Q_PREFIX = "Q"
   const val INDEX_CLASS = "Index"
   const val OBJECT_FIELDS_CLASS = "ObjectField"
+  const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
 }

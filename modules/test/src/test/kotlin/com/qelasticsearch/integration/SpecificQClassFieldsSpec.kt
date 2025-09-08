@@ -1,5 +1,6 @@
 package com.qelasticsearch.integration
 
+import com.qelasticsearch.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -9,7 +10,7 @@ class SpecificQClassFieldsSpec :
   ShouldSpec({
     should("generate QTestActivity for interface nested fields") {
       // Verify that activities field uses specific QTestActivity Q-class
-      val activitiesField = QNestedTestDocument.activities
+      val activitiesField = Metamodels.nestedTestDocument.activities
 
       activitiesField shouldNotBe null
       activitiesField.shouldBeInstanceOf<QTestActivity>()
@@ -17,7 +18,7 @@ class SpecificQClassFieldsSpec :
 
     should("generate QTestMetadata for interface object fields") {
       // Verify that metadata field uses specific QTestMetadata Q-class
-      val metadataField = QNestedTestDocument.metadata
+      val metadataField = Metamodels.nestedTestDocument.metadata
 
       metadataField shouldNotBe null
       metadataField.shouldBeInstanceOf<QTestMetadata>()
@@ -25,25 +26,25 @@ class SpecificQClassFieldsSpec :
 
     should("still generate proper Q-classes for classes with Field annotations") {
       // Verify that operation field still generates proper Q-class
-      val operationField = QNestedTestDocument.operation
+      val operationField = Metamodels.nestedTestDocument.operation
 
       operationField shouldNotBe null
       operationField.shouldBeInstanceOf<QNestedTestDocument.Operation>()
     }
 
     should("provide correct path structure for document") {
-      QNestedTestDocument.indexName() shouldBe "nested_test_document"
+      Metamodels.nestedTestDocument.indexName() shouldBe "nested_test_document"
 
       // Test nested path construction
-      QNestedTestDocument.operation.active.path() shouldBe "operation.active"
-      QNestedTestDocument.operation.states.id.path() shouldBe "operation.states.id"
+      Metamodels.nestedTestDocument.operation.active.path() shouldBe "operation.active"
+      Metamodels.nestedTestDocument.operation.states.id.path() shouldBe "operation.states.id"
     }
 
     should("generate compilable and type-safe code with specific Q-classes") {
       // This test verifies that the generated code compiles with specific Q-classes
       // instead of generic Unknown fields - providing better type safety
 
-      val document = QNestedTestDocument
+      val document = Metamodels.nestedTestDocument
 
       // These should all be accessible without compilation errors
       val id = document.id

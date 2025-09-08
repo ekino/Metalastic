@@ -7,10 +7,13 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.qelasticsearch.processor.CoreConstants.DOCUMENT_ANNOTATION
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.FileSpec
+import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
+import com.squareup.kotlinpoet.ParameterSpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
@@ -52,7 +55,7 @@ class QElasticsearchSymbolProcessor(
     runCatching {
         val documentClasses =
           resolver
-            .getSymbolsWithAnnotation(Document::class.qualifiedName!!)
+            .getSymbolsWithAnnotation(DOCUMENT_ANNOTATION)
             .filterIsInstance<KSClassDeclaration>()
             .toList()
 
@@ -77,6 +80,9 @@ class QElasticsearchSymbolProcessor(
 
         // Generate object field classes
         generateAllObjectFields(globalObjectFields, objectFieldRegistry)
+
+        // Generate Metamodels.kt with all Q-class instances
+        generateMetamodelsFile(documentClasses)
       }
       .getOrElse { error ->
         logger.error("Error processing documents: ${error.message}")
@@ -113,12 +119,33 @@ class QElasticsearchSymbolProcessor(
     val typeParameterResolver = documentClass.typeParameters.toTypeParameterResolver()
 
     val objectBuilder =
-      TypeSpec.objectBuilder(qIndexClassName)
+      TypeSpec.classBuilder(qIndexClassName)
         .addKdoc(createClassKDoc(documentClass, indexName))
-        .addModifiers(KModifier.DATA)
         .addAnnotation(generatedAnnotation)
         .superclass(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.INDEX_CLASS))
+        .primaryConstructor(
+          FunSpec.constructorBuilder()
+            .addParameter(
+              ParameterSpec.builder(
+                  "parent",
+                  ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.OBJECT_FIELDS_CLASS)
+                    .copy(nullable = true),
+                )
+                .defaultValue("null")
+                .build()
+            )
+            .addParameter(
+              ParameterSpec.builder("fieldName", String::class).defaultValue("%S", "").build()
+            )
+            .addParameter(
+              ParameterSpec.builder("nested", Boolean::class).defaultValue("false").build()
+            )
+            .build()
+        )
         .addSuperclassConstructorParameter("%S", indexName)
+        .addSuperclassConstructorParameter("parent")
+        .addSuperclassConstructorParameter("fieldName")
+        .addSuperclassConstructorParameter("nested")
         .addOriginatingKSFile(documentClass.containingFile!!)
 
     // Phase 1: Collect all types that will be used
@@ -452,6 +479,73 @@ class QElasticsearchSymbolProcessor(
     }
     generatedFiles.add(fileKey)
     logger.info("Generated file: $packageName.$className")
+  }
+
+  /**
+   * Generates Metamodels.kt file containing a data object with instances of all Q-classes for
+   * convenient access to all metamodels.
+   */
+  private fun generateMetamodelsFile(documentClasses: List<KSClassDeclaration>) {
+    logger.info("Generating Metamodels.kt with ${documentClasses.size} Q-class instances")
+
+    val metamodelsBuilder =
+      TypeSpec.objectBuilder("Metamodels")
+        .addModifiers(KModifier.DATA)
+        .addAnnotation(generatedAnnotation)
+        .addKdoc(
+          """
+        Central registry of all generated Q-classes for convenient access.
+
+        This provides singleton-like access to all document metamodels:
+
+        Generated automatically from all [$DOCUMENT_ANNOTATION] annotated classes.
+      """
+            .trimIndent()
+        )
+
+    val importContext = ImportContext("com.qelasticsearch")
+
+    // Add property for each document class
+    documentClasses.forEach { documentClass ->
+      val className = documentClass.simpleName.asString()
+      val qClassName = "${CoreConstants.Q_PREFIX}$className"
+      val packageName = documentClass.packageName.asString()
+      val propertyName = className.replaceFirstChar { it.lowercase() }
+
+      // Register the Q-class for import
+      val qualifiedQClassName = "$packageName.$qClassName"
+      importContext.registerTypeUsage(qualifiedQClassName)
+
+      metamodelsBuilder.addProperty(
+        com.squareup.kotlinpoet.PropertySpec.builder(
+            propertyName,
+            ClassName(packageName, qClassName),
+          )
+          .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+          .initializer("$qClassName()")
+          .addKdoc("Metamodel for [@Document] class [${documentClass.qualifiedName?.asString()}]")
+          .build()
+      )
+    }
+
+    // Finalize imports
+    importContext.finalizeImportDecisions()
+
+    val fileSpec =
+      FileSpec.builder("com.qelasticsearch", "Metamodels")
+        .addType(metamodelsBuilder.build())
+        .apply {
+          importContext.usedImports.forEach { import ->
+            val packageName = import.substringBeforeLast('.')
+            val className = import.substringAfterLast('.')
+            addImport(packageName, className)
+          }
+        }
+        .addAnnotation(AnnotationSpec.builder(JvmName::class).addMember("%S", "Metamodels").build())
+        .indent("    ")
+        .build()
+
+    writeGeneratedFile(fileSpec, "com.qelasticsearch", "Metamodels")
   }
 
   // Extension function to find annotations

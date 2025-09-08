@@ -11,6 +11,9 @@ public class ExampleDocument {
     public String id;
 
     @Field(type = FieldType.Object)
+    public TestDocument testDocument;
+
+    @Field(type = FieldType.Object)
     public NameCollision nameCollision;
 
     @Field(type = FieldType.Object)

@@ -23,10 +23,10 @@ class FieldTypeSpec :
     }
 
     should("create KeywordField with correct properties") {
-      val field = KeywordField<String>(mockParent, "document.status")
+      val field = KeywordField<String>(mockParent, "status")
 
       field.name() shouldBe "status"
-      field.path() shouldBe "document.status"
+      field.path() shouldBe "status"
       field.shouldBeInstanceOf<KeywordField<String>>()
     }
 
@@ -35,9 +35,9 @@ class FieldTypeSpec :
       field.path() shouldBe "content"
     }
 
-    should("construct dotted paths with parent") {
-      val field = KeywordField<String>(mockParent, "document.type")
-      field.path() shouldBe "document.type"
+    should("construct paths without dots in fieldName") {
+      val field = KeywordField<String>(mockParent, "type")
+      field.path() shouldBe "type"
     }
     should("create LongField correctly") {
       val field = LongField<Long>(mockParent, "timestamp")
@@ -46,9 +46,9 @@ class FieldTypeSpec :
     }
 
     should("create IntegerField correctly") {
-      val field = IntegerField<Int>(mockParent, "document.count")
+      val field = IntegerField<Int>(mockParent, "count")
       field.shouldBeInstanceOf<IntegerField<Int>>()
-      field.path() shouldBe "document.count"
+      field.path() shouldBe "count"
     }
 
     should("create ShortField correctly") {
@@ -61,9 +61,9 @@ class FieldTypeSpec :
       field.shouldBeInstanceOf<ByteField<Byte>>()
     }
     should("create DoubleField correctly") {
-      val field = DoubleField<Double>(mockParent, "document.price")
+      val field = DoubleField<Double>(mockParent, "price")
       field.shouldBeInstanceOf<DoubleField<Double>>()
-      field.path() shouldBe "document.price"
+      field.path() shouldBe "price"
     }
 
     should("create FloatField correctly") {
@@ -81,9 +81,9 @@ class FieldTypeSpec :
       field.shouldBeInstanceOf<ScaledFloatField>()
     }
     should("create DateField correctly") {
-      val field = DateField<Date>(mockParent, "document.createdAt")
+      val field = DateField<Date>(mockParent, "createdAt")
       field.shouldBeInstanceOf<DateField<Date>>()
-      field.path() shouldBe "document.createdAt"
+      field.path() shouldBe "createdAt"
     }
 
     should("create DateNanosField correctly") {
@@ -91,9 +91,9 @@ class FieldTypeSpec :
       field.shouldBeInstanceOf<DateNanosField>()
     }
     should("create BooleanField correctly") {
-      val field = BooleanField<Boolean>(mockParent, "document.isActive")
+      val field = BooleanField<Boolean>(mockParent, "isActive")
       field.shouldBeInstanceOf<BooleanField<Boolean>>()
-      field.path() shouldBe "document.isActive"
+      field.path() shouldBe "isActive"
     }
 
     should("create BinaryField correctly") {
@@ -106,9 +106,9 @@ class FieldTypeSpec :
     }
 
     should("create LongRangeField correctly") {
-      val field = LongRangeField(mockParent, "document.timestampRange")
+      val field = LongRangeField(mockParent, "timestampRange")
       field.shouldBeInstanceOf<LongRangeField>()
-      field.path() shouldBe "document.timestampRange"
+      field.path() shouldBe "timestampRange"
     }
 
     should("create DoubleRangeField correctly") {
@@ -127,14 +127,14 @@ class FieldTypeSpec :
     }
 
     should("create IpRangeField correctly") {
-      val field = IpRangeField(mockParent, "network.ipRange")
+      val field = IpRangeField(mockParent, "ipRange")
       field.shouldBeInstanceOf<IpRangeField>()
-      field.path() shouldBe "network.ipRange"
+      field.path() shouldBe "ipRange"
     }
     should("create IpField correctly") {
-      val field = IpField(mockParent, "request.clientIp")
+      val field = IpField(mockParent, "clientIp")
       field.shouldBeInstanceOf<IpField>()
-      field.path() shouldBe "request.clientIp"
+      field.path() shouldBe "clientIp"
     }
 
     should("create GeoPointField correctly") {
@@ -143,9 +143,9 @@ class FieldTypeSpec :
     }
 
     should("create GeoShapeField correctly") {
-      val field = GeoShapeField(mockParent, "geo.boundary")
+      val field = GeoShapeField(mockParent, "boundary")
       field.shouldBeInstanceOf<GeoShapeField>()
-      field.path() shouldBe "geo.boundary"
+      field.path() shouldBe "boundary"
     }
 
     should("create CompletionField correctly") {
@@ -154,9 +154,9 @@ class FieldTypeSpec :
     }
 
     should("create TokenCountField correctly") {
-      val field = TokenCountField(mockParent, "analysis.wordCount")
+      val field = TokenCountField(mockParent, "wordCount")
       field.shouldBeInstanceOf<TokenCountField>()
-      field.path() shouldBe "analysis.wordCount"
+      field.path() shouldBe "wordCount"
     }
 
     should("create PercolatorField correctly") {
@@ -164,9 +164,9 @@ class FieldTypeSpec :
       field.shouldBeInstanceOf<PercolatorField>()
     }
     should("create RankFeatureField correctly") {
-      val field = RankFeatureField(mockParent, "ranking.relevance")
+      val field = RankFeatureField(mockParent, "relevance")
       field.shouldBeInstanceOf<RankFeatureField>()
-      field.path() shouldBe "ranking.relevance"
+      field.path() shouldBe "relevance"
     }
 
     should("create RankFeaturesField correctly") {
@@ -175,9 +175,9 @@ class FieldTypeSpec :
     }
 
     should("create FlattenedField correctly") {
-      val field = FlattenedField(mockParent, "document.metadata")
+      val field = FlattenedField(mockParent, "metadata")
       field.shouldBeInstanceOf<FlattenedField>()
-      field.path() shouldBe "document.metadata"
+      field.path() shouldBe "metadata"
     }
 
     should("create WildcardField correctly") {
@@ -186,9 +186,9 @@ class FieldTypeSpec :
     }
 
     should("create ConstantKeywordField correctly") {
-      val field = ConstantKeywordField(mockParent, "product.category")
+      val field = ConstantKeywordField(mockParent, "category")
       field.shouldBeInstanceOf<ConstantKeywordField>()
-      field.path() shouldBe "product.category"
+      field.path() shouldBe "category"
     }
 
     should("create ShapeField correctly") {
@@ -197,23 +197,35 @@ class FieldTypeSpec :
     }
 
     should("create PointField correctly") {
-      val field = PointField(mockParent, "geo.coordinate")
+      val field = PointField(mockParent, "coordinate")
       field.shouldBeInstanceOf<PointField>()
-      field.path() shouldBe "geo.coordinate"
+      field.path() shouldBe "coordinate"
     }
     should("handle null parent path as empty string") {
       val field = TextField<String>(mockParent, "content")
       field.path() shouldBe "content"
     }
 
-    should("handle deep nested paths") {
-      val field = KeywordField<String>(mockParent, "address.geo.country.code")
-      field.path() shouldBe "address.geo.country.code"
+    should("handle simple field paths") {
+      val field = KeywordField<String>(mockParent, "code")
+      field.path() shouldBe "code"
     }
 
-    should("handle parent path with dots") {
-      val field = TextField<String>(mockParent, "user.profile.settings.name")
-      field.path() shouldBe "user.profile.settings.name"
+    should("handle field names without dots") {
+      val field = TextField<String>(mockParent, "name")
+      field.path() shouldBe "name"
+    }
+
+    should("handle deep nested paths through parent hierarchy") {
+      // Create nested parent structure: document -> address -> geo -> country
+      val documentParent = object : Index("document") {}
+      val addressParent = object : ObjectField(documentParent, "address", false) {}
+      val geoParent = object : ObjectField(addressParent, "geo", false) {}
+      val countryParent = object : ObjectField(geoParent, "country", false) {}
+
+      // Field name should be simple, path built from parent hierarchy
+      val field = KeywordField<String>(countryParent, "code")
+      field.path() shouldBe "address.geo.country.code"
     }
     should("maintain generic type information for TextField") {
       val field = TextField<String>(mockParent, "title")

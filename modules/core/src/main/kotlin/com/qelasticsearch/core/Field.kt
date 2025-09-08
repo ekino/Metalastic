@@ -4,13 +4,20 @@ package com.qelasticsearch.core
  * Sealed class for all field types in the DSL. Provides path traversal functionality for nested
  * field access. Using sealed class ensures exhaustive pattern matching and type safety.
  */
-sealed class Field(private val parent: ObjectField? = null, fieldName: String) {
-  private val path: String =
-    parent?.let { if (it.path().isEmpty()) fieldName else "${it.path()}.$fieldName" } ?: fieldName
+sealed class Field(private val parent: ObjectField? = null, private val fieldName: String) {
+  private val path: String by lazy {
+    parents()
+      .filterNot { it.name().isEmpty() }
+      .toList()
+      .reversed()
+      .joinToString(separator = ".") { it.name() }
+      .takeIf { it.isNotEmpty() }
+      ?.let { "$it.$fieldName" } ?: fieldName
+  }
 
   @YellowColor fun path(): String = path
 
-  @YellowColor fun name(): String = path.substringAfterLast('.')
+  @YellowColor fun name(): String = fieldName
 
   @YellowColor fun parent(): ObjectField? = parent
 
@@ -105,3 +112,13 @@ class IpRangeField(parent: ObjectField, fieldName: String) : Field(parent, field
 
 // Dynamic field for runtime/generic field references
 class DynamicField<T>(parent: ObjectField, fieldName: String) : Field(parent, fieldName)
+
+fun main() {
+  val fieldName = "myField"
+  val path =
+    sequenceOf("")
+      .joinToString(separator = ".")
+      .takeIf { it.isNotEmpty() }
+      ?.let { "$it.$fieldName" } ?: fieldName
+  println(path)
+}
