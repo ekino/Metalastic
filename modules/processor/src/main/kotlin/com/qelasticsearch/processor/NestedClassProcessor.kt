@@ -6,6 +6,7 @@ import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.qelasticsearch.processor.CoreConstants.OBJECT_FIELDS_CLASS
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
@@ -138,7 +139,7 @@ class NestedClassProcessor(private val logger: KSPLogger) {
                     """
             .trimIndent()
         )
-        .superclass(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.OBJECT_FIELDS_CLASS))
+        .superclass(ClassName(CoreConstants.CORE_PACKAGE, OBJECT_FIELDS_CLASS))
         .addSuperclassConstructorParameter("parent")
         .addSuperclassConstructorParameter("path")
         .addSuperclassConstructorParameter("nested")
@@ -146,7 +147,7 @@ class NestedClassProcessor(private val logger: KSPLogger) {
           com.squareup.kotlinpoet.FunSpec.constructorBuilder()
             .addParameter(
               "parent",
-              ClassName(CoreConstants.CORE_PACKAGE, "ObjectField").copy(nullable = true),
+              ClassName(CoreConstants.CORE_PACKAGE, OBJECT_FIELDS_CLASS).copy(nullable = true),
             )
             .addParameter("path", String::class)
             .addParameter("nested", Boolean::class)

@@ -446,8 +446,10 @@ class QElasticsearchSymbolProcessor(
         fileName = className,
       )
 
-    outputFile.bufferedWriter().use { writer -> fileSpec.writeTo(writer) }
-
+    // Replacing redundant 'public' modifiers for cleaner output
+    outputFile.bufferedWriter().use { writer ->
+      writer.write(fileSpec.toString().replace("public ", ""))
+    }
     generatedFiles.add(fileKey)
     logger.info("Generated file: $packageName.$className")
   }
