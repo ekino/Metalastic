@@ -76,44 +76,44 @@ The annotation processor will generate DSL objects that follow this pattern:
 ```kotlin
 // For nested/object fields
 class QAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
-    val city by keyword<String>()
-    val street by text<String>()
-    val zipCode by keyword<String>()
+    val city: KeywordField<String> = keywordField<String>("city")
+    val street: TextField<String> = textField<String>("street")
+    val zipCode: KeywordField<String> = keywordField<String>("zipCode")
 }
 
 // For document indexes
 object QAllTypesDocument : Index("alltypes") {
-    val longField by long<Long>()
-    val floatField by float<Float>()
-    val doubleField by double<Double>()
-    val booleanField by boolean<Boolean>()
-    val dateField by date<String>()
-    val byteField by byte<Byte>()
-    val shortField by short<Short>()
-    val halfFloatField by halfFloat()
-    val scaledFloatField by scaledFloat()
-    val dateNanosField by dateNanos()
-    val ipField by ip()
-    val geoPointField by geoPoint()
-    val geoShapeField by geoShape()
-    val completionField by completion()
-    val tokenCountField by tokenCount()
-    val percolatorField by percolator()
-    val rankFeatureField by rankFeature()
-    val rankFeaturesField by rankFeatures()
-    val flattenedField by flattened()
-    val shapeField by shape()
-    val pointField by point()
-    val constantKeywordField by constantKeyword()
-    val wildcardField by wildcard()
-    val integerRangeField by integerRange()
-    val floatRangeField by floatRange()
-    val longRangeField by longRange()
-    val doubleRangeField by doubleRange()
-    val dateRangeField by dateRange()
-    val ipRangeField by ipRange()
-    val address by objectField<QAddress>()
-    val activities by nestedField<QActivity>()
+    val longField: LongField<Long> = longField<Long>("longField")
+    val floatField: FloatField<Float> = floatField<Float>("floatField")
+    val doubleField: DoubleField<Double> = doubleField<Double>("doubleField")
+    val booleanField: BooleanField<Boolean> = booleanField<Boolean>("booleanField")
+    val dateField: DateField<String> = dateField<String>("dateField")
+    val byteField: ByteField<Byte> = byteField<Byte>("byteField")
+    val shortField: ShortField<Short> = shortField<Short>("shortField")
+    val halfFloatField: HalfFloatField = halfFloatField("halfFloatField")
+    val scaledFloatField: ScaledFloatField = scaledFloatField("scaledFloatField")
+    val dateNanosField: DateNanosField = dateNanosField("dateNanosField")
+    val ipField: IpField = ipField("ipField")
+    val geoPointField: GeoPointField = geoPointField("geoPointField")
+    val geoShapeField: GeoShapeField = geoShapeField("geoShapeField")
+    val completionField: CompletionField = completionField("completionField")
+    val tokenCountField: TokenCountField = tokenCountField("tokenCountField")
+    val percolatorField: PercolatorField = percolatorField("percolatorField")
+    val rankFeatureField: RankFeatureField = rankFeatureField("rankFeatureField")
+    val rankFeaturesField: RankFeaturesField = rankFeaturesField("rankFeaturesField")
+    val flattenedField: FlattenedField = flattenedField("flattenedField")
+    val shapeField: ShapeField = shapeField("shapeField")
+    val pointField: PointField = pointField("pointField")
+    val constantKeywordField: ConstantKeywordField = constantKeywordField("constantKeywordField")
+    val wildcardField: WildcardField = wildcardField("wildcardField")
+    val integerRangeField: IntegerRangeField = integerRangeField("integerRangeField")
+    val floatRangeField: FloatRangeField = floatRangeField("floatRangeField")
+    val longRangeField: LongRangeField = longRangeField("longRangeField")
+    val doubleRangeField: DoubleRangeField = doubleRangeField("doubleRangeField")
+    val dateRangeField: DateRangeField = dateRangeField("dateRangeField")
+    val ipRangeField: IpRangeField = ipRangeField("ipRangeField")
+    val address: QAddress = QAddress(this, "address", false)
+    val activities: QActivity = QActivity(this, "activities", true)
 }
 ```
 
@@ -154,30 +154,30 @@ Into a type-safe Kotlin DSL:
 
 ```kotlin
 object QIndexModulePath : Index("module_path_iperia") {
-    val id by keyword<String>()
-    val longCode by multiField<QLongCodeMultiField>()
-    val trainingAgency by objectField<QIndexTrainingAgency>()
-    val addresses by nestedField<QIndexAddress>()
-    val lastUpdatedDate by date<String>()
-    val trainingAgencyAssociation by boolean<Boolean>()
+    val id: KeywordField<String> = keywordField<String>("id")
+    val longCode: QLongCodeMultiField = QLongCodeMultiField(this, "longCode")
+    val trainingAgency: QIndexTrainingAgency = QIndexTrainingAgency(this, "trainingAgency", false)
+    val addresses: QIndexAddress = QIndexAddress(this, "addresses", true)
+    val lastUpdatedDate: DateField<String> = dateField<String>("lastUpdatedDate")
+    val trainingAgencyAssociation: BooleanField<Boolean> = booleanField<Boolean>("trainingAgencyAssociation")
     // ... other fields
 }
 
 class QLongCodeMultiField(parent: ObjectField, path: String) : MultiField<LongField<Long>>(parent, LongField(parent, path)) {
-    val search by text<String>()
+    val search: TextField<String> = textField<String>("search")
 }
 
 class QIndexTrainingAgency(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
-    val id by keyword<String>()
-    val legalPerson by objectField<QIndexLegalPerson>()
+    val id: KeywordField<String> = keywordField<String>("id")
+    val legalPerson: QIndexLegalPerson = QIndexLegalPerson(this, "legalPerson", false)
 }
 
 class QIndexAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
-    val id by keyword<String>()
-    val city by text<String>()
-    val departmentCode by keyword<String>()
-    val region by keyword<String>()
-    val location by geoPoint()
+    val id: KeywordField<String> = keywordField<String>("id")
+    val city: TextField<String> = textField<String>("city")
+    val departmentCode: KeywordField<String> = keywordField<String>("departmentCode")
+    val region: KeywordField<String> = keywordField<String>("region")
+    val location: GeoPointField = geoPointField("location")
 }
 ```
 

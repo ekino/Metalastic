@@ -72,7 +72,7 @@ graph TB
 **Key Responsibilities:**
 - Generates object and nested field properties
 - Resolves object field types and classes
-- Determines proper delegation calls (objectField vs nestedField)
+- Manages constructor calls for object and nested fields
 
 ### 5. FieldTypeExtractor
 **Type analyzer** that determines Elasticsearch field types and validates object references.
@@ -161,12 +161,12 @@ graph TD
 ## Key Data Structures
 
 ### ImportContext
-Manages import statements and delegation functions during code generation:
+Manages import statements and optimal type names during code generation:
 
 ```kotlin
-data class ImportContext(
+class ImportContext(
+  private val currentPackage: String,
   val usedImports: MutableSet<String> = mutableSetOf(),
-  val usedDelegationFunctions: MutableSet<String> = mutableSetOf(),
 )
 ```
 
@@ -244,13 +244,13 @@ graph LR
     end
     
     subgraph "Generated DSL"
-        B --> P["by text&lt;String&gt;()"]
-        D --> Q["by keyword&lt;String&gt;()"]
-        F --> R["by long&lt;Long&gt;()"]
-        H --> S["by boolean&lt;Boolean&gt;()"]
-        J --> T["by objectField&lt;T&gt;()"]
-        L --> U["by nestedField&lt;T&gt;()"]
-        O --> V["by multiField&lt;T&gt;()"]
+        B --> P["textField&lt;String&gt;(\"field\")"]
+        D --> Q["keywordField&lt;String&gt;(\"field\")"]
+        F --> R["longField&lt;Long&gt;(\"field\")"]
+        H --> S["booleanField&lt;Boolean&gt;(\"field\")"]
+        J --> T["ObjectConstructor(this, \"field\", false)"]
+        L --> U["ObjectConstructor(this, \"field\", true)"]
+        O --> V["MultiFieldConstructor(this, \"field\")"]
     end
     
     style A fill:#e3f2fd
@@ -312,7 +312,7 @@ sequenceDiagram
 
 ## Import Management System
 
-The QElasticsearch processor uses a streamlined **two-tier import management system** to ensure generated files have only the necessary imports while maintaining clean, readable code. **KotlinPoet automatically handles all type imports**, eliminating the need for manual type import tracking.
+The QElasticsearch processor uses a sophisticated **import optimization system** with package proximity prioritization to ensure generated files have clean, optimal imports while avoiding conflicts. **KotlinPoet automatically handles external type imports**, while the processor manages core DSL type imports.
 
 ### Import Management Architecture
 
@@ -320,20 +320,20 @@ The QElasticsearch processor uses a streamlined **two-tier import management sys
 graph TD
     subgraph "Import Collection Phase"
         A[Code Generation] --> B[ImportContext]
-        B --> C[usedImports Set]
-        B --> D[usedDelegationFunctions Set]
+        B --> C[Type Usage Registration]
+        B --> D[Package Proximity Analysis]
         E[KotlinPoet] --> F[Automatic Type Import Management]
     end
     
-    subgraph "Import Types"
-        C --> G[Core DSL Classes]
-        D --> H[Delegation Functions]
+    subgraph "Import Optimization"
+        C --> G[Conflict Detection]
+        D --> H[Priority Calculation]
         F --> I[External Type References]
     end
     
     subgraph "Import Application Phase"
-        G --> J[com.qelasticsearch.core.*]
-        H --> K[com.qelasticsearch.core.delegation.*]
+        G --> J[Core DSL Imports]
+        H --> K[Optimal Type Names]
         I --> L[Automatic Qualified Imports]
     end
     
@@ -349,32 +349,27 @@ graph TD
     style M fill:#c8e6c9
 ```
 
-### Two-Tier Import System + KotlinPoet Automatic Management
+### Import Optimization with Package Proximity + KotlinPoet Automatic Management
 
-**1. Core DSL Imports (`usedImports`)**
+**1. Core DSL Type Management**
 ```kotlin
-// Collected during field generation
-importContext.usedImports.add("TextField")
-importContext.usedImports.add("KeywordField")
-importContext.usedImports.add("ObjectField")
+// Type usage registration during code generation
+importContext.registerTypeUsage("com.qelasticsearch.core.TextField")
+importContext.registerTypeUsage("com.example.domain.User")
+importContext.registerTypeUsage("com.example.other.User") // Conflict!
 
-// Results in generated imports:
-import com.qelasticsearch.core.TextField
-import com.qelasticsearch.core.KeywordField  
-import com.qelasticsearch.core.ObjectField
+// Package proximity prioritization resolves conflicts:
+// - Same package types win over cross-package
+// - Closer packages win over distant ones
+// - Locally defined nested classes use simple names
 ```
 
-**2. Delegation Function Imports (`usedDelegationFunctions`)**
+**2. Conflict Resolution and Optimal Naming**
 ```kotlin
-// Collected during property generation
-importContext.usedDelegationFunctions.add("text")
-importContext.usedDelegationFunctions.add("multiField")
-importContext.usedDelegationFunctions.add("objectField")
-
-// Results in generated imports:
-import com.qelasticsearch.core.delegation.text
-import com.qelasticsearch.core.delegation.multiField
-import com.qelasticsearch.core.delegation.objectField
+// After finalization, optimal type names are determined:
+importContext.getOptimalTypeName("com.qelasticsearch.core.TextField") // -> "TextField" (imported)
+importContext.getOptimalTypeName("com.example.domain.User") // -> "User" (priority winner, imported)  
+importContext.getOptimalTypeName("com.example.other.User") // -> "com.example.other.User" (fully qualified)
 ```
 
 **3. External Type Imports (Automatic via KotlinPoet)**
@@ -403,18 +398,19 @@ sequenceDiagram
 
     Note over FG,ORG: During Code Generation
     
-    FG->>IC: usedDelegationFunctions.add("text")
-    FG->>Utils: extractImportsAndSimplifyTypeName()
+    FG->>IC: registerTypeUsage("TextField")
+    FG->>Utils: generateFieldProperty()
     Note over Utils: KotlinPoet handles type imports automatically
     
-    ORG->>IC: usedDelegationFunctions.add("objectField")
-    ORG->>IC: usedImports.add("ObjectField")
+    ORG->>IC: registerTypeUsage("QUserAddress")
+    ORG->>IC: generateObjectFieldProperty()
     
-    Note over IC: Collection Complete
+    Note over IC: Conflict Detection & Resolution
     
+    IC->>IC: finalizeImportDecisions()
     IC->>FB: addImportsToFileBuilder()
-    FB->>FB: Generate import statements
-    FB->>FB: Create final file with imports
+    FB->>FB: Generate optimal import statements
+    FB->>FB: Create final file with clean imports
 ```
 
 ### Smart Type Name Processing
@@ -453,19 +449,18 @@ fun extractImportsAndSimplifyTypeName(typeName: TypeName, usedImports: MutableSe
 
 ```kotlin
 private fun addImportsToFileBuilder(fileBuilder: FileSpec.Builder, importContext: ImportContext) {
-  // 1. Add Core DSL imports (TextField, KeywordField, etc.)
-  importContext.usedImports.forEach { className ->
-    fileBuilder.addImport(CoreConstants.CORE_PACKAGE, className)
+  // Add optimized imports based on conflict resolution
+  importContext.usedImports.forEach { qualifiedName ->
+    when {
+      qualifiedName.contains(".Companion.") -> addCompanionImport(fileBuilder, qualifiedName)
+      qualifiedName.startsWith(CoreConstants.CORE_PACKAGE) -> addCorePackageImport(fileBuilder, qualifiedName)
+      else -> addDefaultCoreImport(fileBuilder, qualifiedName)
+    }
   }
 
-  // 2. Add delegation function imports (text, keyword, objectField, etc.)
-  importContext.usedDelegationFunctions.forEach { delegationFunction ->
-    fileBuilder.addImport("${CoreConstants.CORE_PACKAGE}.delegation", delegationFunction)
-  }
-
-  // 3. External type imports are handled automatically by KotlinPoet
+  // External type imports are handled automatically by KotlinPoet
   // No manual import management needed for:
-  // - External domain classes (com.example.User)
+  // - External domain classes (com.example.User) 
   // - Generic type arguments (ParametrizedType<String>)
   // - Standard library types (MutableList, MutableMap)
   // - Jakarta annotations (@Generated)
@@ -476,43 +471,41 @@ private fun addImportsToFileBuilder(fileBuilder: FileSpec.Builder, importContext
 
 **Simple Document:**
 ```kotlin
-// Generated imports for basic document
+// Generated imports for basic document  
 import com.qelasticsearch.core.Index
 import com.qelasticsearch.core.KeywordField
+import com.qelasticsearch.core.ObjectField
 import com.qelasticsearch.core.TextField
-import com.qelasticsearch.core.delegation.keyword
-import com.qelasticsearch.core.delegation.text
 import jakarta.annotation.Generated
 import kotlin.String
+import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
 ```
 
 **Complex Document with Nested Objects:**
 ```kotlin
-// Generated imports for complex document
+// Generated imports for complex document with conflict resolution
 import com.qelasticsearch.core.Index
 import com.qelasticsearch.core.MultiField
 import com.qelasticsearch.core.ObjectField
 import com.qelasticsearch.core.TextField
-import com.qelasticsearch.core.delegation.multiField
-import com.qelasticsearch.core.delegation.nestedField
-import com.qelasticsearch.core.delegation.objectField
-import com.qelasticsearch.core.delegation.text
 import com.example.domain.Category  // Automatic via KotlinPoet
 import com.example.domain.Review     // Automatic via KotlinPoet
 import jakarta.annotation.Generated
+import kotlin.Boolean
 import kotlin.String
+import kotlin.jvm.JvmField
 import kotlin.jvm.JvmName
 ```
 
 ### Import Management Benefits
 
-- ✅ **Minimal Imports** - Only imports what's actually used
+- ✅ **Conflict Resolution** - Automatically resolves name conflicts with package proximity prioritization
 - ✅ **Smart Filtering** - KotlinPoet excludes unnecessary imports automatically  
-- ✅ **Organized Structure** - Groups imports by category (core, delegation, automatic)
+- ✅ **Organized Structure** - Clean import organization with optimal type name usage
 - ✅ **Performance Optimized** - KotlinPoet handles complex type analysis efficiently
-- ✅ **Clean Generated Code** - No unused imports, consistent ordering
-- ✅ **Zero Manual Type Tracking** - Eliminates dead code and reduces maintenance overhead
+- ✅ **Clean Generated Code** - No unused imports, consistent ordering, no redundant qualifiers
+- ✅ **Nested Class Optimization** - Locally defined nested classes use simple names without imports
 
 ## Utility Functions Architecture
 
@@ -560,13 +553,15 @@ data object QUser : Index("users") {
      * Elasticsearch field for property [com.example.User.id].
      * - Elasticsearch Type: `Keyword`
      */
-    val id: KeywordField<String> by keyword()
+    @JvmField
+    val id: KeywordField<String> = keywordField<String>("id")
     
     /**
      * Elasticsearch field for property [com.example.User.profile].
      * - Elasticsearch Type: `Object`
      */
-    val profile: Profile by objectField()
+    @JvmField
+    val profile: Profile = Profile(this, "profile", false)
     
     // Nested object class included inline
     class Profile(
@@ -574,8 +569,10 @@ data object QUser : Index("users") {
         path: String, 
         nested: Boolean
     ) : ObjectField(parent, path, nested) {
-        val firstName: TextField<String> by text()
-        val lastName: TextField<String> by text()
+        @JvmField
+        val firstName: TextField<String> = textField<String>("firstName")
+        @JvmField
+        val lastName: TextField<String> = textField<String>("lastName")
     }
 }
 ```
@@ -583,14 +580,17 @@ data object QUser : Index("users") {
 ### Multi-Field Example
 
 ```kotlin
-val name: NameMultiField by multiField()
+@JvmField
+val name: NameMultiField = NameMultiField(this, "name")
 
 class NameMultiField(
     parent: ObjectField,
     path: String,
 ) : MultiField<TextField<String>>(parent, TextField(parent, path)) {
-    val keyword: KeywordField<String> by keyword<String>()
-    val analyzed: TextField<String> by text<String>()
+    @JvmField
+    val keyword: KeywordField<String> = keywordField<String>("keyword")
+    @JvmField
+    val analyzed: TextField<String> = textField<String>("analyzed")
 }
 ```
 
