@@ -92,4 +92,7 @@ abstract class ObjectField(
   fun dateRangeField(fieldName: String): DateRangeField = DateRangeField(this, fieldName)
 
   fun ipRangeField(fieldName: String): IpRangeField = IpRangeField(this, fieldName)
+
+  inline fun <reified T> dynamicField(fieldName: String): DynamicField<T> =
+    DynamicField(this, fieldName)
 }

@@ -90,13 +90,7 @@ class FieldGenerators(
 
     when {
       qDynamicFieldAnnotation != null -> {
-        generateDynamicFieldProperty(
-          objectBuilder,
-          property,
-          propertyName,
-          importContext,
-          typeParameterResolver,
-        )
+        generateDynamicFieldProperty(objectBuilder, property, propertyName, typeParameterResolver)
       }
 
       multiFieldAnnotation != null -> {
@@ -253,11 +247,7 @@ class FieldGenerators(
 
     // Use ObjectField helper method for cleaner generated code
     val helperMethodName = getHelperMethodName(context.fieldType.elasticsearchType)
-    val typeArguments =
-      if (needsTypeArgument(context.fieldType.elasticsearchType))
-        "<${simplifyTypeNameWithoutImports(typeParam)}>"
-      else ""
-    val initializer = "${helperMethodName}${typeArguments}(%S)"
+    val initializer = "${helperMethodName}(%S)"
 
     context.objectBuilder.addProperty(
       PropertySpec.builder(context.propertyName, finalTypeName)
@@ -471,7 +461,6 @@ class FieldGenerators(
     objectBuilder: TypeSpec.Builder,
     property: KSPropertyDeclaration,
     propertyName: String,
-    importContext: ImportContext,
     typeParameterResolver: com.squareup.kotlinpoet.ksp.TypeParameterResolver,
   ) {
     // Create KotlinPoet TypeName directly from KSType
@@ -492,21 +481,16 @@ class FieldGenerators(
         """
         .trimIndent()
 
-    // Use helper method for cleaner generated code - DynamicField doesn't have a helper yet, so use
-    // direct initialization
-    val dynamicFieldClassName = ClassName(CoreConstants.CORE_PACKAGE, "DynamicField")
-    val initializer = "%T(this, %S)"
+    // Use helper method for cleaner generated code - type is inferred from reified inline function
+    val initializer = "dynamicField(%S)"
 
     objectBuilder.addProperty(
       PropertySpec.builder(propertyName, finalTypeName)
         .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
-        .initializer(initializer, dynamicFieldClassName, propertyName)
+        .initializer(initializer, propertyName)
         .build()
     )
-
-    // Add DynamicField to imports
-    importContext.usedImports.add("DynamicField")
   }
 
   // Extension function to find annotations
