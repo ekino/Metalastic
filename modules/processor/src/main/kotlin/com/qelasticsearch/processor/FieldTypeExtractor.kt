@@ -8,13 +8,17 @@ import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /** Handles extraction and determination of field types. */
-class FieldTypeExtractor(private val logger: KSPLogger) {
+class FieldTypeExtractor(private val logger: KSPLogger, private val debugLogging: Boolean = false) {
   /** Determines the field type for a property based on annotations. */
   fun determineFieldType(
     property: KSPropertyDeclaration,
     fieldAnnotation: KSAnnotation,
   ): ProcessedFieldType {
     val propertyName = property.simpleName.asString()
+
+    if (debugLogging) {
+      logger.info("[DEBUG:FieldTypeExtractor] Determining field type for property: $propertyName")
+    }
 
     // Extract field type from @Field annotation
     val fieldType = extractFieldTypeFromAnnotation(fieldAnnotation)

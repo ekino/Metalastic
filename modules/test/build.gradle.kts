@@ -22,3 +22,20 @@ dependencies {
   // Logging for tests
   testImplementation(libs.kotlin.logging)
 }
+
+ksp {
+  // Package and Class Name Customization
+  //  arg("metamodels.main.package", "com.example.search.metamodels")
+  //  arg("metamodels.main.className", "SearchMetamodels")
+  //  arg("metamodels.test.package", "com.example.test.metamodels")
+  //  arg("metamodels.test.className", "TestMetamodels")
+
+  //     Global Fallbacks
+  //    arg("metamodels.package", "com.example.metamodels")
+  //    arg("metamodels.className", "GlobalMetamodels")
+
+  // Feature Toggles
+  arg("qelasticsearch.generateJavaCompatibility", "true") // default: true
+  //    arg("qelasticsearch.generateDynamicFields", "true")     // default: true
+  //    arg("qelasticsearch.debugLogging", "false")             // default: false
+}

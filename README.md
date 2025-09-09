@@ -377,6 +377,117 @@ dependencies {
 
 For detailed consumption instructions including authentication for external users, see [PUBLISHING.md](PUBLISHING.md).
 
+## Configuration
+
+### KSP Options
+
+QElasticsearch supports extensive customization through KSP (Kotlin Symbol Processing) arguments. Configure these in your `build.gradle.kts`:
+
+```kotlin
+ksp {
+  // Package and Class Name Customization
+  arg("metamodels.main.package", "com.example.search.metamodels")
+  arg("metamodels.main.className", "SearchMetamodels")
+  arg("metamodels.test.package", "com.example.test.metamodels") 
+  arg("metamodels.test.className", "TestMetamodels")
+  
+  // Global Fallbacks
+  arg("metamodels.package", "com.example.metamodels")
+  arg("metamodels.className", "GlobalMetamodels")
+  
+  // Feature Toggles  
+  arg("qelasticsearch.generateJavaCompatibility", "true") // default: true
+  arg("qelasticsearch.debugLogging", "false")             // default: false
+}
+```
+
+#### Package & Class Name Configuration
+
+| Option | Description | Example | Default |
+|--------|-------------|---------|---------|
+| `metamodels.{sourceSet}.package` | Custom package for specific source set | `metamodels.main.package=com.example.main` | `{basePackage}.metamodels.{sourceSet}` |
+| `metamodels.{sourceSet}.className` | Custom class name for specific source set | `metamodels.test.className=TestMetamodels` | `Metamodels` |
+| `metamodels.package` | Global fallback package | `metamodels.package=com.example.global` | `com.qelasticsearch` |
+| `metamodels.className` | Global fallback class name | `metamodels.className=GlobalMetamodels` | `Metamodels` |
+
+#### Feature Toggles
+
+| Option | Description | Values | Default |
+|--------|-------------|---------|---------|
+| `qelasticsearch.generateJavaCompatibility` | Add `@JvmField` annotations for Java interop | `true`/`false` | `true` |
+| `qelasticsearch.debugLogging` | Enable detailed processor logging | `true`/`false` | `false` |
+
+#### Configuration Resolution
+
+The processor resolves configuration with the following priority:
+
+1. **Source set specific**: `metamodels.main.package` > `metamodels.test.package`
+2. **Global fallback**: `metamodels.package` > `metamodels.className` 
+3. **Auto-detection**: Base package detection + source set suffix
+4. **Default**: `com.qelasticsearch.Metamodels`
+
+#### Examples
+
+**Basic Customization:**
+```kotlin
+ksp {
+  arg("metamodels.main.package", "com.myapp.search")
+  arg("metamodels.main.className", "SearchAPI")
+}
+```
+Generates: `com.myapp.search.SearchAPI`
+
+**Multi-Module Project:**
+```kotlin 
+// In search-service module
+ksp {
+  arg("metamodels.package", "com.myapp.search.metamodels")
+  arg("metamodels.className", "SearchMetamodels")
+}
+
+// In analytics-service module  
+ksp {
+  arg("metamodels.package", "com.myapp.analytics.metamodels")
+  arg("metamodels.className", "AnalyticsMetamodels")
+}
+```
+
+**Development vs Production:**
+```kotlin
+ksp {
+  arg("metamodels.main.package", "com.myapp.search")
+  arg("metamodels.test.package", "com.myapp.search.testing")
+  arg("qelasticsearch.debugLogging", "true") // For development
+}
+```
+
+**Debug Logging Example:**
+When `debugLogging` is enabled, the processor outputs detailed information:
+```
+> Task :compileKotlin
+i: [ksp] Processing 3 document classes
+i: [ksp] [DEBUG] Found document classes: [com.example.Person, com.example.Order, com.example.Product]
+i: [ksp] [DEBUG] Starting object field collection phase
+i: [ksp] [DEBUG] Collecting object fields from: com.example.Person
+i: [ksp] [DEBUG] Collected 2 global object fields: [Address, Contact]
+i: [ksp] [DEBUG] Starting document class generation phase
+i: [ksp] [DEBUG] Processing document class: com.example.Person
+i: [ksp] [DEBUG] Document details: package=com.example, indexName=person, className=Person
+i: [ksp] [DEBUG] Generating Q-class for: Person
+i: [ksp] [DEBUG:FieldGenerators] Processing @QDynamicField property: runtimeScore with type: Double
+i: [ksp] [DEBUG] Generated Q-class structure, writing file: QPerson
+i: [ksp] Generated file: com.example.QPerson
+i: [ksp] [DEBUG] Processing completed successfully
+```
+
+#### Validation
+
+The processor validates all configuration:
+- **Package names**: Must be valid Java package identifiers
+- **Class names**: Must start with uppercase letter and be valid identifiers  
+- **Boolean values**: Must be `"true"` or `"false"` (case-insensitive)
+- **Invalid values**: Logged as warnings and ignored (defaults used)
+
 ### Development Setup
 
 Clone and build the library:

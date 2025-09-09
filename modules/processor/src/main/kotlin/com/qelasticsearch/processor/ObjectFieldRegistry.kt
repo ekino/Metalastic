@@ -16,6 +16,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 class ObjectFieldRegistry(
   private val logger: KSPLogger,
   private val globalObjectFields: Map<String, ObjectFieldInfo>,
+  private val generateJavaCompatibility: Boolean = true,
+  private val debugLogging: Boolean = false,
 ) {
   /** Collects object field types for import optimization. */
   fun collectObjectFieldType(
@@ -23,6 +25,12 @@ class ObjectFieldRegistry(
     fieldType: ProcessedFieldType,
     importContext: ImportContext,
   ) {
+    if (debugLogging) {
+      logger.info(
+        "[DEBUG:ObjectFieldRegistry] Collecting object field type for property: ${property.simpleName.asString()}"
+      )
+    }
+
     val actualClassDeclaration = findActualClassDeclaration(fieldType)
     if (actualClassDeclaration == null) {
       logger.warn("Could not find class declaration for field type: ${fieldType.kotlinTypeName}")
@@ -92,13 +100,16 @@ class ObjectFieldRegistry(
         importContext.getOptimalTypeName(qualifiedName)
       }
 
-    objectBuilder.addProperty(
+    val objectPropertyBuilder =
       PropertySpec.builder(propertyName, propertyTypeName)
-        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
         .initializer("$optimalTypeName(this, %S, %L)", propertyName, isNested)
-        .build()
-    )
+
+    if (generateJavaCompatibility) {
+      objectPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+    }
+
+    objectBuilder.addProperty(objectPropertyBuilder.build())
   }
 
   private fun getObjectFieldInfo(

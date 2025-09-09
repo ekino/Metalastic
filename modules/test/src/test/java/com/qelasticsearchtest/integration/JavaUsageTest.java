@@ -1,6 +1,7 @@
 package com.qelasticsearchtest.integration;
 
-import com.qelasticsearch.Metamodels;
+
+import com.qelasticsearchtest.metamodels.main.Metamodels;
 
 import org.junit.jupiter.api.Test;
 
