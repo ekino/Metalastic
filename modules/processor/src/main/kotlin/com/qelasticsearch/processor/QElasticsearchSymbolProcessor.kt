@@ -8,7 +8,6 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.qelasticsearch.processor.CoreConstants.DOCUMENT_ANNOTATION
-import com.qelasticsearch.processor.CoreConstants.METAMODELS_PACKAGE
 import com.qelasticsearch.processor.CoreConstants.PRODUCT_NAME
 import com.qelasticsearch.processor.CoreConstants.Q_PREFIX
 import com.squareup.kotlinpoet.AnnotationSpec
@@ -17,6 +16,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
@@ -33,16 +33,37 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 class QElasticsearchSymbolProcessor(
   private val codeGenerator: CodeGenerator,
   private val logger: KSPLogger,
+  kspOptions: Map<String, String> = emptyMap(),
 ) : SymbolProcessor {
   private val fieldTypeMappings: Map<FieldType, FieldTypeMapping> by lazy {
     FieldTypeMappingBuilder(logger).build()
   }
 
-  private val fieldTypeExtractor = FieldTypeExtractor(logger)
-  private val nestedClassProcessor = NestedClassProcessor(logger)
-  private val fieldGenerators = FieldGenerators(logger, fieldTypeMappings)
+  private val metamodelsConfiguration = MetamodelsConfiguration(logger, kspOptions)
+  private val processorOptions by lazy { metamodelsConfiguration.getProcessorOptions() }
+  private val fieldTypeExtractor by lazy {
+    FieldTypeExtractor(logger, processorOptions.debugLogging)
+  }
+  private val nestedClassProcessor by lazy {
+    NestedClassProcessor(logger, processorOptions.debugLogging)
+  }
+  private val fieldGenerators by lazy {
+    FieldGenerators(
+      logger,
+      fieldTypeMappings,
+      processorOptions.generateJavaCompatibility,
+      processorOptions.debugLogging,
+    )
+  }
 
   private val generatedFiles = mutableSetOf<String>()
+
+  /** Helper method for conditional debug logging. */
+  private fun debugLog(message: String) {
+    if (processorOptions.debugLogging) {
+      logger.info("[DEBUG] $message")
+    }
+  }
 
   private val generatedAnnotation by lazy {
     AnnotationSpec.builder(Generated::class)
@@ -63,29 +84,49 @@ class QElasticsearchSymbolProcessor(
             .toList()
 
         if (documentClasses.isEmpty()) {
+          debugLog("No @Document annotations found in resolver symbols")
           return emptyList()
         }
 
         logger.info("Processing ${documentClasses.size} document classes")
+        debugLog("Found document classes: ${documentClasses.map { it.qualifiedName?.asString() }}")
 
         // Collect object fields from document classes (recursive)
+        debugLog("Starting object field collection phase")
         documentClasses.forEach { documentClass ->
+          debugLog("Collecting object fields from: ${documentClass.qualifiedName?.asString()}")
           nestedClassProcessor.collectObjectFields(documentClass, fieldTypeExtractor)
         }
 
         val globalObjectFields = nestedClassProcessor.getGlobalObjectFields()
-        val objectFieldRegistry = ObjectFieldRegistry(logger, globalObjectFields)
+        debugLog(
+          "Collected ${globalObjectFields.size} global object fields: ${globalObjectFields.keys}"
+        )
+
+        val objectFieldRegistry =
+          ObjectFieldRegistry(
+            logger,
+            globalObjectFields,
+            processorOptions.generateJavaCompatibility,
+            processorOptions.debugLogging,
+          )
 
         // Generate document classes
+        debugLog("Starting document class generation phase")
         documentClasses.forEach { documentClass ->
+          debugLog("Processing document class: ${documentClass.qualifiedName?.asString()}")
           processDocumentClass(documentClass, objectFieldRegistry)
         }
 
         // Generate object field classes
+        debugLog("Starting object field class generation phase")
         generateAllObjectFields(globalObjectFields, objectFieldRegistry)
 
         // Generate Metamodels.kt with all Q-class instances
+        debugLog("Starting Metamodels file generation phase")
         generateMetamodelsFile(documentClasses)
+
+        debugLog("Processing completed successfully")
       }
       .getOrElse { error ->
         logger.error("Error processing documents: ${error.message}")
@@ -104,9 +145,12 @@ class QElasticsearchSymbolProcessor(
     val packageName = documentClass.packageName.asString()
 
     logger.info("Processing document class: $className")
+    debugLog("Document details: package=$packageName, indexName=$indexName, className=$className")
 
+    debugLog("Generating Q-class for: $className")
     val qIndexClass =
       generateQIndexClass(documentClass, indexName, className, packageName, objectFieldRegistry)
+    debugLog("Generated Q-class structure, writing file: $Q_PREFIX$className")
     writeGeneratedFile(qIndexClass, packageName, "$Q_PREFIX$className")
   }
 
@@ -165,6 +209,9 @@ class QElasticsearchSymbolProcessor(
       typeParameterResolver,
       objectFieldRegistry,
     )
+
+    // Phase 4: Add companion object for static access
+    addCompanionObjectToBuilder(objectBuilder, qIndexClassName, className)
 
     return createFileSpec(packageName, qIndexClassName, objectBuilder, importContext)
   }
@@ -229,6 +276,40 @@ class QElasticsearchSymbolProcessor(
       objectFieldRegistry,
       importContext,
     )
+  }
+
+  /**
+   * Adds a companion object to the Q-class that provides static access to the metamodel instance.
+   */
+  private fun addCompanionObjectToBuilder(
+    objectBuilder: TypeSpec.Builder,
+    qIndexClassName: String,
+    originalClassName: String,
+  ) {
+    val companionObjectPropertyName = originalClassName.replaceFirstChar { it.lowercase() }
+
+    val companionObjectBuilder =
+      TypeSpec.companionObjectBuilder()
+        .addKdoc(
+          """
+          Static access to the metamodel instance for convenient usage.
+
+          Example: `${qIndexClassName}.$companionObjectPropertyName.fieldName.eq("value")`
+          """
+            .trimIndent()
+        )
+
+    val companionPropertyBuilder =
+      PropertySpec.builder(companionObjectPropertyName, ClassName("", qIndexClassName))
+        .addKdoc("Static instance of the $qIndexClassName metamodel.")
+        .initializer("${qIndexClassName}()")
+
+    if (processorOptions.generateJavaCompatibility) {
+      companionPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+    }
+
+    companionObjectBuilder.addProperty(companionPropertyBuilder.build())
+    objectBuilder.addType(companionObjectBuilder.build())
   }
 
   private fun generateAllObjectFields(
@@ -487,12 +568,15 @@ class QElasticsearchSymbolProcessor(
    * of all Q-classes for convenient access to all metamodels.
    */
   private fun generateMetamodelsFile(documentClasses: List<KSClassDeclaration>) {
+    // Generate dynamic package and class name based on source set and document packages
+    val metamodelsInfo = metamodelsConfiguration.generateMetamodelsInfo(documentClasses)
+
     logger.info(
-      "Generating ${CoreConstants.METAMODELS_CLASS_NAME}.kt with ${documentClasses.size} Q-class instances"
+      "Generating ${metamodelsInfo.className}.kt in package ${metamodelsInfo.packageName} with ${documentClasses.size} Q-class instances"
     )
 
     val metamodelsBuilder =
-      TypeSpec.objectBuilder(CoreConstants.METAMODELS_CLASS_NAME)
+      TypeSpec.objectBuilder(metamodelsInfo.className)
         .addModifiers(KModifier.DATA)
         .addAnnotation(generatedAnnotation)
         .addKdoc(
@@ -506,7 +590,7 @@ class QElasticsearchSymbolProcessor(
             .trimIndent()
         )
 
-    val importContext = ImportContext(METAMODELS_PACKAGE)
+    val importContext = ImportContext(metamodelsInfo.packageName)
 
     // Add property for each document class
     documentClasses.forEach { documentClass ->
@@ -519,23 +603,26 @@ class QElasticsearchSymbolProcessor(
       val qualifiedQClassName = "$packageName.$qClassName"
       importContext.registerTypeUsage(qualifiedQClassName)
 
-      metamodelsBuilder.addProperty(
+      val metamodelPropertyBuilder =
         com.squareup.kotlinpoet.PropertySpec.builder(
             propertyName,
             ClassName(packageName, qClassName),
           )
-          .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
           .initializer("$qClassName()")
           .addKdoc("Metamodel for class [${documentClass.qualifiedName?.asString()}]")
-          .build()
-      )
+
+      if (processorOptions.generateJavaCompatibility) {
+        metamodelPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+      }
+
+      metamodelsBuilder.addProperty(metamodelPropertyBuilder.build())
     }
 
     // Finalize imports
     importContext.finalizeImportDecisions()
 
     val fileSpec =
-      FileSpec.builder(METAMODELS_PACKAGE, CoreConstants.METAMODELS_CLASS_NAME)
+      FileSpec.builder(metamodelsInfo.packageName, metamodelsInfo.className)
         .addType(metamodelsBuilder.build())
         .apply {
           importContext.usedImports.forEach { import ->
@@ -545,14 +632,12 @@ class QElasticsearchSymbolProcessor(
           }
         }
         .addAnnotation(
-          AnnotationSpec.builder(JvmName::class)
-            .addMember("%S", CoreConstants.METAMODELS_CLASS_NAME)
-            .build()
+          AnnotationSpec.builder(JvmName::class).addMember("%S", metamodelsInfo.className).build()
         )
         .indent("    ")
         .build()
 
-    writeGeneratedFile(fileSpec, METAMODELS_PACKAGE, CoreConstants.METAMODELS_CLASS_NAME)
+    writeGeneratedFile(fileSpec, metamodelsInfo.packageName, metamodelsInfo.className)
   }
 
   // Extension function to find annotations

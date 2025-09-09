@@ -8,7 +8,7 @@ import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /** Handles extraction and determination of field types. */
-class FieldTypeExtractor(private val logger: KSPLogger) {
+class FieldTypeExtractor(private val logger: KSPLogger, private val debugLogging: Boolean = false) {
   /** Determines the field type for a property based on annotations. */
   fun determineFieldType(
     property: KSPropertyDeclaration,
@@ -16,35 +16,16 @@ class FieldTypeExtractor(private val logger: KSPLogger) {
   ): ProcessedFieldType {
     val propertyName = property.simpleName.asString()
 
+    if (debugLogging) {
+      logger.info("[DEBUG:FieldTypeExtractor] Determining field type for property: $propertyName")
+    }
+
     // Extract field type from @Field annotation
     val fieldType = extractFieldTypeFromAnnotation(fieldAnnotation)
     logger.info("Property $propertyName has @Field annotation with type: $fieldType")
 
     // Handle nested/object types - including collections
-    val isObjectType =
-      when (fieldType) {
-        FieldType.Object,
-        FieldType.Nested -> {
-          // For collections, check the element type
-          if (isCollectionType(getSimpleTypeName(property.type))) {
-            val elementType = getCollectionElementType(property)
-            elementType != null &&
-              !isStandardLibraryType(elementType.packageName.asString()) &&
-              elementType.classKind != ClassKind.ENUM_CLASS &&
-              (elementType.classKind == ClassKind.CLASS ||
-                elementType.classKind == ClassKind.INTERFACE)
-          } else {
-            // For single objects, check if it's a custom class or interface
-            val typeDeclaration = property.type.resolve().declaration
-            typeDeclaration is KSClassDeclaration &&
-              typeDeclaration.classKind != ClassKind.ENUM_CLASS &&
-              (typeDeclaration.classKind == ClassKind.CLASS ||
-                typeDeclaration.classKind == ClassKind.INTERFACE) &&
-              !isStandardLibraryType(typeDeclaration.packageName.asString())
-          }
-        }
-        else -> false
-      }
+    val isObjectType = determineIfObjectType(fieldType, property)
 
     val kotlinTypeName =
       if (isCollectionType(getSimpleTypeName(property.type))) {
@@ -60,5 +41,51 @@ class FieldTypeExtractor(private val logger: KSPLogger) {
       kotlinTypeName = kotlinTypeName,
       isObjectType = isObjectType,
     )
+  }
+
+  /**
+   * Determines if a field type represents an object type (Object or Nested) that should be treated
+   * as a custom object field.
+   */
+  private fun determineIfObjectType(
+    fieldType: FieldType,
+    property: KSPropertyDeclaration,
+  ): Boolean {
+    return when (fieldType) {
+      FieldType.Object,
+      FieldType.Nested -> {
+        if (isCollectionType(getSimpleTypeName(property.type))) {
+          isValidCollectionObjectType(property)
+        } else {
+          isValidSingleObjectType(property)
+        }
+      }
+      else -> false
+    }
+  }
+
+  /**
+   * Checks if a collection property contains valid object types (not standard library types or
+   * enums).
+   */
+  private fun isValidCollectionObjectType(property: KSPropertyDeclaration): Boolean {
+    val elementType = getCollectionElementType(property) ?: return false
+    return isValidCustomClass(elementType)
+  }
+
+  /** Checks if a single property represents a valid object type (custom class or interface). */
+  private fun isValidSingleObjectType(property: KSPropertyDeclaration): Boolean {
+    val typeDeclaration = property.type.resolve().declaration
+    return typeDeclaration is KSClassDeclaration &&
+      isValidCustomClass(typeDeclaration) &&
+      !isStandardLibraryType(typeDeclaration.packageName.asString())
+  }
+
+  /** Validates that a class declaration is a custom class or interface (not enum). */
+  private fun isValidCustomClass(classDeclaration: KSClassDeclaration): Boolean {
+    return !isStandardLibraryType(classDeclaration.packageName.asString()) &&
+      classDeclaration.classKind != ClassKind.ENUM_CLASS &&
+      (classDeclaration.classKind == ClassKind.CLASS ||
+        classDeclaration.classKind == ClassKind.INTERFACE)
   }
 }

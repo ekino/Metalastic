@@ -19,11 +19,20 @@ import org.springframework.data.elasticsearch.annotations.MultiField
 class FieldGenerators(
   private val logger: KSPLogger,
   private val fieldTypeMappings: Map<FieldType, FieldTypeMapping>,
+  private val generateJavaCompatibility: Boolean = true,
+  private val debugLogging: Boolean = false,
 ) {
 
   companion object {
     private const val GETTER_PREFIX_LENGTH = 3
     private const val BOOLEAN_PREFIX_LENGTH = 2
+  }
+
+  /** Helper method for conditional debug logging. */
+  private fun debugLog(message: String) {
+    if (debugLogging) {
+      logger.info("[DEBUG:FieldGenerators] $message")
+    }
   }
 
   /** Context for field property generation. */
@@ -78,6 +87,9 @@ class FieldGenerators(
     // Log dynamic field detection
     if (qDynamicFieldAnnotation != null) {
       logger.info("Found @QDynamicField on property: $propertyName")
+      debugLog(
+        "Processing @QDynamicField property: $propertyName with type: ${getSimpleTypeName(property.type)}"
+      )
     }
 
     // Skip fields with no annotations at all
@@ -249,13 +261,16 @@ class FieldGenerators(
     val helperMethodName = getHelperMethodName(context.fieldType.elasticsearchType)
     val initializer = "${helperMethodName}(%S)"
 
-    context.objectBuilder.addProperty(
+    val propertyBuilder =
       PropertySpec.builder(context.propertyName, finalTypeName)
-        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
         .initializer(initializer, context.propertyName)
-        .build()
-    )
+
+    if (generateJavaCompatibility) {
+      propertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+    }
+
+    context.objectBuilder.addProperty(propertyBuilder.build())
   }
 
   /** Generates a multi-field property. */
@@ -346,17 +361,20 @@ class FieldGenerators(
       val typeArguments = if (needsTypeArgument(innerFieldType)) "<String>" else ""
       val initializer = "${helperMethodName}${typeArguments}(%S)"
 
-      multiFieldClass.addProperty(
+      val innerPropertyBuilder =
         PropertySpec.builder(
             suffix,
             ClassName(CoreConstants.CORE_PACKAGE, innerFieldClass)
               .parameterizedBy(String::class.asTypeName()),
           )
-          .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
           .addKdoc(kdocForInnerField)
           .initializer(initializer, suffix)
-          .build()
-      )
+
+      if (generateJavaCompatibility) {
+        innerPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+      }
+
+      multiFieldClass.addProperty(innerPropertyBuilder.build())
     }
 
     // Add the nested class to the main object
@@ -382,13 +400,16 @@ class FieldGenerators(
     val multiFieldTypeName = ClassName("", multiFieldClassName)
     val initializer = "%T(this, %S)"
 
-    objectBuilder.addProperty(
+    val multiFieldPropertyBuilder =
       PropertySpec.builder(propertyName, multiFieldTypeName)
-        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
         .initializer(initializer, multiFieldTypeName, propertyName)
-        .build()
-    )
+
+    if (generateJavaCompatibility) {
+      multiFieldPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+    }
+
+    objectBuilder.addProperty(multiFieldPropertyBuilder.build())
   }
 
   /** Get the DSL field class name for a given field type. */
@@ -484,13 +505,16 @@ class FieldGenerators(
     // Use helper method for cleaner generated code - type is inferred from reified inline function
     val initializer = "dynamicField(%S)"
 
-    objectBuilder.addProperty(
+    val dynamicPropertyBuilder =
       PropertySpec.builder(propertyName, finalTypeName)
-        .addAnnotation(AnnotationSpec.builder(JvmField::class).build())
         .addKdoc(kdoc)
         .initializer(initializer, propertyName)
-        .build()
-    )
+
+    if (generateJavaCompatibility) {
+      dynamicPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+    }
+
+    objectBuilder.addProperty(dynamicPropertyBuilder.build())
   }
 
   // Extension function to find annotations

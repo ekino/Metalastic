@@ -168,6 +168,32 @@ data object Metamodels {
 
 ### Usage: Type-safe Field Access
 
+#### Option 1: Static Access via Companion Object (Recommended)
+```kotlin
+// Direct static access to metamodel instances - no registry needed
+import com.example.QPersonDocument
+
+// Use companion object for direct access
+QPersonDocument.personDocument.name.path() shouldBe "name"  
+QPersonDocument.personDocument.age.path() shouldBe "age"
+
+// Object fields
+QPersonDocument.personDocument.address.city.path() shouldBe "address.city"
+QPersonDocument.personDocument.address.country.path() shouldBe "address.country"
+
+// Nested fields - works seamlessly
+QPersonDocument.personDocument.activities.name.path() shouldBe "activities.name"
+QPersonDocument.personDocument.activities.timestamp.path() shouldBe "activities.timestamp"
+
+// Enhanced path information with nested detection
+QPersonDocument.personDocument.address.city.isNestedPath() shouldBe false // object field
+QPersonDocument.personDocument.activities.name.isNestedPath() shouldBe true // nested field
+
+// Perfect for Java interop - static field access
+PersonDocument.personDocument.getName().path(); // Works from Java code
+```
+
+#### Option 2: Centralized Registry Access
 ```kotlin
 // Access document metamodel through centralized registry
 val person = Metamodels.person
@@ -193,6 +219,21 @@ person.activities.name.isNestedPath() shouldBe true // nested field
 val order = Metamodels.order
 order.customer.name.path() shouldBe "customer.name" // customer is another @Document
 order.customer.address.city.path() shouldBe "customer.address.city"
+
+#### Why Choose Companion Object Access?
+
+**Benefits of Static Access (Option 1):**
+- ✅ **No Metamodels registry dependency** - direct import and usage
+- ✅ **Better IDE support** - auto-completion works immediately after import
+- ✅ **Shorter syntax** - `QPersonDocument.personDocument` vs `Metamodels.person`
+- ✅ **Perfect Java interop** - static fields accessible as `QPersonDocument.personDocument`
+- ✅ **Tree-shaking friendly** - only imports what you need
+- ✅ **Type-safe from import** - impossible to reference wrong metamodel
+
+**When to use Registry Access (Option 2):**
+- ⚪ Legacy code migration from older QElasticsearch versions
+- ⚪ Dynamic metamodel selection by string name
+- ⚪ Centralized access patterns in large applications
 
 // Use in Elasticsearch queries
 val searchRequest = SearchRequest()
@@ -376,6 +417,120 @@ dependencies {
 ```
 
 For detailed consumption instructions including authentication for external users, see [PUBLISHING.md](PUBLISHING.md).
+
+## Configuration
+
+### KSP Options
+
+QElasticsearch supports extensive customization through KSP (Kotlin Symbol Processing) arguments. Configure these in your `build.gradle.kts`:
+
+```kotlin
+ksp {
+  // Package and Class Name Customization
+  arg("metamodels.main.package", "com.example.search.metamodels")
+  arg("metamodels.main.className", "SearchMetamodels")
+  arg("metamodels.test.package", "com.example.test.metamodels") 
+  arg("metamodels.test.className", "TestMetamodels")
+  
+  // Global Fallbacks
+  arg("metamodels.package", "com.example.metamodels")
+  arg("metamodels.className", "GlobalMetamodels")
+  
+  // Feature Toggles  
+  arg("qelasticsearch.generateJavaCompatibility", "true") // default: true
+  arg("qelasticsearch.debugLogging", "false")             // default: false
+}
+```
+
+#### Package & Class Name Configuration
+
+| Option | Description | Example | Default |
+|--------|-------------|---------|---------|
+| `metamodels.{sourceSet}.package` | Custom package for specific source set | `metamodels.main.package=com.example.main` | `{basePackage}.metamodels.{sourceSet}` |
+| `metamodels.{sourceSet}.className` | Custom class name for specific source set | `metamodels.test.className=TestMetamodels` | `Metamodels` |
+| `metamodels.package` | Global fallback package | `metamodels.package=com.example.global` | `com.qelasticsearch` |
+| `metamodels.className` | Global fallback class name | `metamodels.className=GlobalMetamodels` | `Metamodels` |
+
+#### Feature Toggles
+
+| Option | Description | Values | Default |
+|--------|-------------|---------|---------|
+| `qelasticsearch.generateJavaCompatibility` | Add `@JvmField` annotations for Java interop | `true`/`false` | `true` |
+| `qelasticsearch.debugLogging` | Enable detailed processor logging | `true`/`false` | `false` |
+
+#### Configuration Resolution
+
+The processor resolves configuration with the following priority:
+
+1. **Source set specific**: `metamodels.main.package` > `metamodels.test.package`
+2. **Global fallback**: `metamodels.package` > `metamodels.className` 
+3. **Simple default**: `com.qelasticsearch.metamodels.{sourceSet}.Metamodels`
+
+**No complex package detection** - uses predictable defaults:
+- Main source set: `com.qelasticsearch.metamodels.main.Metamodels`
+- Test source set: `com.qelasticsearch.metamodels.test.Metamodels`
+
+#### Examples
+
+**Basic Customization:**
+```kotlin
+ksp {
+  arg("metamodels.main.package", "com.myapp.search")
+  arg("metamodels.main.className", "SearchAPI")
+}
+```
+Generates: `com.myapp.search.SearchAPI`
+
+**Multi-Module Project:**
+```kotlin 
+// In search-service module
+ksp {
+  arg("metamodels.package", "com.myapp.search.metamodels")
+  arg("metamodels.className", "SearchMetamodels")
+}
+
+// In analytics-service module  
+ksp {
+  arg("metamodels.package", "com.myapp.analytics.metamodels")
+  arg("metamodels.className", "AnalyticsMetamodels")
+}
+```
+
+**Development vs Production:**
+```kotlin
+ksp {
+  arg("metamodels.main.package", "com.myapp.search")
+  arg("metamodels.test.package", "com.myapp.search.testing")
+  arg("qelasticsearch.debugLogging", "true") // For development
+}
+```
+
+**Debug Logging Example:**
+When `debugLogging` is enabled, the processor outputs detailed information:
+```
+> Task :compileKotlin
+i: [ksp] Processing 3 document classes
+i: [ksp] [DEBUG] Found document classes: [com.example.Person, com.example.Order, com.example.Product]
+i: [ksp] [DEBUG] Starting object field collection phase
+i: [ksp] [DEBUG] Collecting object fields from: com.example.Person
+i: [ksp] [DEBUG] Collected 2 global object fields: [Address, Contact]
+i: [ksp] [DEBUG] Starting document class generation phase
+i: [ksp] [DEBUG] Processing document class: com.example.Person
+i: [ksp] [DEBUG] Document details: package=com.example, indexName=person, className=Person
+i: [ksp] [DEBUG] Generating Q-class for: Person
+i: [ksp] [DEBUG:FieldGenerators] Processing @QDynamicField property: runtimeScore with type: Double
+i: [ksp] [DEBUG] Generated Q-class structure, writing file: QPerson
+i: [ksp] Generated file: com.example.QPerson
+i: [ksp] [DEBUG] Processing completed successfully
+```
+
+#### Validation
+
+The processor validates all configuration:
+- **Package names**: Must be valid Java package identifiers
+- **Class names**: Must start with uppercase letter and be valid identifiers  
+- **Boolean values**: Must be `"true"` or `"false"` (case-insensitive)
+- **Invalid values**: Logged as warnings and ignored (defaults used)
 
 ### Development Setup
 
