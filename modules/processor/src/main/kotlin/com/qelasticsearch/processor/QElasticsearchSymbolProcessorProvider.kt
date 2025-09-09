@@ -9,5 +9,6 @@ class QElasticsearchSymbolProcessorProvider : SymbolProcessorProvider {
     QElasticsearchSymbolProcessor(
       codeGenerator = environment.codeGenerator,
       logger = environment.logger,
+      kspOptions = environment.options,
     )
 }

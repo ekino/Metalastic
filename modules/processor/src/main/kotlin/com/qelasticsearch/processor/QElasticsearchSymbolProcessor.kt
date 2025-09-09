@@ -8,7 +8,6 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.qelasticsearch.processor.CoreConstants.DOCUMENT_ANNOTATION
-import com.qelasticsearch.processor.CoreConstants.METAMODELS_PACKAGE
 import com.qelasticsearch.processor.CoreConstants.PRODUCT_NAME
 import com.qelasticsearch.processor.CoreConstants.Q_PREFIX
 import com.squareup.kotlinpoet.AnnotationSpec
@@ -33,11 +32,13 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 class QElasticsearchSymbolProcessor(
   private val codeGenerator: CodeGenerator,
   private val logger: KSPLogger,
+  private val kspOptions: Map<String, String> = emptyMap(),
 ) : SymbolProcessor {
   private val fieldTypeMappings: Map<FieldType, FieldTypeMapping> by lazy {
     FieldTypeMappingBuilder(logger).build()
   }
 
+  private val metamodelsConfiguration = MetamodelsConfiguration(logger, kspOptions)
   private val fieldTypeExtractor = FieldTypeExtractor(logger)
   private val nestedClassProcessor = NestedClassProcessor(logger)
   private val fieldGenerators = FieldGenerators(logger, fieldTypeMappings)
@@ -487,12 +488,15 @@ class QElasticsearchSymbolProcessor(
    * of all Q-classes for convenient access to all metamodels.
    */
   private fun generateMetamodelsFile(documentClasses: List<KSClassDeclaration>) {
+    // Generate dynamic package and class name based on source set and document packages
+    val metamodelsInfo = metamodelsConfiguration.generateMetamodelsInfo(documentClasses)
+
     logger.info(
-      "Generating ${CoreConstants.METAMODELS_CLASS_NAME}.kt with ${documentClasses.size} Q-class instances"
+      "Generating ${metamodelsInfo.className}.kt in package ${metamodelsInfo.packageName} with ${documentClasses.size} Q-class instances"
     )
 
     val metamodelsBuilder =
-      TypeSpec.objectBuilder(CoreConstants.METAMODELS_CLASS_NAME)
+      TypeSpec.objectBuilder(metamodelsInfo.className)
         .addModifiers(KModifier.DATA)
         .addAnnotation(generatedAnnotation)
         .addKdoc(
@@ -506,7 +510,7 @@ class QElasticsearchSymbolProcessor(
             .trimIndent()
         )
 
-    val importContext = ImportContext(METAMODELS_PACKAGE)
+    val importContext = ImportContext(metamodelsInfo.packageName)
 
     // Add property for each document class
     documentClasses.forEach { documentClass ->
@@ -535,7 +539,7 @@ class QElasticsearchSymbolProcessor(
     importContext.finalizeImportDecisions()
 
     val fileSpec =
-      FileSpec.builder(METAMODELS_PACKAGE, CoreConstants.METAMODELS_CLASS_NAME)
+      FileSpec.builder(metamodelsInfo.packageName, metamodelsInfo.className)
         .addType(metamodelsBuilder.build())
         .apply {
           importContext.usedImports.forEach { import ->
@@ -545,14 +549,12 @@ class QElasticsearchSymbolProcessor(
           }
         }
         .addAnnotation(
-          AnnotationSpec.builder(JvmName::class)
-            .addMember("%S", CoreConstants.METAMODELS_CLASS_NAME)
-            .build()
+          AnnotationSpec.builder(JvmName::class).addMember("%S", metamodelsInfo.className).build()
         )
         .indent("    ")
         .build()
 
-    writeGeneratedFile(fileSpec, METAMODELS_PACKAGE, CoreConstants.METAMODELS_CLASS_NAME)
+    writeGeneratedFile(fileSpec, metamodelsInfo.packageName, metamodelsInfo.className)
   }
 
   // Extension function to find annotations
