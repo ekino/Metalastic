@@ -1,5 +1,6 @@
 package com.qelasticsearch.integration
 
+import com.qelasticsearch.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 
@@ -57,32 +58,39 @@ class BooleanGetterMethodTest :
 
       should("integrate boolean fields in document Q-classes") {
         // Verify the document Q-class properly references the boolean item Q-class
-        QBooleanGetterTestDocument.booleanItems::class.java.simpleName shouldBe "QBooleanTestItem"
+        Metamodels.booleanGetterTestDocument.booleanItems::class.java.simpleName shouldBe
+          "QBooleanTestItem"
       }
 
       should("support nested path information for boolean fields") {
         // Verify nested boolean field paths
-        QBooleanGetterTestDocument.booleanItems.enabled.path() shouldBe "booleanItems.enabled"
-        QBooleanGetterTestDocument.booleanItems.verified.path() shouldBe "booleanItems.verified"
-        QBooleanGetterTestDocument.booleanItems.published.path() shouldBe "booleanItems.published"
-        QBooleanGetterTestDocument.booleanItems.someOtherMethod.path() shouldBe
+        Metamodels.booleanGetterTestDocument.booleanItems.enabled.path() shouldBe
+          "booleanItems.enabled"
+        Metamodels.booleanGetterTestDocument.booleanItems.verified.path() shouldBe
+          "booleanItems.verified"
+        Metamodels.booleanGetterTestDocument.booleanItems.published.path() shouldBe
+          "booleanItems.published"
+        Metamodels.booleanGetterTestDocument.booleanItems.someOtherMethod.path() shouldBe
           "booleanItems.someOtherMethod"
       }
 
       should("support path traversal for boolean interface fields") {
         // Verify path construction works for boolean interface fields
-        QBooleanGetterTestDocument.booleanItems.enabled.path() shouldBe "booleanItems.enabled"
-        QBooleanGetterTestDocument.booleanItems.verified.path() shouldBe "booleanItems.verified"
-        QBooleanGetterTestDocument.booleanItems.published.path() shouldBe "booleanItems.published"
-        QBooleanGetterTestDocument.booleanItems.someOtherMethod.path() shouldBe
+        Metamodels.booleanGetterTestDocument.booleanItems.enabled.path() shouldBe
+          "booleanItems.enabled"
+        Metamodels.booleanGetterTestDocument.booleanItems.verified.path() shouldBe
+          "booleanItems.verified"
+        Metamodels.booleanGetterTestDocument.booleanItems.published.path() shouldBe
+          "booleanItems.published"
+        Metamodels.booleanGetterTestDocument.booleanItems.someOtherMethod.path() shouldBe
           "booleanItems.someOtherMethod"
       }
 
       should("support nested field path information for boolean fields") {
         // Verify nested field path information
-        QBooleanGetterTestDocument.booleanItems.enabled.isNestedPath() shouldBe true
-        QBooleanGetterTestDocument.booleanItems.enabled.nestedPaths().count() shouldBe 1
-        QBooleanGetterTestDocument.booleanItems.enabled.nestedPaths().first() shouldBe
+        Metamodels.booleanGetterTestDocument.booleanItems.enabled.isNestedPath() shouldBe true
+        Metamodels.booleanGetterTestDocument.booleanItems.enabled.nestedPaths().count() shouldBe 1
+        Metamodels.booleanGetterTestDocument.booleanItems.enabled.nestedPaths().first() shouldBe
           "booleanItems"
       }
 

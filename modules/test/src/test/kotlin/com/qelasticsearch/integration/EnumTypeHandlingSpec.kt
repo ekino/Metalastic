@@ -1,5 +1,6 @@
 package com.qelasticsearch.integration
 
+import com.qelasticsearch.Metamodels
 import com.qelasticsearch.core.KeywordField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -10,11 +11,11 @@ class EnumTypeHandlingSpec :
   ShouldSpec({
     should("have correct parameterized type for enum fields") {
       // Test TestStatus enum field
-      val statusField = QJavaTestDocument.status
+      val statusField = Metamodels.javaTestDocument.status
       statusField.shouldBeInstanceOf<KeywordField<*>>()
 
       // Test Priority enum field
-      val priorityField = QJavaTestDocument.priorityLevel
+      val priorityField = Metamodels.javaTestDocument.priorityLevel
       priorityField.shouldBeInstanceOf<KeywordField<*>>()
 
       // Test that field names are correct
@@ -23,8 +24,8 @@ class EnumTypeHandlingSpec :
     }
 
     should("have correct paths for enum fields") {
-      val statusField = QJavaTestDocument.status
-      val priorityField = QJavaTestDocument.priorityLevel
+      val statusField = Metamodels.javaTestDocument.status
+      val priorityField = Metamodels.javaTestDocument.priorityLevel
 
       // Verify field path properties
       statusField.path() shouldBe "status"
@@ -32,7 +33,7 @@ class EnumTypeHandlingSpec :
     }
 
     should("work correctly for enum fields from NestedTestDocument") {
-      val nestedStatusField = QNestedTestDocument.status
+      val nestedStatusField = Metamodels.nestedTestDocument.status
 
       nestedStatusField.shouldBeInstanceOf<KeywordField<*>>()
       nestedStatusField.name() shouldBe "status"
@@ -41,7 +42,7 @@ class EnumTypeHandlingSpec :
 
     should("verify enum types in nested document") {
       // Test nested document enum fields
-      val nestedStatus = QNestedTestDocument.status
+      val nestedStatus = Metamodels.nestedTestDocument.status
       nestedStatus.path() shouldBe "status"
     }
   })

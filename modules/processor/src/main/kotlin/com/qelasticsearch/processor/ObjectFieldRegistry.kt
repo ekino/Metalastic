@@ -4,6 +4,7 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.qelasticsearch.processor.CoreConstants.Q_PREFIX
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.PropertySpec
@@ -79,7 +80,7 @@ class ObjectFieldRegistry(
     // use simple name instead
     val currentQClassName =
       if (currentDocumentClass != null) {
-        "${CoreConstants.Q_PREFIX}${currentDocumentClass.simpleName.asString()}"
+        "$Q_PREFIX${currentDocumentClass.simpleName.asString()}"
       } else null
 
     val optimalTypeName =
@@ -181,12 +182,12 @@ class ObjectFieldRegistry(
       }
       currentClass
     } else {
-      // For standalone classes, use the Q-prefixed class name
+      // For standalone classes, use the prefixed class name
       val qClassName =
-        if (objectFieldInfo.className.startsWith(CoreConstants.Q_PREFIX)) {
+        if (objectFieldInfo.className.startsWith(Q_PREFIX)) {
           objectFieldInfo.className
         } else {
-          "${CoreConstants.Q_PREFIX}${objectFieldInfo.classDeclaration.simpleName.asString()}"
+          "$Q_PREFIX${objectFieldInfo.classDeclaration.simpleName.asString()}"
         }
       ClassName(objectFieldInfo.packageName, qClassName)
     }
@@ -194,8 +195,8 @@ class ObjectFieldRegistry(
   private fun generateUniqueQClassName(classDeclaration: KSClassDeclaration): String {
     val simpleName = classDeclaration.simpleName.asString()
 
-    // Always use the simple Q class name to avoid naming conflicts
-    return "${CoreConstants.Q_PREFIX}$simpleName"
+    // Always use the simple prefix class name to avoid naming conflicts
+    return "$Q_PREFIX$simpleName"
   }
 
   private fun extractNestedPath(
@@ -288,12 +289,12 @@ class ObjectFieldRegistry(
       val nestedPath = extractNestedPath(objectFieldInfo, rootDocumentClass)
       "${objectFieldInfo.packageName}.${parentQClassName}.${nestedPath}"
     } else {
-      // For standalone classes, use the Q-prefixed class name
+      // For standalone classes, use the prefixed class name
       val qClassName =
-        if (objectFieldInfo.className.startsWith(CoreConstants.Q_PREFIX)) {
+        if (objectFieldInfo.className.startsWith(Q_PREFIX)) {
           objectFieldInfo.className
         } else {
-          "${CoreConstants.Q_PREFIX}${objectFieldInfo.classDeclaration.simpleName.asString()}"
+          "$Q_PREFIX${objectFieldInfo.classDeclaration.simpleName.asString()}"
         }
       "${objectFieldInfo.packageName}.$qClassName"
     }
