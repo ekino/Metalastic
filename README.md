@@ -168,6 +168,32 @@ data object Metamodels {
 
 ### Usage: Type-safe Field Access
 
+#### Option 1: Static Access via Companion Object (Recommended)
+```kotlin
+// Direct static access to metamodel instances - no registry needed
+import com.example.QPersonDocument
+
+// Use companion object for direct access
+QPersonDocument.personDocument.name.path() shouldBe "name"  
+QPersonDocument.personDocument.age.path() shouldBe "age"
+
+// Object fields
+QPersonDocument.personDocument.address.city.path() shouldBe "address.city"
+QPersonDocument.personDocument.address.country.path() shouldBe "address.country"
+
+// Nested fields - works seamlessly
+QPersonDocument.personDocument.activities.name.path() shouldBe "activities.name"
+QPersonDocument.personDocument.activities.timestamp.path() shouldBe "activities.timestamp"
+
+// Enhanced path information with nested detection
+QPersonDocument.personDocument.address.city.isNestedPath() shouldBe false // object field
+QPersonDocument.personDocument.activities.name.isNestedPath() shouldBe true // nested field
+
+// Perfect for Java interop - static field access
+PersonDocument.personDocument.getName().path(); // Works from Java code
+```
+
+#### Option 2: Centralized Registry Access
 ```kotlin
 // Access document metamodel through centralized registry
 val person = Metamodels.person
@@ -193,6 +219,21 @@ person.activities.name.isNestedPath() shouldBe true // nested field
 val order = Metamodels.order
 order.customer.name.path() shouldBe "customer.name" // customer is another @Document
 order.customer.address.city.path() shouldBe "customer.address.city"
+
+#### Why Choose Companion Object Access?
+
+**Benefits of Static Access (Option 1):**
+- ✅ **No Metamodels registry dependency** - direct import and usage
+- ✅ **Better IDE support** - auto-completion works immediately after import
+- ✅ **Shorter syntax** - `QPersonDocument.personDocument` vs `Metamodels.person`
+- ✅ **Perfect Java interop** - static fields accessible as `QPersonDocument.personDocument`
+- ✅ **Tree-shaking friendly** - only imports what you need
+- ✅ **Type-safe from import** - impossible to reference wrong metamodel
+
+**When to use Registry Access (Option 2):**
+- ⚪ Legacy code migration from older QElasticsearch versions
+- ⚪ Dynamic metamodel selection by string name
+- ⚪ Centralized access patterns in large applications
 
 // Use in Elasticsearch queries
 val searchRequest = SearchRequest()

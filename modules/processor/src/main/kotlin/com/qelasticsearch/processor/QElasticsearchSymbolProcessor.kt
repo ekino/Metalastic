@@ -16,6 +16,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
@@ -209,6 +210,9 @@ class QElasticsearchSymbolProcessor(
       objectFieldRegistry,
     )
 
+    // Phase 4: Add companion object for static access
+    addCompanionObjectToBuilder(objectBuilder, qIndexClassName, className)
+
     return createFileSpec(packageName, qIndexClassName, objectBuilder, importContext)
   }
 
@@ -272,6 +276,40 @@ class QElasticsearchSymbolProcessor(
       objectFieldRegistry,
       importContext,
     )
+  }
+
+  /**
+   * Adds a companion object to the Q-class that provides static access to the metamodel instance.
+   */
+  private fun addCompanionObjectToBuilder(
+    objectBuilder: TypeSpec.Builder,
+    qIndexClassName: String,
+    originalClassName: String,
+  ) {
+    val companionObjectPropertyName = originalClassName.replaceFirstChar { it.lowercase() }
+
+    val companionObjectBuilder =
+      TypeSpec.companionObjectBuilder()
+        .addKdoc(
+          """
+          Static access to the metamodel instance for convenient usage.
+
+          Example: `${qIndexClassName}.$companionObjectPropertyName.fieldName.eq("value")`
+          """
+            .trimIndent()
+        )
+
+    val companionPropertyBuilder =
+      PropertySpec.builder(companionObjectPropertyName, ClassName("", qIndexClassName))
+        .addKdoc("Static instance of the $qIndexClassName metamodel.")
+        .initializer("${qIndexClassName}()")
+
+    if (processorOptions.generateJavaCompatibility) {
+      companionPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
+    }
+
+    companionObjectBuilder.addProperty(companionPropertyBuilder.build())
+    objectBuilder.addType(companionObjectBuilder.build())
   }
 
   private fun generateAllObjectFields(
