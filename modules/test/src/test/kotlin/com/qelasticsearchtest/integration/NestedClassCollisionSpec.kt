@@ -1,6 +1,5 @@
 package com.qelasticsearchtest.integration
 
-import com.qelasticsearch.metamodels.main.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -13,7 +12,7 @@ class NestedClassCollisionSpec :
   ShouldSpec({
     should("generate separate Q-classes for external and nested classes with same name") {
       // External JavaTag class should generate QJavaTag
-      val externalTagField = Metamodels.javaTestDocument.tags
+      val externalTagField = QJavaTestDocument.javaTestDocument.tags
       externalTagField shouldNotBe null
 
       // Should have fields from external JavaTag class
@@ -21,8 +20,9 @@ class NestedClassCollisionSpec :
       externalTagField.weight.path() shouldBe "tags.weight"
       externalTagField.description.path() shouldBe "tags.description"
 
-      // Nested JavaTag class should generate nested object within Metamodels.javaTestDocument
-      val nestedTagField = Metamodels.javaTestDocument.tags2
+      // Nested JavaTag class should generate nested object within
+      // QJavaTestDocument.javaTestDocument
+      val nestedTagField = QJavaTestDocument.javaTestDocument.tags2
       nestedTagField shouldNotBe null
 
       // Nested class has different field names: tagName and size (not name, weight, description)
@@ -36,13 +36,13 @@ class NestedClassCollisionSpec :
 
     should("correctly resolve field paths for both external and nested classes") {
       // External class field paths
-      Metamodels.javaTestDocument.tags.name.path() shouldBe "tags.name"
-      Metamodels.javaTestDocument.tags.weight.path() shouldBe "tags.weight"
-      Metamodels.javaTestDocument.tags.description.path() shouldBe "tags.description"
+      QJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
+      QJavaTestDocument.javaTestDocument.tags.weight.path() shouldBe "tags.weight"
+      QJavaTestDocument.javaTestDocument.tags.description.path() shouldBe "tags.description"
 
       // Nested class field paths (different field names)
-      Metamodels.javaTestDocument.tags2.tagName.path() shouldBe "tags2.tagName"
-      Metamodels.javaTestDocument.tags2.size.path() shouldBe "tags2.size"
+      QJavaTestDocument.javaTestDocument.tags2.tagName.path() shouldBe "tags2.tagName"
+      QJavaTestDocument.javaTestDocument.tags2.size.path() shouldBe "tags2.size"
 
       // Field paths verified above
     }

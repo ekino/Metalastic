@@ -1,50 +1,50 @@
 package com.qelasticsearchtest.integration
 
-import com.qelasticsearch.metamodels.main.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 
-/** Test that demonstrates the generated Metamodels.testDocument class works correctly */
+/** Test that demonstrates the generated QTestDocument.testDocument class works correctly */
 class GeneratedCodeSpec :
   ShouldSpec({
-    should("have correct indexName for generated Metamodels.testDocument") {
-      Metamodels.testDocument.indexName() shouldBe "test_document"
+    should("have correct indexName for generated QTestDocument.testDocument") {
+      QTestDocument.testDocument.indexName() shouldBe "test_document"
     }
 
-    should("have correct index path for generated Metamodels.testDocument") {
-      Metamodels.testDocument.path() shouldBe ""
+    should("have correct index path for generated QTestDocument.testDocument") {
+      QTestDocument.testDocument.path() shouldBe ""
     }
 
-    should("have correct index name for generated Metamodels.testDocument") {
-      Metamodels.testDocument.name() shouldBe ""
+    should("have correct index name for generated QTestDocument.testDocument") {
+      QTestDocument.testDocument.name() shouldBe ""
     }
 
-    should("have all expected fields in generated Metamodels.testDocument") {
-      Metamodels.testDocument.id shouldNotBe null
-      Metamodels.testDocument.name shouldNotBe null
-      Metamodels.testDocument.age shouldNotBe null
-      Metamodels.testDocument.active shouldNotBe null
-      Metamodels.testDocument.createdDate shouldNotBe null
-      Metamodels.testDocument.address shouldNotBe null
-      Metamodels.testDocument.tags shouldNotBe null
+    should("have all expected fields in generated QTestDocument.testDocument") {
+      QTestDocument.testDocument.id shouldNotBe null
+      QTestDocument.testDocument.name shouldNotBe null
+      QTestDocument.testDocument.age shouldNotBe null
+      QTestDocument.testDocument.active shouldNotBe null
+      QTestDocument.testDocument.createdDate shouldNotBe null
+      QTestDocument.testDocument.address shouldNotBe null
+      QTestDocument.testDocument.tags shouldNotBe null
     }
 
-    should("have correct field paths in generated Metamodels.testDocument") {
-      Metamodels.testDocument.id.path() shouldBe "id"
-      Metamodels.testDocument.name.path() shouldBe "name"
-      Metamodels.testDocument.age.path() shouldBe "age"
-      Metamodels.testDocument.active.path() shouldBe "active"
-      Metamodels.testDocument.createdDate.path() shouldBe "createdDate"
-      Metamodels.testDocument.address.city.path() shouldBe "address.city"
-      Metamodels.testDocument.tags.name.path() shouldBe "tags.name"
+    should("have correct field paths in generated QTestDocument.testDocument") {
+      QTestDocument.testDocument.id.path() shouldBe "id"
+      QTestDocument.testDocument.name.path() shouldBe "name"
+      QTestDocument.testDocument.age.path() shouldBe "age"
+      QTestDocument.testDocument.active.path() shouldBe "active"
+      QTestDocument.testDocument.createdDate.path() shouldBe "createdDate"
+      QTestDocument.testDocument.address.city.path() shouldBe "address.city"
+      QTestDocument.testDocument.tags.name.path() shouldBe "tags.name"
     }
 
-    should("have correct field paths in generated Metamodels.exampleDocument") {
-      Metamodels.exampleDocument.testDocument.path() shouldBe "testDocument"
-      Metamodels.exampleDocument.testDocument.age.path() shouldBe "testDocument.age"
-      Metamodels.exampleDocument.testDocument.tags.name.path() shouldBe "testDocument.tags.name"
-      Metamodels.exampleDocument.testDocument.address.city.path() shouldBe
+    should("have correct field paths in generated QExampleDocument.exampleDocument") {
+      QExampleDocument.exampleDocument.testDocument.path() shouldBe "testDocument"
+      QExampleDocument.exampleDocument.testDocument.age.path() shouldBe "testDocument.age"
+      QExampleDocument.exampleDocument.testDocument.tags.name.path() shouldBe
+        "testDocument.tags.name"
+      QExampleDocument.exampleDocument.testDocument.address.city.path() shouldBe
         "testDocument.address.city"
     }
   })

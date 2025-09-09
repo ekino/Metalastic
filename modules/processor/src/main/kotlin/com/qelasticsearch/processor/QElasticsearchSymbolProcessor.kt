@@ -16,6 +16,7 @@ import com.squareup.kotlinpoet.FileSpec
 import com.squareup.kotlinpoet.FunSpec
 import com.squareup.kotlinpoet.KModifier
 import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.ksp.addOriginatingKSFile
@@ -23,6 +24,7 @@ import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import jakarta.annotation.Generated
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.jvm.JvmStatic
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.FieldType
 
@@ -581,9 +583,11 @@ class QElasticsearchSymbolProcessor(
         .addAnnotation(generatedAnnotation)
         .addKdoc(
           """
-        Central registry of all generated metamodels for convenient access.
+        Central registry of all generated metamodels for discovery and iteration.
 
-        This provides singleton-like access to all document metamodels:
+        Primary access is via companion objects: `QDocumentClass.documentClass`
+
+        For discovery/iteration use: `Metamodels.entries()`
 
         Generated automatically from all [$DOCUMENT_ANNOTATION] annotated classes.
       """
@@ -592,31 +596,8 @@ class QElasticsearchSymbolProcessor(
 
     val importContext = ImportContext(metamodelsInfo.packageName)
 
-    // Add property for each document class
-    documentClasses.forEach { documentClass ->
-      val className = documentClass.simpleName.asString()
-      val qClassName = "${Q_PREFIX}$className"
-      val packageName = documentClass.packageName.asString()
-      val propertyName = className.replaceFirstChar { it.lowercase() }
-
-      // Register the Q-class for import
-      val qualifiedQClassName = "$packageName.$qClassName"
-      importContext.registerTypeUsage(qualifiedQClassName)
-
-      val metamodelPropertyBuilder =
-        com.squareup.kotlinpoet.PropertySpec.builder(
-            propertyName,
-            ClassName(packageName, qClassName),
-          )
-          .initializer("$qClassName()")
-          .addKdoc("Metamodel for class [${documentClass.qualifiedName?.asString()}]")
-
-      if (processorOptions.generateJavaCompatibility) {
-        metamodelPropertyBuilder.addAnnotation(AnnotationSpec.builder(JvmField::class).build())
-      }
-
-      metamodelsBuilder.addProperty(metamodelPropertyBuilder.build())
-    }
+    // Generate entries() function that returns all metamodel instances
+    generateEntriesFunction(documentClasses, metamodelsBuilder, importContext)
 
     // Finalize imports
     importContext.finalizeImportDecisions()
@@ -653,4 +634,78 @@ class QElasticsearchSymbolProcessor(
   private inline fun <reified T> com.google.devtools.ksp.symbol.KSAnnotation.getArgumentValue(
     name: String
   ): T? = arguments.find { it.name?.asString() == name }?.value as? T
+
+  /**
+   * Generates the entries() function that returns a Sequence of all metamodel instances. This
+   * avoids naming conflicts by accessing companion object instances directly.
+   */
+  private fun generateEntriesFunction(
+    documentClasses: List<KSClassDeclaration>,
+    metamodelsBuilder: TypeSpec.Builder,
+    importContext: ImportContext,
+  ) {
+    // Detect Q-class naming conflicts first
+    val qClassNameToDocuments = mutableMapOf<String, MutableList<KSClassDeclaration>>()
+
+    documentClasses.forEach { documentClass ->
+      val className = documentClass.simpleName.asString()
+      val qClassName = "${Q_PREFIX}$className"
+      qClassNameToDocuments.computeIfAbsent(qClassName) { mutableListOf() }.add(documentClass)
+    }
+
+    // Build the sequence of companion object access calls
+    val companionObjectCalls =
+      documentClasses.map { documentClass ->
+        val className = documentClass.simpleName.asString()
+        val qClassName = "${Q_PREFIX}$className"
+        val packageName = documentClass.packageName.asString()
+        val companionPropertyName = className.replaceFirstChar { it.lowercase() }
+
+        // Check if this Q-class name has conflicts
+        val documentsWithSameName = qClassNameToDocuments[qClassName] ?: listOf(documentClass)
+        val hasNamingConflict = documentsWithSameName.size > 1
+
+        if (hasNamingConflict) {
+          // For conflicts, use fully qualified Q-class name without importing
+          val qualifiedQClassName = "$packageName.$qClassName"
+          "$qualifiedQClassName.$companionPropertyName"
+        } else {
+          // For no conflicts, register for import and use simple name
+          val qualifiedQClassName = "$packageName.$qClassName"
+          importContext.registerTypeUsage(qualifiedQClassName)
+          "$qClassName.$companionPropertyName"
+        }
+      }
+
+    // Register Index class for the return type
+    importContext.registerTypeUsage("${CoreConstants.CORE_PACKAGE}.${CoreConstants.INDEX_CLASS}")
+
+    // Build the function with proper formatting
+    val entriesFunctionBuilder =
+      FunSpec.builder("entries")
+        .addModifiers(KModifier.PUBLIC)
+        .addAnnotation(AnnotationSpec.builder(JvmStatic::class).build())
+        .returns(
+          ClassName("kotlin.sequences", "Sequence")
+            .parameterizedBy(ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.INDEX_CLASS))
+        )
+        .addKdoc(
+          """
+        Returns a sequence of all generated metamodel instances.
+
+        """
+            .trimIndent()
+        )
+
+    // Add the sequenceOf(...) implementation
+    if (companionObjectCalls.isNotEmpty()) {
+      val sequenceCall =
+        "sequenceOf(\n" + companionObjectCalls.joinToString(",\n") { "        $it" } + "\n    )"
+      entriesFunctionBuilder.addStatement("return $sequenceCall")
+    } else {
+      entriesFunctionBuilder.addStatement("return emptySequence()")
+    }
+
+    metamodelsBuilder.addFunction(entriesFunctionBuilder.build())
+  }
 }

@@ -193,49 +193,47 @@ QPersonDocument.personDocument.activities.name.isNestedPath() shouldBe true // n
 PersonDocument.personDocument.getName().path(); // Works from Java code
 ```
 
-#### Option 2: Centralized Registry Access
+#### Option 2: Discovery and Iteration
 ```kotlin
-// Access document metamodel through centralized registry
-val person = Metamodels.person
+// For discovery and iteration over all metamodels
+Metamodels.entries().forEach { metamodel ->
+    println("Index: ${metamodel.indexName}")
+}
 
-// Root level fields
-person.path() shouldBe ""
-person.name.path() shouldBe "name"
-person.age.path() shouldBe "age"
+// Collect all available metamodels
+val allMetamodels = Metamodels.entries().toList()
 
-// Object fields
-person.address.city.path() shouldBe "address.city"
-person.address.country.path() shouldBe "address.country"
+// Find metamodels by criteria
+val dateIndexes = Metamodels.entries()
+    .filter { it.indexName.contains("date") }
+    .toList()
 
-// Nested fields  
-person.activities.name.path() shouldBe "activities.name"
-person.activities.timestamp.path() shouldBe "activities.timestamp"
-
-// Enhanced path information with nested detection
-person.address.city.isNestedPath() shouldBe false // object field
-person.activities.name.isNestedPath() shouldBe true // nested field
-
-// @Document-to-@Document references work seamlessly
-val order = Metamodels.order
-order.customer.name.path() shouldBe "customer.name" // customer is another @Document
-order.customer.address.city.path() shouldBe "customer.address.city"
+// Legacy individual property access is no longer available
+// Use companion objects for direct access instead
+```
 
 #### Why Choose Companion Object Access?
 
-**Benefits of Static Access (Option 1):**
-- ✅ **No Metamodels registry dependency** - direct import and usage
+**Benefits of Direct Static Access (Option 1):**
+- ✅ **No naming conflicts** - each Q-class manages its own instance
 - ✅ **Better IDE support** - auto-completion works immediately after import
-- ✅ **Shorter syntax** - `QPersonDocument.personDocument` vs `Metamodels.person`
+- ✅ **Shorter, cleaner syntax** - `QPersonDocument.personDocument.name`
 - ✅ **Perfect Java interop** - static fields accessible as `QPersonDocument.personDocument`
 - ✅ **Tree-shaking friendly** - only imports what you need
 - ✅ **Type-safe from import** - impossible to reference wrong metamodel
+- ✅ **No registry pollution** - clean separation of concerns
 
-**When to use Registry Access (Option 2):**
-- ⚪ Legacy code migration from older QElasticsearch versions
-- ⚪ Dynamic metamodel selection by string name
-- ⚪ Centralized access patterns in large applications
+**When to use Metamodels.entries() (Option 2):**
+- 🔍 **Discovery** - Find all available metamodels at runtime
+- 🔄 **Iteration** - Process all metamodels programmatically  
+- 📊 **Introspection** - Build tools or admin interfaces
+- 🧪 **Testing** - Verify all metamodels are generated correctly
 
-// Use in Elasticsearch queries
+#### Usage in Elasticsearch Queries
+
+```kotlin
+// Use companion object for query construction
+val person = QPersonDocument.personDocument
 val searchRequest = SearchRequest()
     .indices(person.indexName)
     .source(

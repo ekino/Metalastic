@@ -1,6 +1,5 @@
 package com.qelasticsearchtest.integration
 
-import com.qelasticsearch.metamodels.main.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 
@@ -41,22 +40,30 @@ class InterfaceGetterMethodTest :
 
     should("integrate interface fields in document Q-classes") {
       // Verify that the document Q-class correctly references the interface Q-class
-      Metamodels.getterMethodTestDocument.items::class.java.simpleName shouldBe "QTestItem"
+      QGetterMethodTestDocument.getterMethodTestDocument.items::class.java.simpleName shouldBe
+        "QTestItem"
     }
 
     should("support path traversal for interface fields") {
       // Verify path construction works for interface fields
-      Metamodels.getterMethodTestDocument.items.category.path() shouldBe "items.category"
-      Metamodels.getterMethodTestDocument.items.displayName.path() shouldBe "items.displayName"
-      Metamodels.getterMethodTestDocument.items.priority.path() shouldBe "items.priority"
-      Metamodels.getterMethodTestDocument.items.active.path() shouldBe "items.active"
+      QGetterMethodTestDocument.getterMethodTestDocument.items.category.path() shouldBe
+        "items.category"
+      QGetterMethodTestDocument.getterMethodTestDocument.items.displayName.path() shouldBe
+        "items.displayName"
+      QGetterMethodTestDocument.getterMethodTestDocument.items.priority.path() shouldBe
+        "items.priority"
+      QGetterMethodTestDocument.getterMethodTestDocument.items.active.path() shouldBe "items.active"
     }
 
     should("support nested path information") {
       // Verify nested field path information
-      Metamodels.getterMethodTestDocument.items.category.isNestedPath() shouldBe true
-      Metamodels.getterMethodTestDocument.items.category.nestedPaths().count() shouldBe 1
-      Metamodels.getterMethodTestDocument.items.category.nestedPaths().first() shouldBe "items"
+      QGetterMethodTestDocument.getterMethodTestDocument.items.category.isNestedPath() shouldBe true
+      QGetterMethodTestDocument.getterMethodTestDocument.items.category
+        .nestedPaths()
+        .count() shouldBe 1
+      QGetterMethodTestDocument.getterMethodTestDocument.items.category
+        .nestedPaths()
+        .first() shouldBe "items"
     }
 
     should("ignore non-annotated getter methods") {
