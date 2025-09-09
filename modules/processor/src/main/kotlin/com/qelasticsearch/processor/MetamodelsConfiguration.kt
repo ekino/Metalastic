@@ -68,8 +68,9 @@ class MetamodelsConfiguration(
     return sourceSets.firstOrNull() ?: "main"
   }
 
-
-  /** Generate simple, predictable default package name: com.qelasticsearch.metamodels.{sourceSet} */
+  /**
+   * Generate simple, predictable default package name: com.qelasticsearch.metamodels.{sourceSet}
+   */
   private fun generateDefaultPackage(sourceSet: String): String {
     return "${CoreConstants.METAMODELS_PACKAGE}.metamodels.$sourceSet"
   }

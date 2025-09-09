@@ -1,7 +1,6 @@
 package com.qelasticsearchtest.integration
 
 import com.qelasticsearch.metamodels.main.Metamodels
-import com.qelasticsearchtest.metamodels.main.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
