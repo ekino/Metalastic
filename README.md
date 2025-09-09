@@ -20,7 +20,10 @@ QElasticsearch provides compile-time code generation to create type-safe, fluent
 - ✅ **Nested object support** - Type-safe traversal of nested document structures
 - ✅ **Path traversal** - Dotted notation support for nested field access
 - ✅ **Multi-field support** - Handle complex field mappings with inner fields
-- ✅ **Java & Kotlin compatible** - Works with both Java and Kotlin projects  
+- ✅ **@Document-to-@Document references** - Seamless cross-document relationships
+- ✅ **Centralized registry** - Easy access to all document metamodels via `Metamodels` object
+- ✅ **Constructor-based instantiation** - Classes support parent/path/nested parameters
+- ✅ **Java & Kotlin compatible** - Works with both Java and Kotlin projects via `@JvmField`
 - ✅ **Java 21** - Built with modern Java features and performance improvements
 - ✅ **KSP-based** - Uses Kotlin Symbol Processing for efficient annotation processing
 - ✅ **ktfmt Google Style** - Consistent code formatting with ktfmt
@@ -99,31 +102,75 @@ public class Person {
 
 ### Generated: Type-safe Query Builder
 
+#### Document Metamodel Classes
+
 ```kotlin
-object QPerson : Index("person") {
+class QPerson(
+    parent: ObjectField? = null,
+    fieldName: String = "",
+    nested: Boolean = false,
+) : Index("person", parent, fieldName, nested) {
+    @JvmField
     val id: KeywordField<String> = keywordField<String>("id")
+    
+    @JvmField
     val name: TextField<String> = textField<String>("name")
+    
+    @JvmField
     val age: IntegerField<Int> = integerField<Int>("age")
+    
+    @JvmField
     val address: QAddress = QAddress(this, "address", false)
-    val activities: QActivity = QActivity(this, "activities", true)
+    
+    @JvmField
+    val activities: QActivity = QActivity(this, "activities", true) // nested = true
 }
 
-class QAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
+class QAddress(
+    parent: ObjectField?,
+    path: String,
+    nested: Boolean,
+) : ObjectField(parent, path, nested) {
+    @JvmField
     val city: TextField<String> = textField<String>("city")
+    
+    @JvmField
     val country: KeywordField<String> = keywordField<String>("country")
 }
 
-class QActivity(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
+class QActivity(
+    parent: ObjectField?,
+    path: String,
+    nested: Boolean,
+) : ObjectField(parent, path, nested) {
+    @JvmField
     val name: TextField<String> = textField<String>("name")
-    val timestamp: DateField<String> = dateField<String>("timestamp")
+    
+    @JvmField
+    val timestamp: DateField<Date> = dateField<Date>("timestamp")
+}
+```
+
+#### Central Metamodels Registry
+
+```kotlin
+@Generated("com.qelasticsearch.processor.QElasticsearchSymbolProcessor")
+data object Metamodels {
+    /**
+     * Metamodel for @Document class [com.example.Person]
+     */
+    @JvmField
+    val person: QPerson = QPerson()
+    
+    // ... other document metamodels
 }
 ```
 
 ### Usage: Type-safe Field Access
 
 ```kotlin
-// Type-safe field access with path traversal
-val person = QPerson
+// Access document metamodel through centralized registry
+val person = Metamodels.person
 
 // Root level fields
 person.path() shouldBe ""
@@ -142,6 +189,11 @@ person.activities.timestamp.path() shouldBe "activities.timestamp"
 person.address.city.isNestedPath() shouldBe false // object field
 person.activities.name.isNestedPath() shouldBe true // nested field
 
+// @Document-to-@Document references work seamlessly
+val order = Metamodels.order
+order.customer.name.path() shouldBe "customer.name" // customer is another @Document
+order.customer.address.city.path() shouldBe "customer.address.city"
+
 // Use in Elasticsearch queries
 val searchRequest = SearchRequest()
     .indices(person.indexName)
@@ -159,38 +211,109 @@ val searchRequest = SearchRequest()
 
 The library supports all Spring Data Elasticsearch field types:
 
-| Elasticsearch Type | Kotlin DSL Method | Generated Field Type |
-|-------------------|-------------------|---------------------|
-| `text` | `textField()` | `TextField<String>` |
-| `keyword` | `keywordField()` | `KeywordField<String>` |
-| `long` | `longField()` | `LongField<Long>` |
-| `integer` | `integerField()` | `IntegerField<Integer>` |
-| `short` | `shortField()` | `ShortField<Short>` |
-| `byte` | `byteField()` | `ByteField<Byte>` |
-| `double` | `doubleField()` | `DoubleField<Double>` |
-| `float` | `floatField()` | `FloatField<Float>` |
-| `half_float` | `halfFloatField()` | `HalfFloatField` |
-| `scaled_float` | `scaledFloatField()` | `ScaledFloatField` |
-| `date` | `dateField()` | `DateField<T>` |
-| `date_nanos` | `dateNanosField()` | `DateNanosField` |
-| `boolean` | `booleanField()` | `BooleanField<Boolean>` |
-| `binary` | `binaryField()` | `BinaryField` |
-| `object` | Object constructor | `QObjectClass` |
-| `nested` | Object constructor | `QNestedClass` |
-| `ip` | `ipField()` | `IpField` |
-| `geo_point` | `geoPointField()` | `GeoPointField` |
-| `geo_shape` | `geoShapeField()` | `GeoShapeField` |
-| `completion` | `completionField()` | `CompletionField` |
-| `token_count` | `tokenCountField()` | `TokenCountField` |
-| `percolator` | `percolatorField()` | `PercolatorField` |
-| `rank_feature` | `rankFeatureField()` | `RankFeatureField` |
-| `rank_features` | `rankFeaturesField()` | `RankFeaturesField` |
-| `flattened` | `flattenedField()` | `FlattenedField` |
-| `shape` | `shapeField()` | `ShapeField` |
-| `point` | `pointField()` | `PointField` |
-| `constant_keyword` | `constantKeywordField()` | `ConstantKeywordField` |
-| `wildcard` | `wildcardField()` | `WildcardField` |
-| `*_range` | `*RangeField()` | `*RangeField` |
+| Elasticsearch Type | Kotlin DSL Method | Java Type Support |
+|-------------------|-------------------|-------------------|
+| `text` | `text()` | String |
+| `keyword` | `keyword()` | String |
+| `long` | `long()` | Long |
+| `integer` | `integer()` | Integer |
+| `short` | `short()` | Short |
+| `byte` | `byte()` | Byte |
+| `double` | `double()` | Double |
+| `float` | `float()` | Float |
+| `half_float` | `halfFloat()` | Float |
+| `scaled_float` | `scaledFloat()` | Float |
+| `date` | `date()` | Date, LocalDate, LocalDateTime |
+| `date_nanos` | `dateNanos()` | Date, LocalDateTime |
+| `boolean` | `boolean()` | Boolean |
+| `binary` | `binary()` | byte[] |
+| `object` | `objectField()` | Custom Objects |
+| `nested` | `nestedField()` | Collections |
+| `ip` | `ip()` | String |
+| `geo_point` | `geoPoint()` | GeoPoint |
+| `geo_shape` | `geoShape()` | GeoShape |
+| `completion` | `completion()` | String |
+| `token_count` | `tokenCount()` | Integer |
+| `percolator` | `percolator()` | String |
+| `rank_feature` | `rankFeature()` | Float |
+| `rank_features` | `rankFeatures()` | Map |
+| `flattened` | `flattened()` | Map |
+| `shape` | `shape()` | Shape |
+| `point` | `point()` | Point |
+| `constant_keyword` | `constantKeyword()` | String |
+| `wildcard` | `wildcard()` | String |
+| `*_range` | `*Range()` | Range types |
+
+## @Document-to-@Document References
+
+The library seamlessly handles references between @Document annotated classes:
+
+```java
+@Document(indexName = "order")
+public class Order {
+    @Id
+    @Field(type = FieldType.Keyword)
+    private String id;
+    
+    @Field(type = FieldType.Object)
+    private Customer customer; // References another @Document class
+    
+    @Field(type = FieldType.Date)
+    private Date orderDate;
+}
+
+@Document(indexName = "customer") 
+public class Customer {
+    @Id
+    @Field(type = FieldType.Keyword)
+    private String id;
+    
+    @Field(type = FieldType.Text)
+    private String name;
+    
+    @Field(type = FieldType.Object)
+    private Address address;
+}
+```
+
+Generates metamodels with proper cross-references:
+
+```kotlin
+class QOrder(
+    parent: ObjectField? = null,
+    fieldName: String = "",
+    nested: Boolean = false,
+) : Index("order", parent, fieldName, nested) {
+    @JvmField
+    val id: KeywordField<String> = keywordField<String>("id")
+    
+    @JvmField
+    val customer: QCustomer = QCustomer(this, "customer", false) // Instantiated Q-class
+    
+    @JvmField
+    val orderDate: DateField<Date> = dateField<Date>("orderDate")
+}
+
+class QCustomer(
+    parent: ObjectField? = null,
+    fieldName: String = "",
+    nested: Boolean = false,
+) : Index("customer", parent, fieldName, nested) {
+    @JvmField
+    val id: KeywordField<String> = keywordField<String>("id")
+    
+    @JvmField
+    val name: TextField<String> = textField<String>("name")
+    
+    @JvmField
+    val address: QAddress = QAddress(this, "address", false)
+}
+
+// Access through centralized registry
+val order = Metamodels.order
+order.customer.name.path() shouldBe "customer.name"
+order.customer.address.city.path() shouldBe "customer.address.city"
+```
 
 ## Multi-field Support
 
@@ -210,17 +333,20 @@ private String multiFieldName;
 Generates:
 
 ```kotlin
-// Usage in index:
-val multiFieldName: MultiFieldNameMultiField = MultiFieldNameMultiField(this, "multiFieldName")
-
-// Generated multi-field class:
-class MultiFieldNameMultiField(
-    parent: ObjectField,
+class QMultiFieldName(
+    parent: ObjectField?,
     path: String,
 ) : MultiField<TextField<String>>(parent, TextField(parent, path)) {
+    @JvmField
     val keyword: KeywordField<String> = keywordField<String>("keyword")
+    
+    @JvmField
     val search: TextField<String> = textField<String>("search")
 }
+
+// Usage in document class:
+@JvmField
+val multiFieldName: QMultiFieldName = QMultiFieldName(this, "multiFieldName")
 
 // Access patterns:
 multiFieldName.path() shouldBe "multiFieldName"           // main field
@@ -288,15 +414,16 @@ The annotation processor uses a sophisticated version compatibility system that:
 ### Implementation Details
 
 ```kotlin
-// Runtime detection approach in FieldTypeMappingBuilder
+// Runtime detection approach in QElasticsearchSymbolProcessor
 private fun safeAddMapping(
     mappings: MutableMap<FieldType, FieldTypeMapping>,
     fieldTypeName: String,
+    delegate: String,
     className: String,
 ) {
     try {
         val fieldType = FieldType.valueOf(fieldTypeName)
-        mappings[fieldType] = FieldTypeMapping(className)
+        mappings[fieldType] = FieldTypeMapping(delegate, className)
     } catch (e: IllegalArgumentException) {
         // FieldType enum value doesn't exist in this version - skip it
         logger.info("Skipping unsupported FieldType: $fieldTypeName")
@@ -386,9 +513,28 @@ QElasticsearch/
 ### Key Components
 
 1. **core** - Core DSL runtime with field definitions and base classes
-2. **processor** - Annotation processor that scans `@Document` classes
+2. **processor** - Annotation processor that scans `@Document` classes and generates metamodels
 3. **test** - Integration tests ensuring the processor works correctly
-4. **Path Traversal** - Dotted notation support for nested fields
+4. **Metamodel Generation** - Two-tier generation: document classes + centralized registry
+5. **Path Traversal** - Dotted notation support for nested fields with parent hierarchy
+6. **Import Management** - Advanced import optimization with conflict resolution
+
+### Architecture Design
+
+#### Metamodel Generation Pattern
+
+The library follows a **two-tier generation pattern**:
+
+1. **Document Metamodel Classes**: Regular Kotlin classes that can be instantiated with constructor parameters, enabling @Document-to-@Document references
+2. **Centralized Registry**: A `Metamodels` data object that provides singleton-like access to all document metamodels
+
+#### Key Design Decisions
+
+- **Classes over Data Objects**: Document metamodels are generated as regular classes (not data objects) to support constructor parameters for parent/path/nested relationships
+- **Default Constructor Values**: All constructors have default values (`parent: ObjectField? = null, fieldName: String = "", nested: Boolean = false`) for clean instantiation
+- **@JvmField Annotations**: All field properties are annotated with `@JvmField` for optimal Java interoperability
+- **Path Building**: Automatic path construction through parent hierarchy traversal supports deep nested structures
+- **Import Optimization**: Advanced import management with package proximity prioritization and conflict resolution
 
 ## Contributing
 
@@ -423,6 +569,10 @@ This project is hosted on GitLab at:
 - [x] **Nested field detection** - Enhanced path system with nested segment tracking
 - [x] **Generated class documentation** - JavaDoc comments with source class references
 - [x] **Specific Q-classes for all referenced types** - Generate type-safe Q-classes even for classes without @Field annotations
+- [x] **@Document-to-@Document references** - Seamless cross-document relationships with class-based instantiation
+- [x] **Centralized Metamodels registry** - Easy access to all document metamodels via `Metamodels` data object
+- [x] **Advanced import management** - Package proximity prioritization and conflict resolution
+- [x] **Java compatibility** - `@JvmField` annotations for optimal Java interoperability
 - [ ] Query building DSL - Fluent query construction API
 - [ ] Integration with Elasticsearch clients - Direct query execution
 - [ ] Performance optimizations - Processor and runtime optimizations

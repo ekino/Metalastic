@@ -27,7 +27,7 @@ import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /**
- * Refactored KSP-based annotation processor that generates type-safe Elasticsearch DSL classes from
+ * KSP-based annotation processor that generates type-safe Elasticsearch metamodels classes from
  * Spring Data Elasticsearch @Document annotated classes.
  */
 class QElasticsearchSymbolProcessor(

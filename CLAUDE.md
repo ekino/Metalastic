@@ -71,49 +71,66 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 
 ## Generated DSL Structure
 
-The annotation processor will generate DSL objects that follow this pattern:
+The annotation processor generates two main types of artifacts:
+
+### 1. Document Metamodel Classes
 
 ```kotlin
-// For nested/object fields
-class QAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
-    val city: KeywordField<String> = keywordField<String>("city")
-    val street: TextField<String> = textField<String>("street")
-    val zipCode: KeywordField<String> = keywordField<String>("zipCode")
+// Document metamodel classes (regular classes with constructor parameters)
+class QTestDocument(
+    parent: ObjectField? = null,
+    fieldName: String = "",
+    nested: Boolean = false,
+) : Index("test_document", parent, fieldName, nested) {
+    @JvmField
+    val id: KeywordField<String> = keywordField<String>("id")
+    
+    @JvmField
+    val name: TextField<String> = textField<String>("name")
+    
+    @JvmField
+    val address: QAddress = QAddress(this, "address", false)
+    
+    @JvmField
+    val tags: QTag = QTag(this, "tags", true) // nested = true
 }
 
-// For document indexes
-object QAllTypesDocument : Index("alltypes") {
-    val longField: LongField<Long> = longField<Long>("longField")
-    val floatField: FloatField<Float> = floatField<Float>("floatField")
-    val doubleField: DoubleField<Double> = doubleField<Double>("doubleField")
-    val booleanField: BooleanField<Boolean> = booleanField<Boolean>("booleanField")
-    val dateField: DateField<String> = dateField<String>("dateField")
-    val byteField: ByteField<Byte> = byteField<Byte>("byteField")
-    val shortField: ShortField<Short> = shortField<Short>("shortField")
-    val halfFloatField: HalfFloatField = halfFloatField("halfFloatField")
-    val scaledFloatField: ScaledFloatField = scaledFloatField("scaledFloatField")
-    val dateNanosField: DateNanosField = dateNanosField("dateNanosField")
-    val ipField: IpField = ipField("ipField")
-    val geoPointField: GeoPointField = geoPointField("geoPointField")
-    val geoShapeField: GeoShapeField = geoShapeField("geoShapeField")
-    val completionField: CompletionField = completionField("completionField")
-    val tokenCountField: TokenCountField = tokenCountField("tokenCountField")
-    val percolatorField: PercolatorField = percolatorField("percolatorField")
-    val rankFeatureField: RankFeatureField = rankFeatureField("rankFeatureField")
-    val rankFeaturesField: RankFeaturesField = rankFeaturesField("rankFeaturesField")
-    val flattenedField: FlattenedField = flattenedField("flattenedField")
-    val shapeField: ShapeField = shapeField("shapeField")
-    val pointField: PointField = pointField("pointField")
-    val constantKeywordField: ConstantKeywordField = constantKeywordField("constantKeywordField")
-    val wildcardField: WildcardField = wildcardField("wildcardField")
-    val integerRangeField: IntegerRangeField = integerRangeField("integerRangeField")
-    val floatRangeField: FloatRangeField = floatRangeField("floatRangeField")
-    val longRangeField: LongRangeField = longRangeField("longRangeField")
-    val doubleRangeField: DoubleRangeField = doubleRangeField("doubleRangeField")
-    val dateRangeField: DateRangeField = dateRangeField("dateRangeField")
-    val ipRangeField: IpRangeField = ipRangeField("ipRangeField")
-    val address: QAddress = QAddress(this, "address", false)
-    val activities: QActivity = QActivity(this, "activities", true)
+// Object field classes for nested/object types
+class QAddress(
+    parent: ObjectField?,
+    path: String,
+    nested: Boolean,
+) : ObjectField(parent, path, nested) {
+    @JvmField
+    val city: TextField<String> = textField<String>("city")
+    
+    @JvmField
+    val street: TextField<String> = textField<String>("street")
+    
+    @JvmField
+    val zipCode: KeywordField<String> = keywordField<String>("zipCode")
+}
+```
+
+### 2. Central Metamodels Registry
+
+```kotlin
+// Centralized registry for all document metamodels
+@Generated("com.qelasticsearch.processor.QElasticsearchSymbolProcessor")
+data object Metamodels {
+    /**
+     * Metamodel for @Document class [com.qelasticsearch.integration.TestDocument]
+     */
+    @JvmField
+    val testDocument: QTestDocument = QTestDocument()
+    
+    /**
+     * Metamodel for @Document class [com.qelasticsearch.integration.ExampleDocument]
+     */
+    @JvmField
+    val exampleDocument: QExampleDocument = QExampleDocument()
+    
+    // ... other document metamodels
 }
 ```
 
@@ -153,32 +170,67 @@ public class IndexModulePath implements ElasticsearchIdentifiable<ModulePath> {
 Into a type-safe Kotlin DSL:
 
 ```kotlin
-object QIndexModulePath : Index("module_path_iperia") {
+class QIndexModulePath(
+    parent: ObjectField? = null,
+    fieldName: String = "",
+    nested: Boolean = false,
+) : Index("module_path_iperia", parent, fieldName, nested) {
+    @JvmField
     val id: KeywordField<String> = keywordField<String>("id")
-    val longCode: QLongCodeMultiField = QLongCodeMultiField(this, "longCode")
+    
+    @JvmField
+    val longCode: LongField<Long> = longField<Long>("longCode")
+    
+    @JvmField
     val trainingAgency: QIndexTrainingAgency = QIndexTrainingAgency(this, "trainingAgency", false)
-    val addresses: QIndexAddress = QIndexAddress(this, "addresses", true)
-    val lastUpdatedDate: DateField<String> = dateField<String>("lastUpdatedDate")
+    
+    @JvmField
+    val addresses: QIndexAddress = QIndexAddress(this, "addresses", true) // nested = true
+    
+    @JvmField
+    val lastUpdatedDate: DateField<Date> = dateField<Date>("lastUpdatedDate")
+    
+    @JvmField
     val trainingAgencyAssociation: BooleanField<Boolean> = booleanField<Boolean>("trainingAgencyAssociation")
+    
     // ... other fields
 }
 
-class QLongCodeMultiField(parent: ObjectField, path: String) : MultiField<LongField<Long>>(parent, LongField(parent, path)) {
-    val search: TextField<String> = textField<String>("search")
-}
-
-class QIndexTrainingAgency(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
+class QIndexTrainingAgency(
+    parent: ObjectField?,
+    path: String,
+    nested: Boolean,
+) : ObjectField(parent, path, nested) {
+    @JvmField
     val id: KeywordField<String> = keywordField<String>("id")
+    
+    @JvmField
     val legalPerson: QIndexLegalPerson = QIndexLegalPerson(this, "legalPerson", false)
 }
 
-class QIndexAddress(parent: ObjectField?, path: String, nested: Boolean = false) : ObjectField(parent, path, nested) {
+class QIndexAddress(
+    parent: ObjectField?,
+    path: String,
+    nested: Boolean,
+) : ObjectField(parent, path, nested) {
+    @JvmField
     val id: KeywordField<String> = keywordField<String>("id")
+    
+    @JvmField
     val city: TextField<String> = textField<String>("city")
+    
+    @JvmField
     val departmentCode: KeywordField<String> = keywordField<String>("departmentCode")
+    
+    @JvmField
     val region: KeywordField<String> = keywordField<String>("region")
+    
+    @JvmField
     val location: GeoPointField = geoPointField("location")
 }
+
+// Access through centralized registry
+val document = Metamodels.indexModulePath
 ```
 
 ## Path Traversal Requirements
@@ -186,7 +238,8 @@ class QIndexAddress(parent: ObjectField?, path: String, nested: Boolean = false)
 The generated DSL should support dotted notation path traversal to obtain the full field path:
 
 ```kotlin
-val document = QIndexModulePath
+// Access document metamodel through centralized registry
+val document = Metamodels.indexModulePath
 
 // Path traversal examples
 document.path() shouldBe ""
@@ -199,6 +252,11 @@ document.addresses.city.path() shouldBe "addresses.city"
 document.trainingAgency.id.isNestedPath() shouldBe false
 document.addresses.city.isNestedPath() shouldBe true
 document.addresses.city.nestedPaths().toList() shouldContainExactly listOf("addresses")
+
+// @Document-to-@Document references work seamlessly
+val exampleDoc = Metamodels.exampleDocument
+exampleDoc.testDocument.name.path() shouldBe "testDocument.name"
+exampleDoc.testDocument.address.city.path() shouldBe "testDocument.address.city"
 ```
 
 This allows for:
@@ -233,6 +291,40 @@ dependencies {
 }
 ```
 
+## Architecture Design
+
+### Metamodel Generation Pattern
+
+The library follows a two-tier generation pattern:
+
+1. **Document Metamodel Classes**: Regular Kotlin classes that can be instantiated with constructor parameters, enabling @Document-to-@Document references
+2. **Centralized Registry**: A `Metamodels` data object that provides singleton-like access to all document metamodels
+
+### Key Design Decisions
+
+- **Classes over Data Objects**: Document metamodels are generated as regular classes (not data objects) to support constructor parameters for parent/path/nested relationships
+- **Default Constructor Values**: All constructors have default values (`parent: ObjectField? = null, fieldName: String = "", nested: Boolean = false`) for clean instantiation
+- **@JvmField Annotations**: All field properties are annotated with `@JvmField` for optimal Java interoperability
+- **Path Building**: Automatic path construction through parent hierarchy traversal supports deep nested structures
+- **Import Optimization**: Advanced import management with package proximity prioritization and conflict resolution
+
+### Constants and Configuration
+
+All generation constants are centralized in `CoreConstants`:
+
+```kotlin
+object CoreConstants {
+    const val CORE_PACKAGE = "com.qelasticsearch.core"
+    const val METAMODELS_PACKAGE = "com.qelasticsearch"
+    const val Q_PREFIX = "Q"
+    const val INDEX_CLASS = "Index"
+    const val OBJECT_FIELDS_CLASS = "ObjectField"
+    const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
+    const val METAMODELS_CLASS_NAME = "Metamodels"
+    const val PRODUCT_NAME = "QElasticsearch"
+}
+```
+
 ## Memories
 
 - remember to publish to mavenLocal when finish to implement a feature
@@ -245,3 +337,6 @@ dependencies {
 - use KSP for annotation processing (not kapt)
 - path() is a function, not a property
 - isNestedPath() for nested detection, not fieldPath.isNested
+- **IMPORTANT**: @Document-to-@Document references now work through class instantiation, not data objects
+- **IMPORTANT**: Always use `Metamodels.documentName` for accessing document metamodels in consumer code
+- **IMPORTANT**: All field properties in generated classes use `@JvmField` for Java compatibility
