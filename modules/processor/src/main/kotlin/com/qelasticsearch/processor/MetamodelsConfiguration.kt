@@ -28,15 +28,12 @@ class MetamodelsConfiguration(
     val sourceSet = detectSourceSet(documentClasses)
     logger.info("Detected source set: $sourceSet")
 
-    // Find common base package
-    val basePackage = findCommonBasePackage(documentClasses)
-    logger.info("Detected base package: $basePackage")
-
     // Check for KSP configuration overrides
     val configuredPackage = getConfiguredPackage(sourceSet)
     val configuredClassName = getConfiguredClassName(sourceSet)
 
-    val finalPackage = configuredPackage ?: generateDefaultPackage(basePackage, sourceSet)
+    // Use simple, predictable default: com.qelasticsearch.metamodels.{sourceset}
+    val finalPackage = configuredPackage ?: generateDefaultPackage(sourceSet)
     val finalClassName = configuredClassName ?: CoreConstants.METAMODELS_CLASS_NAME
 
     // Log configuration resolution summary
@@ -71,42 +68,10 @@ class MetamodelsConfiguration(
     return sourceSets.firstOrNull() ?: "main"
   }
 
-  /** Find the common base package from all document classes. */
-  private fun findCommonBasePackage(documentClasses: List<KSClassDeclaration>): String {
-    val packages = documentClasses.map { it.packageName.asString() }.filter { it.isNotEmpty() }
 
-    if (packages.isEmpty()) {
-      return CoreConstants.METAMODELS_PACKAGE
-    }
-
-    val commonPrefix =
-      if (packages.size == 1) {
-        packages.first()
-      } else {
-        // Find the longest common prefix
-        packages.reduce { acc, pkg -> acc.commonPrefixWith(pkg) }
-      }
-
-    // Clean up to package boundary (must end with complete package segment)
-    return cleanToPackageBoundary(commonPrefix)
-  }
-
-  /** Clean package name to end at package boundary. */
-  private fun cleanToPackageBoundary(packagePrefix: String): String {
-    if (packagePrefix.isEmpty()) {
-      return CoreConstants.METAMODELS_PACKAGE
-    }
-
-    // If it ends with a dot, remove it
-    val cleaned = packagePrefix.trimEnd('.')
-
-    // If empty after cleaning, use fallback
-    return cleaned.ifEmpty { CoreConstants.METAMODELS_PACKAGE }
-  }
-
-  /** Generate default package name: basePackage.metamodels.sourceSet */
-  private fun generateDefaultPackage(basePackage: String, sourceSet: String): String {
-    return "$basePackage.metamodels.$sourceSet"
+  /** Generate simple, predictable default package name: com.qelasticsearch.metamodels.{sourceSet} */
+  private fun generateDefaultPackage(sourceSet: String): String {
+    return "${CoreConstants.METAMODELS_PACKAGE}.metamodels.$sourceSet"
   }
 
   // Future configuration support methods

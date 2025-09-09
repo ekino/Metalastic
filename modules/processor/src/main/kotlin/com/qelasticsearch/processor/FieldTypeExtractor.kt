@@ -47,9 +47,13 @@ class FieldTypeExtractor(private val logger: KSPLogger, private val debugLogging
    * Determines if a field type represents an object type (Object or Nested) that should be treated
    * as a custom object field.
    */
-  private fun determineIfObjectType(fieldType: FieldType, property: KSPropertyDeclaration): Boolean {
+  private fun determineIfObjectType(
+    fieldType: FieldType,
+    property: KSPropertyDeclaration,
+  ): Boolean {
     return when (fieldType) {
-      FieldType.Object, FieldType.Nested -> {
+      FieldType.Object,
+      FieldType.Nested -> {
         if (isCollectionType(getSimpleTypeName(property.type))) {
           isValidCollectionObjectType(property)
         } else {

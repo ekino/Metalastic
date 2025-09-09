@@ -464,8 +464,11 @@ The processor resolves configuration with the following priority:
 
 1. **Source set specific**: `metamodels.main.package` > `metamodels.test.package`
 2. **Global fallback**: `metamodels.package` > `metamodels.className` 
-3. **Auto-detection**: Base package detection + source set suffix
-4. **Default**: `com.qelasticsearch.Metamodels`
+3. **Simple default**: `com.qelasticsearch.metamodels.{sourceSet}.Metamodels`
+
+**No complex package detection** - uses predictable defaults:
+- Main source set: `com.qelasticsearch.metamodels.main.Metamodels`
+- Test source set: `com.qelasticsearch.metamodels.test.Metamodels`
 
 #### Examples
 
