@@ -1,6 +1,5 @@
 package com.qelasticsearchtest.integration
 
-import com.qelasticsearch.metamodels.main.Metamodels
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -27,7 +26,7 @@ class NameCollisionSpec :
       }
 
       should("correctly reference outer NameCollision class") {
-        val outerNameCollision = Metamodels.exampleDocument.nameCollision
+        val outerNameCollision = QExampleDocument.exampleDocument.nameCollision
 
         // Verify it's not null and is the correct object
         outerNameCollision shouldNotBe null
@@ -39,7 +38,7 @@ class NameCollisionSpec :
       }
 
       should("correctly reference inner NameCollision class") {
-        val innerNameCollision = Metamodels.exampleDocument.nestedObject.nameCollision
+        val innerNameCollision = QExampleDocument.exampleDocument.nestedObject.nameCollision
 
         // Verify it's not null and is the correct object
         innerNameCollision shouldNotBe null
@@ -51,8 +50,9 @@ class NameCollisionSpec :
       }
 
       should("have different field paths for different NameCollision classes") {
-        val outerFirstLevel = Metamodels.exampleDocument.nameCollision.firstLevel
-        val innerSecondLevel = Metamodels.exampleDocument.nestedObject.nameCollision.secondLevel
+        val outerFirstLevel = QExampleDocument.exampleDocument.nameCollision.firstLevel
+        val innerSecondLevel =
+          QExampleDocument.exampleDocument.nestedObject.nameCollision.secondLevel
 
         // The paths should be different
         outerFirstLevel.path() shouldNotBe innerSecondLevel.path()
@@ -63,7 +63,7 @@ class NameCollisionSpec :
       }
 
       should("handle separate class references correctly") {
-        val separateClass = Metamodels.exampleDocument.fromSeparateClass
+        val separateClass = QExampleDocument.exampleDocument.fromSeparateClass
 
         // This should reference the standalone QNameCollision class
         separateClass.shouldBeInstanceOf<QNameCollision>()
@@ -74,7 +74,7 @@ class NameCollisionSpec :
       }
 
       should("maintain correct nesting hierarchy") {
-        val nestedObject = Metamodels.exampleDocument.nestedObject
+        val nestedObject = QExampleDocument.exampleDocument.nestedObject
 
         // Verify nestedObject has the correct structure
         nestedObject.shouldBeInstanceOf<QExampleDocument.NestedObject>()
@@ -98,21 +98,21 @@ class NameCollisionSpec :
         // The inner class should be nested within NestedObject
         innerClass.java.enclosingClass shouldBe QExampleDocument.NestedObject::class.java
 
-        // The outer class should be nested within Metamodels.exampleDocument
-        outerClass.java.enclosingClass shouldBe Metamodels.exampleDocument::class.java
+        // The outer class should be nested within QExampleDocument.exampleDocument
+        outerClass.java.enclosingClass shouldBe QExampleDocument.exampleDocument::class.java
       }
 
       should("support field access through different paths") {
         // Test that we can access fields through different paths without ambiguity
 
         // Access outer NameCollision field
-        val path1 = Metamodels.exampleDocument.nameCollision.firstLevel.path()
+        val path1 = QExampleDocument.exampleDocument.nameCollision.firstLevel.path()
 
         // Access inner NameCollision field
-        val path2 = Metamodels.exampleDocument.nestedObject.nameCollision.secondLevel.path()
+        val path2 = QExampleDocument.exampleDocument.nestedObject.nameCollision.secondLevel.path()
 
         // Access separate class field
-        val path3 = Metamodels.exampleDocument.fromSeparateClass.separateClassField.path()
+        val path3 = QExampleDocument.exampleDocument.fromSeparateClass.separateClassField.path()
 
         // All paths should be unique
         path1 shouldNotBe path2
@@ -127,8 +127,8 @@ class NameCollisionSpec :
 
       should("handle nested detection correctly") {
         // Test the path building for object fields
-        val outerField = Metamodels.exampleDocument.nameCollision.firstLevel
-        val innerField = Metamodels.exampleDocument.nestedObject.nameCollision.secondLevel
+        val outerField = QExampleDocument.exampleDocument.nameCollision.firstLevel
+        val innerField = QExampleDocument.exampleDocument.nestedObject.nameCollision.secondLevel
 
         // Verify paths are correct for object fields
         outerField.path() shouldBe "nameCollision.firstLevel"
@@ -137,9 +137,9 @@ class NameCollisionSpec :
 
       should("maintain type safety across name collisions") {
         // Verify that the compiler can distinguish between the different classes
-        val outer: QExampleDocument.NameCollision = Metamodels.exampleDocument.nameCollision
+        val outer: QExampleDocument.NameCollision = QExampleDocument.exampleDocument.nameCollision
         val inner: QExampleDocument.NestedObject.NameCollision =
-          Metamodels.exampleDocument.nestedObject.nameCollision
+          QExampleDocument.exampleDocument.nestedObject.nameCollision
 
         // These should be different types
         outer::class shouldNotBe inner::class
@@ -153,7 +153,7 @@ class NameCollisionSpec :
     context("Edge cases and complex scenarios") {
       should("handle multiple levels of nesting") {
         // Test that the fix works for the actual structure we have
-        val document = Metamodels.exampleDocument
+        val document = QExampleDocument.exampleDocument
 
         // Test multi-level access
         val nestedAccess = document.nestedObject.nameCollision.secondLevel
@@ -168,9 +168,9 @@ class NameCollisionSpec :
 
       should("support different field types in same-named classes") {
         // The outer NameCollision has firstLevel (Text)
-        val outerField = Metamodels.exampleDocument.nameCollision.firstLevel
+        val outerField = QExampleDocument.exampleDocument.nameCollision.firstLevel
         // The inner NameCollision has secondLevel (Text)
-        val innerField = Metamodels.exampleDocument.nestedObject.nameCollision.secondLevel
+        val innerField = QExampleDocument.exampleDocument.nestedObject.nameCollision.secondLevel
 
         // Both are Text fields but have different paths
         outerField.path() shouldBe "nameCollision.firstLevel"
@@ -179,12 +179,12 @@ class NameCollisionSpec :
 
       should("maintain functional consistency") {
         // Multiple references to the same object should have same behavior
-        val ref1 = Metamodels.exampleDocument.nameCollision
-        val ref2 = Metamodels.exampleDocument.nameCollision
+        val ref1 = QExampleDocument.exampleDocument.nameCollision
+        val ref2 = QExampleDocument.exampleDocument.nameCollision
         ref1.firstLevel.path() shouldBe ref2.firstLevel.path()
 
-        val ref3 = Metamodels.exampleDocument.nestedObject.nameCollision
-        val ref4 = Metamodels.exampleDocument.nestedObject.nameCollision
+        val ref3 = QExampleDocument.exampleDocument.nestedObject.nameCollision
+        val ref4 = QExampleDocument.exampleDocument.nestedObject.nameCollision
         ref3.secondLevel.path() shouldBe ref4.secondLevel.path()
 
         // Different objects should have different paths
