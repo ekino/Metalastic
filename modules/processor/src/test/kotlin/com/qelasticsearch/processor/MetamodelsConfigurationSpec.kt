@@ -1,109 +1,110 @@
 package com.qelasticsearch.processor
 
-import com.google.devtools.ksp.processing.KSPLogger
+import com.qelasticsearch.processor.model.ElasticsearchGraph
+import com.qelasticsearch.processor.options.MetamodelsConfiguration
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 
 class MetamodelsConfigurationSpec :
   ShouldSpec({
-    val logger = mockk<KSPLogger>(relaxed = true)
+    should("use default package when no overrides provided") {
+      val config = MetamodelsConfiguration()
+      val mockGraph = mockk<ElasticsearchGraph>()
+      val mockModel = mockk<ElasticsearchGraph.QClassModel>()
+      val mockDeclaration = mockk<com.google.devtools.ksp.symbol.KSClassDeclaration>()
+      val mockFile = mockk<com.google.devtools.ksp.symbol.KSFile>()
 
-    should("use defaults when no KSP options provided") {
-      val config = MetamodelsConfiguration(logger, emptyMap())
+      every { mockGraph.models() } returns setOf(mockModel)
+      every { mockGraph.rootModels() } returns sequenceOf(mockModel)
+      every { mockModel.sourceClassDeclaration } returns mockDeclaration
+      every { mockModel.packageName } returns "com.example"
+      every { mockDeclaration.containingFile } returns mockFile
+      every { mockFile.filePath } returns "/src/main/java/com/example/Test.java"
 
-      val result = config.generateMetamodelsInfo(emptyList())
+      val result = config.generateMetamodelsInfo(mockGraph)
 
-      result.packageName shouldBe CoreConstants.METAMODELS_PACKAGE
-      result.className shouldBe CoreConstants.METAMODELS_CLASS_NAME
+      result.packageName shouldBe "com.example"
+      result.className shouldBe CoreConstants.Metamodels.SIMPLE_NAME
     }
 
-    should("apply source set specific package configuration") {
-      val options = mapOf("metamodels.main.package" to "com.example.custom")
-      val config = MetamodelsConfiguration(logger, options)
+    should("apply global package override") {
+      val config = MetamodelsConfiguration(packageOverride = "com.custom.global")
+      val mockGraph = mockk<ElasticsearchGraph>()
+      val mockModel = mockk<ElasticsearchGraph.QClassModel>()
+      val mockDeclaration = mockk<com.google.devtools.ksp.symbol.KSClassDeclaration>()
+      val mockFile = mockk<com.google.devtools.ksp.symbol.KSFile>()
 
-      // Mock document classes with main source set
-      val result = config.generateMetamodelsInfo(emptyList())
+      every { mockGraph.models() } returns setOf(mockModel)
+      every { mockModel.sourceClassDeclaration } returns mockDeclaration
+      every { mockDeclaration.containingFile } returns mockFile
+      every { mockFile.filePath } returns "/src/main/java/com/example/Test.java"
 
-      // With empty document classes, should use provided package override for main
-      result.packageName shouldBe CoreConstants.METAMODELS_PACKAGE
-      result.className shouldBe CoreConstants.METAMODELS_CLASS_NAME
+      val result = config.generateMetamodelsInfo(mockGraph)
+
+      result.packageName shouldBe "com.custom.global"
+      result.className shouldBe CoreConstants.Metamodels.SIMPLE_NAME
     }
 
-    should("apply global fallback package configuration") {
-      val options = mapOf("metamodels.package" to "com.example.global")
-      val config = MetamodelsConfiguration(logger, options)
+    should("apply source set specific package override") {
+      val config =
+        MetamodelsConfiguration(sourceSetPackageOverrides = mapOf("main" to "com.custom.main"))
+      val mockGraph = mockk<ElasticsearchGraph>()
+      val mockModel = mockk<ElasticsearchGraph.QClassModel>()
+      val mockDeclaration = mockk<com.google.devtools.ksp.symbol.KSClassDeclaration>()
+      val mockFile = mockk<com.google.devtools.ksp.symbol.KSFile>()
 
-      val result = config.generateMetamodelsInfo(emptyList())
+      every { mockGraph.models() } returns setOf(mockModel)
+      every { mockModel.sourceClassDeclaration } returns mockDeclaration
+      every { mockDeclaration.containingFile } returns mockFile
+      every { mockFile.filePath } returns "/src/main/java/com/example/Test.java"
 
-      result.packageName shouldBe CoreConstants.METAMODELS_PACKAGE
-      result.className shouldBe CoreConstants.METAMODELS_CLASS_NAME
+      val result = config.generateMetamodelsInfo(mockGraph)
+
+      result.packageName shouldBe "com.custom.main"
+      result.className shouldBe CoreConstants.Metamodels.SIMPLE_NAME
     }
 
-    should("apply source set specific class name configuration") {
-      val options = mapOf("metamodels.main.className" to "CustomMetamodels")
-      val config = MetamodelsConfiguration(logger, options)
+    should("apply global class name override") {
+      val config = MetamodelsConfiguration(classNameOverride = "CustomMetamodels")
+      val mockGraph = mockk<ElasticsearchGraph>()
+      val mockModel = mockk<ElasticsearchGraph.QClassModel>()
+      val mockDeclaration = mockk<com.google.devtools.ksp.symbol.KSClassDeclaration>()
+      val mockFile = mockk<com.google.devtools.ksp.symbol.KSFile>()
 
-      val result = config.generateMetamodelsInfo(emptyList())
+      every { mockGraph.models() } returns setOf(mockModel)
+      every { mockGraph.rootModels() } returns sequenceOf(mockModel)
+      every { mockModel.sourceClassDeclaration } returns mockDeclaration
+      every { mockModel.packageName } returns "com.example"
+      every { mockDeclaration.containingFile } returns mockFile
+      every { mockFile.filePath } returns "/src/main/java/com/example/Test.java"
 
-      result.packageName shouldBe CoreConstants.METAMODELS_PACKAGE
-      result.className shouldBe CoreConstants.METAMODELS_CLASS_NAME
+      val result = config.generateMetamodelsInfo(mockGraph)
+
+      result.packageName shouldBe "com.example"
+      result.className shouldBe "CustomMetamodels"
     }
 
-    should("validate and reject invalid package names") {
-      val options = mapOf("metamodels.package" to "invalid..package")
-      val config = MetamodelsConfiguration(logger, options)
+    should("find common ancestor package for multiple packages") {
+      val config = MetamodelsConfiguration()
+      val mockGraph = mockk<ElasticsearchGraph>()
+      val mockModel1 = mockk<ElasticsearchGraph.QClassModel>()
+      val mockModel2 = mockk<ElasticsearchGraph.QClassModel>()
+      val mockDeclaration1 = mockk<com.google.devtools.ksp.symbol.KSClassDeclaration>()
+      val mockFile = mockk<com.google.devtools.ksp.symbol.KSFile>()
 
-      // Test validation directly with processor options since generateMetamodelsInfo
-      // doesn't use global options when document list is empty
-      config.getProcessorOptions() // This will trigger validation
+      every { mockGraph.models() } returns setOf(mockModel1)
+      every { mockGraph.rootModels() } returns sequenceOf(mockModel1, mockModel2)
+      every { mockModel1.sourceClassDeclaration } returns mockDeclaration1
+      every { mockModel1.packageName } returns "com.example.test"
+      every { mockModel2.packageName } returns "com.example.other"
+      every { mockDeclaration1.containingFile } returns mockFile
+      every { mockFile.filePath } returns "/src/main/java/com/example/test/Test.java"
 
-      // Verify logging happened for the invalid option
-      verify(atLeast = 1) { logger.info(any()) }
-    }
+      val result = config.generateMetamodelsInfo(mockGraph)
 
-    should("validate and reject invalid class names") {
-      val options = mapOf("metamodels.className" to "invalidClassName")
-      val config = MetamodelsConfiguration(logger, options)
-
-      val result = config.generateMetamodelsInfo(emptyList())
-
-      result.className shouldBe CoreConstants.METAMODELS_CLASS_NAME
-      // With empty document list, global className won't be used, so no validation warning
-    }
-
-    should("parse boolean options correctly") {
-      val options =
-        mapOf(
-          "qelasticsearch.generateJavaCompatibility" to "true",
-          "qelasticsearch.debugLogging" to "invalid",
-        )
-      val config = MetamodelsConfiguration(logger, options)
-
-      val result = config.getProcessorOptions()
-
-      result.generateJavaCompatibility shouldBe true
-      result.debugLogging shouldBe false // default due to invalid value
-      verify { logger.warn(match { it.contains("Invalid boolean value") }) }
-    }
-
-    should("use defaults for processor options when not specified") {
-      val config = MetamodelsConfiguration(logger, emptyMap())
-
-      val result = config.getProcessorOptions()
-
-      result.generateJavaCompatibility shouldBe true
-      result.debugLogging shouldBe false
-    }
-
-    should("log configuration resolution when generating processor options") {
-      val options = mapOf("qelasticsearch.debugLogging" to "true")
-      val config = MetamodelsConfiguration(logger, options)
-
-      val result = config.getProcessorOptions()
-
-      result.debugLogging shouldBe true
-      verify { logger.info(match { it.contains("Enabled feature") }) }
+      result.packageName shouldBe "com.example"
+      result.className shouldBe CoreConstants.Metamodels.SIMPLE_NAME
     }
   })

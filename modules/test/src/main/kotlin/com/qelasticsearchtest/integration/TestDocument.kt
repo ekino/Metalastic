@@ -19,6 +19,11 @@ class TestDocument {
   @Field(type = FieldType.Object) var address: Address = Address()
 
   @Field(type = FieldType.Nested) var tags: List<Tag> = emptyList()
+
+  @Document(indexName = "test_document_inner")
+  class TestDocument {
+    @Field(type = FieldType.Keyword) var id: String = ""
+  }
 }
 
 class Address {

@@ -1,5 +1,13 @@
 plugins { alias(libs.plugins.ksp) }
 
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+  compilerOptions {
+    freeCompilerArgs.addAll(
+      listOf("-Xcontext-parameters", "-opt-in=com.google.devtools.ksp.KspExperimental")
+    )
+  }
+}
+
 dependencies {
   // DSL runtime dependency
   implementation(project(":modules:core"))

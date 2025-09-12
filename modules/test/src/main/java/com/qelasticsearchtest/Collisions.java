@@ -19,9 +19,6 @@ public class Collisions {
     public com.qelasticsearchtest.AClass samePackage;
 
     @Field(type = FieldType.Object)
-    public com.qelasticsearchtest.integration.AClass fromIntegration;
-
-    @Field(type = FieldType.Object)
     public JavaTag javaTag;
 
     public static class AClass {

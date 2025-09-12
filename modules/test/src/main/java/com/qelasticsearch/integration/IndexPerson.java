@@ -1,7 +1,12 @@
 package com.qelasticsearch.integration;
 
+import com.qelasticsearchtest.integration.ExampleDocument;
+
+import java.time.temporal.Temporal;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
@@ -9,7 +14,17 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Document(indexName = "person")
-public class IndexPerson {
+public class IndexPerson<T> {
+
+    @Field(type = FieldType.Object)
+    private ExampleDocument exampleDocument;
+
+    @Field(type = FieldType.Object)
+    private Map<String,? extends Temporal> unsupportedNow;
+
+
+    @Field(type = FieldType.Nested)
+    private Map<String,Boolean> unsupportedNow2;
 
     @Id
     @Field(type = FieldType.Keyword)

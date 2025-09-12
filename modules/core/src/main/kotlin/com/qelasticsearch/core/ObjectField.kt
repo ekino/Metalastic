@@ -4,95 +4,121 @@ package com.qelasticsearch.core
  * Base class for object fields that can contain nested fields. Used for both nested objects and the
  * root index.
  */
-abstract class ObjectField(
-  parent: ObjectField? = null,
-  fieldName: String = "",
+abstract class ObjectField<T>(
+  parent: ObjectField<*>? = null,
+  name: String,
   private val nested: Boolean = false,
-) : Field(parent, fieldName) {
-  @YellowColor fun nested(): Boolean = nested
+) : Field<T>(parent, name) {
 
-  // Field creation helper methods for cleaner generated code
+  fun nested(): kotlin.Boolean = nested
+
+  // Auto field helpers
+  inline fun <reified T> auto(fieldName: String): AutoField<T> = AutoField(this, fieldName)
 
   // Text field helpers
-  inline fun <reified T> textField(fieldName: String): TextField<T> = TextField(this, fieldName)
+  inline fun <reified T> text(fieldName: String): TextField<T> = TextField(this, fieldName)
 
   // Keyword field helpers
-  inline fun <reified T> keywordField(fieldName: String): KeywordField<T> =
-    KeywordField(this, fieldName)
+  inline fun <reified T> keyword(fieldName: String): KeywordField<T> = KeywordField(this, fieldName)
 
   // Numeric field helpers
-  inline fun <reified T> longField(fieldName: String): LongField<T> = LongField(this, fieldName)
+  inline fun <reified T> long(fieldName: String): LongField<T> = LongField(this, fieldName)
 
-  inline fun <reified T> integerField(fieldName: String): IntegerField<T> =
-    IntegerField(this, fieldName)
+  inline fun <reified T> integer(fieldName: String): IntegerField<T> = IntegerField(this, fieldName)
 
-  inline fun <reified T> shortField(fieldName: String): ShortField<T> = ShortField(this, fieldName)
+  inline fun <reified T> short(fieldName: String): ShortField<T> = ShortField(this, fieldName)
 
-  inline fun <reified T> byteField(fieldName: String): ByteField<T> = ByteField(this, fieldName)
+  inline fun <reified T> byte(fieldName: String): ByteField<T> = ByteField(this, fieldName)
 
-  inline fun <reified T> doubleField(fieldName: String): DoubleField<T> =
-    DoubleField(this, fieldName)
+  inline fun <reified T> double(fieldName: String): DoubleField<T> = DoubleField(this, fieldName)
 
-  inline fun <reified T> floatField(fieldName: String): FloatField<T> = FloatField(this, fieldName)
+  inline fun <reified T> float(fieldName: String): FloatField<T> = FloatField(this, fieldName)
 
-  fun halfFloatField(fieldName: String): HalfFloatField = HalfFloatField(this, fieldName)
+  inline fun <reified T> halfFloat(fieldName: String): HalfFloatField<T> =
+    HalfFloatField(this, fieldName)
 
-  fun scaledFloatField(fieldName: String): ScaledFloatField = ScaledFloatField(this, fieldName)
+  inline fun <reified T> scaledFloat(fieldName: String): ScaledFloatField<T> =
+    ScaledFloatField(this, fieldName)
 
   // Date field helpers
-  inline fun <reified T> dateField(fieldName: String): DateField<T> = DateField(this, fieldName)
+  inline fun <reified T> date(fieldName: String): DateField<T> = DateField(this, fieldName)
 
-  fun dateNanosField(fieldName: String): DateNanosField = DateNanosField(this, fieldName)
+  inline fun <reified T> dateNanos(fieldName: String): DateNanosField<T> =
+    DateNanosField(this, fieldName)
 
   // Boolean field helper
-  inline fun <reified T> booleanField(fieldName: String): BooleanField<T> =
-    BooleanField(this, fieldName)
+  inline fun <reified T> boolean(fieldName: String): BooleanField<T> = BooleanField(this, fieldName)
 
   // Binary field helper
-  fun binaryField(fieldName: String): BinaryField = BinaryField(this, fieldName)
+  inline fun <reified T> binary(fieldName: String): BinaryField<T> = BinaryField(this, fieldName)
 
-  // Geo field helpers
-  fun ipField(fieldName: String): IpField = IpField(this, fieldName)
-
-  fun geoPointField(fieldName: String): GeoPointField = GeoPointField(this, fieldName)
-
-  fun geoShapeField(fieldName: String): GeoShapeField = GeoShapeField(this, fieldName)
+  // IP field helper
+  inline fun <reified T> ip(fieldName: String): IpField<T> = IpField(this, fieldName)
 
   // Specialized field helpers
-  fun completionField(fieldName: String): CompletionField = CompletionField(this, fieldName)
+  inline fun <reified T> completion(fieldName: String): CompletionField<T> =
+    CompletionField(this, fieldName)
 
-  fun tokenCountField(fieldName: String): TokenCountField = TokenCountField(this, fieldName)
+  inline fun <reified T> tokenCount(fieldName: String): TokenCountField<T> =
+    TokenCountField(this, fieldName)
 
-  fun percolatorField(fieldName: String): PercolatorField = PercolatorField(this, fieldName)
+  inline fun <reified T> percolator(fieldName: String): PercolatorField<T> =
+    PercolatorField(this, fieldName)
 
-  fun rankFeatureField(fieldName: String): RankFeatureField = RankFeatureField(this, fieldName)
+  inline fun <reified T> rankFeature(fieldName: String): RankFeatureField<T> =
+    RankFeatureField(this, fieldName)
 
-  fun rankFeaturesField(fieldName: String): RankFeaturesField = RankFeaturesField(this, fieldName)
+  inline fun <reified T> rankFeatures(fieldName: String): RankFeaturesField<T> =
+    RankFeaturesField(this, fieldName)
 
-  fun flattenedField(fieldName: String): FlattenedField = FlattenedField(this, fieldName)
+  inline fun <reified T> flattened(fieldName: String): FlattenedField<T> =
+    FlattenedField(this, fieldName)
 
-  fun shapeField(fieldName: String): ShapeField = ShapeField(this, fieldName)
+  inline fun <reified T> shape(fieldName: String): ShapeField<T> = ShapeField(this, fieldName)
 
-  fun pointField(fieldName: String): PointField = PointField(this, fieldName)
+  inline fun <reified T> point(fieldName: String): PointField<T> = PointField(this, fieldName)
 
-  fun constantKeywordField(fieldName: String): ConstantKeywordField =
+  inline fun <reified T> constantKeyword(fieldName: String): ConstantKeywordField<T> =
     ConstantKeywordField(this, fieldName)
 
-  fun wildcardField(fieldName: String): WildcardField = WildcardField(this, fieldName)
+  inline fun <reified T> wildcard(fieldName: String): WildcardField<T> =
+    WildcardField(this, fieldName)
 
   // Range field helpers
-  fun integerRangeField(fieldName: String): IntegerRangeField = IntegerRangeField(this, fieldName)
+  inline fun <reified T> integerRange(fieldName: String): IntegerRangeField<T> =
+    IntegerRangeField(this, fieldName)
 
-  fun floatRangeField(fieldName: String): FloatRangeField = FloatRangeField(this, fieldName)
+  inline fun <reified T> floatRange(fieldName: String): FloatRangeField<T> =
+    FloatRangeField(this, fieldName)
 
-  fun longRangeField(fieldName: String): LongRangeField = LongRangeField(this, fieldName)
+  inline fun <reified T> longRange(fieldName: String): LongRangeField<T> =
+    LongRangeField(this, fieldName)
 
-  fun doubleRangeField(fieldName: String): DoubleRangeField = DoubleRangeField(this, fieldName)
+  inline fun <reified T> doubleRange(fieldName: String): DoubleRangeField<T> =
+    DoubleRangeField(this, fieldName)
 
-  fun dateRangeField(fieldName: String): DateRangeField = DateRangeField(this, fieldName)
+  inline fun <reified T> dateRange(fieldName: String): DateRangeField<T> =
+    DateRangeField(this, fieldName)
 
-  fun ipRangeField(fieldName: String): IpRangeField = IpRangeField(this, fieldName)
+  inline fun <reified T> ipRange(fieldName: String): MatchOnlyTextField<T> =
+    MatchOnlyTextField(this, fieldName)
 
-  inline fun <reified T> dynamicField(fieldName: String): DynamicField<T> =
-    DynamicField(this, fieldName)
+  // Advanced field helpers
+  inline fun <reified T> searchAsYouType(fieldName: String): SearchAsYouTypeField<T> =
+    SearchAsYouTypeField(this, fieldName)
+
+  inline fun <reified T> denseVector(fieldName: String): DenseVectorField<T> =
+    DenseVectorField(this, fieldName)
+
+  inline fun <reified T> alias(fieldName: String): AliasField<T> = AliasField(this, fieldName)
+
+  inline fun <reified T> version(fieldName: String): VersionField<T> = VersionField(this, fieldName)
+
+  inline fun <reified T> murmur3(fieldName: String): Murmur3Field<T> = Murmur3Field(this, fieldName)
+
+  inline fun <reified T> matchOnlyText(fieldName: String): MatchOnlyTextField<T> =
+    MatchOnlyTextField(this, fieldName)
+
+  inline fun <reified T> annotatedText(fieldName: String): AnnotatedTextField<T> =
+    AnnotatedTextField(this, fieldName)
 }

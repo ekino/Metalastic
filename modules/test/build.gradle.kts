@@ -12,6 +12,7 @@ dependencies {
   implementation(libs.spring.data.elasticsearch)
 
   // Testing dependencies
+  testImplementation(libs.junit.jupiter)
   testImplementation(libs.kotlin.compile.testing)
   testImplementation(libs.kotlin.compile.testing.ksp)
   testImplementation(libs.mockk)
@@ -25,17 +26,16 @@ dependencies {
 
 ksp {
   // Package and Class Name Customization
-  //  arg("metamodels.main.package", "com.example.search.metamodels")
-  //  arg("metamodels.main.className", "SearchMetamodels")
-  //  arg("metamodels.test.package", "com.example.test.metamodels")
-  //  arg("metamodels.test.className", "TestMetamodels")
+  arg("metamodels.main.package", "com.example.search.metamodels")
+  arg("metamodels.main.className", "MainMetamodels")
+  arg("metamodels.test.package", "com.example.test.metamodels")
+  arg("metamodels.test.className", "TestMetamodels")
 
   //     Global Fallbacks
-  //    arg("metamodels.package", "com.example.metamodels")
-  //    arg("metamodels.className", "GlobalMetamodels")
+  arg("metamodels.package", "com.example.metamodels")
+  //  arg("metamodels.className", "GlobalMetamodels")
 
   // Feature Toggles
   arg("qelasticsearch.generateJavaCompatibility", "true") // default: true
-  //    arg("qelasticsearch.generateDynamicFields", "true")     // default: true
-  //    arg("qelasticsearch.debugLogging", "false")             // default: false
+  arg("qelasticsearch.reportingPath", "build/reports/qelasticsearch/processor-report.md")
 }

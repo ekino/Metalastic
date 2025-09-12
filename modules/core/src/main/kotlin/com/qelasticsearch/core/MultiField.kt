@@ -1,6 +1,6 @@
 package com.qelasticsearch.core
 
-abstract class MultiField<T : Field>(parent: ObjectField, internal val mainField: T) :
-  ObjectField(parent, mainField.name()) {
-  fun mainField(): T = mainField
+abstract class MultiField<T, M : Field<*>>(parent: ObjectField<*>, internal val mainField: M) :
+  ObjectField<T>(parent, mainField.name()) {
+  fun mainField(): M = mainField
 }

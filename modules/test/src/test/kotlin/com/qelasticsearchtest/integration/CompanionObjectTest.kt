@@ -10,7 +10,7 @@ class CompanionObjectTest :
     should("provide static access via companion object") {
       // Test that companion object provides static access
       val staticInstance = QIndexPerson.indexPerson
-      val manualInstance = QIndexPerson()
+      val manualInstance = QIndexPerson<Any>()
 
       // Both should be valid instances
       staticInstance shouldNotBe null
@@ -46,7 +46,7 @@ class CompanionObjectTest :
       val companionField = QIndexPerson::class.java.getField("indexPerson")
       companionField shouldNotBe null
 
-      val staticValue = companionField.get(null) as QIndexPerson
+      val staticValue = companionField.get(null) as QIndexPerson<*>
       staticValue shouldNotBe null
       staticValue.firstName.path() shouldBe "firstName"
     }

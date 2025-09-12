@@ -1,7 +1,12 @@
 package com.qelasticsearchtest.integration
 
+import com.qelasticsearch.core.BooleanField
+import com.qelasticsearch.core.IntegerField
+import com.qelasticsearch.core.KeywordField
+import com.qelasticsearch.core.TextField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 /**
  * Tests for interface getter method support in QElasticsearch annotation processor.
@@ -29,13 +34,13 @@ class InterfaceGetterMethodTest :
     }
 
     should("generate correct field types from getter method return types") {
-      val testItem = QTestItem(null, "test", false)
+      val testItem = QTestItem<Any>(null, "test", false)
 
       // Verify field types match getter method return types
-      testItem.category::class.java.simpleName shouldBe "KeywordField"
-      testItem.displayName::class.java.simpleName shouldBe "TextField"
-      testItem.priority::class.java.simpleName shouldBe "IntegerField"
-      testItem.active::class.java.simpleName shouldBe "BooleanField"
+      testItem.category.shouldBeInstanceOf<KeywordField<String>>()
+      testItem.displayName.shouldBeInstanceOf<TextField<String>>()
+      testItem.priority.shouldBeInstanceOf<IntegerField<Int>>()
+      testItem.active.shouldBeInstanceOf<BooleanField<Boolean>>()
     }
 
     should("integrate interface fields in document Q-classes") {

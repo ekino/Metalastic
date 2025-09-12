@@ -12,15 +12,13 @@ class BasicFieldsSpec :
   ShouldSpec({
     should("create Index with helper method field initialization") {
       val index =
-        object : Index("test-index") {
-          val name = textField<String>("name")
-          val age = integerField<Int>("age")
-          val active = booleanField<Boolean>("active")
-          val score = doubleField<Double>("score")
-          val category = keywordField<String>("category")
+        object : ObjectField<Any>(name = "") {
+          val name = text<String>("name")
+          val age = integer<Int>("age")
+          val active = boolean<kotlin.Boolean>("active")
+          val score = double<Double>("score")
+          val category = keyword<String>("category")
         }
-
-      index.indexName() shouldBe "test-index"
 
       // Verify field types
       index.name.shouldBeInstanceOf<TextField<String>>()
@@ -32,10 +30,10 @@ class BasicFieldsSpec :
 
     should("construct correct field paths") {
       val index =
-        object : Index("user") {
-          val email = keywordField<String>("email")
-          val firstName = textField<String>("firstName")
-          val lastLogin = dateField<java.util.Date>("lastLogin")
+        object : ObjectField<Any>(name = "") {
+          val email = keyword<String>("email")
+          val firstName = text<String>("firstName")
+          val lastLogin = date<java.util.Date>("lastLogin")
         }
 
       index.email.path() shouldBe "email"
@@ -44,10 +42,10 @@ class BasicFieldsSpec :
     }
 
     should("create simple ObjectFields with helper method initialization") {
-      class SimpleAddress(parent: ObjectField?, path: String, nested: Boolean = false) :
-        ObjectField(parent, path, nested) {
-        val city = textField<String>("city")
-        val country = keywordField<String>("country")
+      class SimpleAddress(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
+        ObjectField<Any>(parent, path, nested) {
+        val city = text<String>("city")
+        val country = keyword<String>("country")
       }
 
       val address = SimpleAddress(null, "address")
@@ -59,13 +57,13 @@ class BasicFieldsSpec :
     }
 
     should("handle nested path construction") {
-      class NestedObject(parent: ObjectField?, path: String, nested: Boolean = false) :
-        ObjectField(parent, path, nested) {
-        val field1 = textField<String>("field1")
-        val field2 = integerField<Int>("field2")
+      class NestedObject(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
+        ObjectField<Any>(parent, path, nested) {
+        val field1 = text<String>("field1")
+        val field2 = integer<Int>("field2")
       }
 
-      val parent = object : Index("root") {}
+      val parent = object : ObjectField<Any>(name = "") {}
       val nestedObj = NestedObject(parent, "nested")
 
       nestedObj.field1.path() shouldBe "nested.field1"

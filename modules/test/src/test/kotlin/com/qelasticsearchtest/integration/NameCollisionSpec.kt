@@ -30,7 +30,9 @@ class NameCollisionSpec :
 
         // Verify it's not null and is the correct object
         outerNameCollision shouldNotBe null
-        outerNameCollision.shouldBeInstanceOf<QExampleDocument.NameCollision>()
+        outerNameCollision.shouldBeInstanceOf<
+          QExampleDocument.NameCollision<ExampleDocument.NameCollision>
+        >()
 
         // Verify it has the correct field
         val firstLevelField = outerNameCollision.firstLevel
@@ -42,7 +44,9 @@ class NameCollisionSpec :
 
         // Verify it's not null and is the correct object
         innerNameCollision shouldNotBe null
-        innerNameCollision.shouldBeInstanceOf<QExampleDocument.NestedObject.NameCollision>()
+        innerNameCollision.shouldBeInstanceOf<
+          QExampleDocument.NestedObject.NameCollision<ExampleDocument.NestedObject.NameCollision>
+        >()
 
         // Verify it has the correct field
         val secondLevelField = innerNameCollision.secondLevel
@@ -66,7 +70,7 @@ class NameCollisionSpec :
         val separateClass = QExampleDocument.exampleDocument.fromSeparateClass
 
         // This should reference the standalone QNameCollision class
-        separateClass.shouldBeInstanceOf<QNameCollision>()
+        separateClass.shouldBeInstanceOf<QNameCollision<NameCollision>>()
 
         // Verify it has the correct field
         val separateField = separateClass.separateClassField
@@ -77,14 +81,18 @@ class NameCollisionSpec :
         val nestedObject = QExampleDocument.exampleDocument.nestedObject
 
         // Verify nestedObject has the correct structure
-        nestedObject.shouldBeInstanceOf<QExampleDocument.NestedObject>()
+        nestedObject.shouldBeInstanceOf<
+          QExampleDocument.NestedObject<ExampleDocument.NestedObject>
+        >()
 
         // Verify it has both someField and nameCollision
         val someField = nestedObject.someField
         someField.path() shouldBe "nestedObject.someField"
 
         val nameCollision = nestedObject.nameCollision
-        nameCollision.shouldBeInstanceOf<QExampleDocument.NestedObject.NameCollision>()
+        nameCollision.shouldBeInstanceOf<
+          QExampleDocument.NestedObject.NameCollision<ExampleDocument.NestedObject.NameCollision>
+        >()
       }
 
       should("generate unique class names for nested classes") {
@@ -137,8 +145,10 @@ class NameCollisionSpec :
 
       should("maintain type safety across name collisions") {
         // Verify that the compiler can distinguish between the different classes
-        val outer: QExampleDocument.NameCollision = QExampleDocument.exampleDocument.nameCollision
-        val inner: QExampleDocument.NestedObject.NameCollision =
+        val outer: QExampleDocument.NameCollision<ExampleDocument.NameCollision> =
+          QExampleDocument.exampleDocument.nameCollision
+        val inner:
+          QExampleDocument.NestedObject.NameCollision<ExampleDocument.NestedObject.NameCollision> =
           QExampleDocument.exampleDocument.nestedObject.nameCollision
 
         // These should be different types

@@ -12,7 +12,7 @@ class SpecificQClassFieldsSpec :
       val activitiesField = QNestedTestDocument.nestedTestDocument.activities
 
       activitiesField shouldNotBe null
-      activitiesField.shouldBeInstanceOf<QTestActivity>()
+      activitiesField.shouldBeInstanceOf<QTestActivity<List<TestActivity>>>()
     }
 
     should("generate QTestMetadata for interface object fields") {
@@ -20,7 +20,7 @@ class SpecificQClassFieldsSpec :
       val metadataField = QNestedTestDocument.nestedTestDocument.metadata
 
       metadataField shouldNotBe null
-      metadataField.shouldBeInstanceOf<QTestMetadata>()
+      metadataField.shouldBeInstanceOf<QTestMetadata<TestMetadata?>>()
     }
 
     should("still generate proper Q-classes for classes with Field annotations") {
@@ -28,7 +28,9 @@ class SpecificQClassFieldsSpec :
       val operationField = QNestedTestDocument.nestedTestDocument.operation
 
       operationField shouldNotBe null
-      operationField.shouldBeInstanceOf<QNestedTestDocument.Operation>()
+      operationField.shouldBeInstanceOf<
+        QNestedTestDocument.Operation<NestedTestDocument.Operation>
+      >()
     }
 
     should("provide correct path structure for document") {
@@ -66,7 +68,7 @@ class SpecificQClassFieldsSpec :
       stateId shouldNotBe null
 
       // Verify the specific Q-classes provide proper type information
-      activities.shouldBeInstanceOf<QTestActivity>()
-      metadata.shouldBeInstanceOf<QTestMetadata>()
+      activities.shouldBeInstanceOf<QTestActivity<List<TestActivity>>>()
+      metadata.shouldBeInstanceOf<QTestMetadata<TestMetadata?>>()
     }
   })
