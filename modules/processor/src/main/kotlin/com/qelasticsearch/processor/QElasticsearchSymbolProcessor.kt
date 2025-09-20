@@ -25,6 +25,7 @@ import jakarta.annotation.Generated
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.jvm.JvmStatic
+import kotlin.time.measureTime
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.FieldType
 
@@ -78,62 +79,67 @@ class QElasticsearchSymbolProcessor(
   }
 
   override fun process(resolver: Resolver): List<KSAnnotated> {
-    runCatching {
-        val documentClasses =
-          resolver
-            .getSymbolsWithAnnotation(DOCUMENT_ANNOTATION)
-            .filterIsInstance<KSClassDeclaration>()
-            .toList()
+    measureTime {
+        runCatching {
+            val documentClasses =
+              resolver
+                .getSymbolsWithAnnotation(DOCUMENT_ANNOTATION)
+                .filterIsInstance<KSClassDeclaration>()
+                .toList()
 
-        if (documentClasses.isEmpty()) {
-          debugLog("No @Document annotations found in resolver symbols")
-          return emptyList()
-        }
+            if (documentClasses.isEmpty()) {
+              debugLog("No @Document annotations found in resolver symbols")
+              return emptyList()
+            }
 
-        logger.info("Processing ${documentClasses.size} document classes")
-        debugLog("Found document classes: ${documentClasses.map { it.qualifiedName?.asString() }}")
+            logger.info("Processing ${documentClasses.size} document classes")
+            debugLog(
+              "Found document classes: ${documentClasses.map { it.qualifiedName?.asString() }}"
+            )
 
-        // Collect object fields from document classes (recursive)
-        debugLog("Starting object field collection phase")
-        documentClasses.forEach { documentClass ->
-          debugLog("Collecting object fields from: ${documentClass.qualifiedName?.asString()}")
-          nestedClassProcessor.collectObjectFields(documentClass, fieldTypeExtractor)
-        }
+            // Collect object fields from document classes (recursive)
+            debugLog("Starting object field collection phase")
+            documentClasses.forEach { documentClass ->
+              debugLog("Collecting object fields from: ${documentClass.qualifiedName?.asString()}")
+              nestedClassProcessor.collectObjectFields(documentClass, fieldTypeExtractor)
+            }
 
-        val globalObjectFields = nestedClassProcessor.getGlobalObjectFields()
-        debugLog(
-          "Collected ${globalObjectFields.size} global object fields: ${globalObjectFields.keys}"
-        )
+            val globalObjectFields = nestedClassProcessor.getGlobalObjectFields()
+            debugLog(
+              "Collected ${globalObjectFields.size} global object fields: ${globalObjectFields.keys}"
+            )
 
-        val objectFieldRegistry =
-          ObjectFieldRegistry(
-            logger,
-            globalObjectFields,
-            processorOptions.generateJavaCompatibility,
-            processorOptions.debugLogging,
-          )
+            val objectFieldRegistry =
+              ObjectFieldRegistry(
+                logger,
+                globalObjectFields,
+                processorOptions.generateJavaCompatibility,
+                processorOptions.debugLogging,
+              )
 
-        // Generate document classes
-        debugLog("Starting document class generation phase")
-        documentClasses.forEach { documentClass ->
-          debugLog("Processing document class: ${documentClass.qualifiedName?.asString()}")
-          processDocumentClass(documentClass, objectFieldRegistry)
-        }
+            // Generate document classes
+            debugLog("Starting document class generation phase")
+            documentClasses.forEach { documentClass ->
+              debugLog("Processing document class: ${documentClass.qualifiedName?.asString()}")
+              processDocumentClass(documentClass, objectFieldRegistry)
+            }
 
-        // Generate object field classes
-        debugLog("Starting object field class generation phase")
-        generateAllObjectFields(globalObjectFields, objectFieldRegistry)
+            // Generate object field classes
+            debugLog("Starting object field class generation phase")
+            generateAllObjectFields(globalObjectFields, objectFieldRegistry)
 
-        // Generate Metamodels.kt with all Q-class instances
-        debugLog("Starting Metamodels file generation phase")
-        generateMetamodelsFile(documentClasses)
+            // Generate Metamodels.kt with all Q-class instances
+            debugLog("Starting Metamodels file generation phase")
+            generateMetamodelsFile(documentClasses)
 
-        debugLog("Processing completed successfully")
+            debugLog("Processing completed successfully")
+          }
+          .getOrElse { error ->
+            logger.error("Error processing documents: ${error.message}")
+            logger.exception(error)
+          }
       }
-      .getOrElse { error ->
-        logger.error("Error processing documents: ${error.message}")
-        logger.exception(error)
-      }
+      .also { duration -> logger.warn("QElasticsearch processing completed in $duration") }
     return emptyList()
   }
 
