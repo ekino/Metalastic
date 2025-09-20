@@ -106,12 +106,11 @@ fun printPipeline(block: GitlabCiDsl.() -> Unit) {
 printPipeline {
     
     // Calculate actual artifact version for job names
-    val projectVersion = "1.0-SNAPSHOT" // matches build.gradle.kts version
     val tagName = ciCommitTag?.name
-    
+
     val artifactVersion = when {
-        tagName != null -> tagName.removePrefix("v") // v1.2.3 -> 1.2.3  
-        else -> projectVersion // 1.0-SNAPSHOT
+        tagName != null -> tagName.removePrefix("v") // v1.2.3 -> 1.2.3
+        else -> "SNAPSHOT" // Will be determined by Git-based versioning in build.gradle.kts
     }
     
     // Workflow rules for child pipeline - essential for parent_pipeline source

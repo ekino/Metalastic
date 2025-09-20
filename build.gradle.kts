@@ -7,7 +7,16 @@ plugins {
 
 allprojects {
     group = "com.qelasticsearch"
-    version = "1.0.0"
+    version = providers.exec {
+        commandLine("git", "describe", "--tags", "--always", "--dirty")
+        isIgnoreExitValue = true
+    }.standardOutput.asText.get().trim().let { gitVersion ->
+        if (gitVersion.isEmpty() || gitVersion.startsWith("fatal:")) {
+            "0.0.1-SNAPSHOT" // Fallback for repos without tags
+        } else {
+            gitVersion.removePrefix("v") // Remove 'v' prefix from tags like v1.0.0
+        }
+    }
 
     repositories {
         mavenCentral()
