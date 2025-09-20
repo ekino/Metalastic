@@ -112,13 +112,3 @@ class IpRangeField(parent: ObjectField, fieldName: String) : Field(parent, field
 
 // Dynamic field for runtime/generic field references
 class DynamicField<T>(parent: ObjectField, fieldName: String) : Field(parent, fieldName)
-
-fun main() {
-  val fieldName = "myField"
-  val path =
-    sequenceOf("")
-      .joinToString(separator = ".")
-      .takeIf { it.isNotEmpty() }
-      ?.let { "$it.$fieldName" } ?: fieldName
-  println(path)
-}
