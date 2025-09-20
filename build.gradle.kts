@@ -31,10 +31,16 @@ subprojects {
         return@subprojects
     }
 
+    // Skip publishing for test module - it's only for integration testing
+    val shouldPublish = project.name != "test"
+
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.gitlab.arturbosch.detekt")
-    apply(plugin = "maven-publish")
+
+    if (shouldPublish) {
+        apply(plugin = "maven-publish")
+    }
 
     configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
         jvmToolchain(21)
@@ -89,45 +95,47 @@ subprojects {
         }
     }
 
-    configure<PublishingExtension> {
-        publications {
-            create<MavenPublication>("maven") {
-                from(components["java"])
-                
-                // Enable sources jar for better IDE support
-                artifact(tasks.named("kotlinSourcesJar"))
+    if (shouldPublish) {
+        configure<PublishingExtension> {
+            publications {
+                create<MavenPublication>("maven") {
+                    from(components["java"])
 
-                pom {
-                    name.set("QElasticsearch ${project.name}")
-                    description.set("A QueryDSL-like library for Elasticsearch in Kotlin")
-                    url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                    // Enable sources jar for better IDE support
+                    artifact(tasks.named("kotlinSourcesJar"))
 
-                    licenses {
-                        license {
-                            name.set("Apache License, Version 2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                        }
-                    }
-
-                    scm {
-                        connection.set("scm:git:git://gitlab.ekino.com/iperia/qelasticsearch.git")
-                        developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/qelasticsearch.git")
+                    pom {
+                        name.set("QElasticsearch ${project.name}")
+                        description.set("A QueryDSL-like library for Elasticsearch in Kotlin")
                         url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+
+                        licenses {
+                            license {
+                                name.set("Apache License, Version 2.0")
+                                url.set("https://www.apache.org/licenses/LICENSE-2.0")
+                            }
+                        }
+
+                        scm {
+                            connection.set("scm:git:git://gitlab.ekino.com/iperia/qelasticsearch.git")
+                            developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/qelasticsearch.git")
+                            url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                        }
                     }
                 }
             }
-        }
 
-        repositories {
-            maven {
-                name = "GitLab"
-                url = uri("https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
-                credentials(HttpHeaderCredentials::class) {
-                    name = "Job-Token"
-                    value = System.getenv("CI_JOB_TOKEN")
-                }
-                authentication {
-                    create("header", HttpHeaderAuthentication::class)
+            repositories {
+                maven {
+                    name = "GitLab"
+                    url = uri("https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
+                    credentials(HttpHeaderCredentials::class) {
+                        name = "Job-Token"
+                        value = System.getenv("CI_JOB_TOKEN")
+                    }
+                    authentication {
+                        create("header", HttpHeaderAuthentication::class)
+                    }
                 }
             }
         }
