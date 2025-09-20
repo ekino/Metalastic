@@ -25,6 +25,12 @@ allprojects {
 }
 
 subprojects {
+    // Skip configuration for intermediate directories like 'modules'
+    if (project.path == ":modules") {
+        // Don't apply plugins to the modules directory itself
+        return@subprojects
+    }
+
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
     apply(plugin = "io.gitlab.arturbosch.detekt")

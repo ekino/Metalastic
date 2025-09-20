@@ -6,6 +6,6 @@ rootProject.name = "QElasticsearch"
 
 include(
     ":modules:core",
-    ":modules:processor", 
+    ":modules:processor",
     ":modules:test"
 )
