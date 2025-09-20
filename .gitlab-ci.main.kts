@@ -134,6 +134,7 @@ printPipeline {
         image("openjdk:21-jdk-slim")
         
         beforeScript {
+            +"apt-get update && apt-get install -y git"
             +"chmod +x ./gradlew"
         }
     }
