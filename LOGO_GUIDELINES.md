@@ -1,4 +1,4 @@
-# Logo Design Guidelines for Metalastic
+# Metalastic Logo Design Guidelines
 
 ## Brand Identity
 

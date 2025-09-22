@@ -6,7 +6,7 @@ plugins {
 }
 
 allprojects {
-    group = "com.qelasticsearch"
+    group = "com.metalastic"
     version = providers.exec {
         commandLine("git", "describe", "--tags", "--always", "--dirty")
         isIgnoreExitValue = true
@@ -110,9 +110,9 @@ subprojects {
                     artifact(tasks.named("kotlinSourcesJar"))
 
                     pom {
-                        name.set("QElasticsearch ${project.name}")
-                        description.set("A QueryDSL-like library for Elasticsearch in Kotlin")
-                        url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                        name.set("Metalastic ${project.name}")
+                        description.set("A type-safe metamodel library for Elasticsearch in Kotlin")
+                        url.set("https://gitlab.ekino.com/iperia/metalastic")
 
                         licenses {
                             license {
@@ -122,9 +122,9 @@ subprojects {
                         }
 
                         scm {
-                            connection.set("scm:git:git://gitlab.ekino.com/iperia/qelasticsearch.git")
-                            developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/qelasticsearch.git")
-                            url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                            connection.set("scm:git:git://gitlab.ekino.com/iperia/metalastic.git")
+                            developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/metalastic.git")
+                            url.set("https://gitlab.ekino.com/iperia/metalastic")
                         }
                     }
                 }

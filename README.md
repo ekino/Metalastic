@@ -1,18 +1,18 @@
-# QElasticsearch
+# Metalastic
 
-A type-safe QueryDSL-like library for Elasticsearch in Kotlin that generates compile-time metamodels from Spring Data Elasticsearch document classes.
+A type-safe metamodel library for Elasticsearch in Kotlin that generates compile-time field definitions from Spring Data Elasticsearch document classes.
 
-[![GitLab CI/CD](https://gitlab.ekino.com/iperia/qelasticsearch/badges/master/pipeline.svg)](https://gitlab.ekino.com/iperia/qelasticsearch/pipelines)
-[![Maven Repository](https://img.shields.io/badge/maven-GitLab%20Registry-blue)](https://gitlab.ekino.com/iperia/qelasticsearch/-/packages)
+[![GitLab CI/CD](https://gitlab.ekino.com/iperia/metalastic/badges/master/pipeline.svg)](https://gitlab.ekino.com/iperia/metalastic/pipelines)
+[![Maven Repository](https://img.shields.io/badge/maven-GitLab%20Registry-blue)](https://gitlab.ekino.com/iperia/metalastic/-/packages)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-purple)](https://kotlinlang.org/)
 [![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.1-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
 ## Overview
 
-QElasticsearch provides **compile-time code generation** to create type-safe, fluent query builders for Elasticsearch documents. Inspired by QueryDSL's approach for SQL databases, this library generates Q-classes for Spring Data Elasticsearch `@Document` annotated classes, enabling type-safe field access and query construction.
+Metalastic provides **compile-time code generation** to create type-safe, fluent field definitions for Elasticsearch documents. Inspired by QueryDSL's approach for SQL databases, this library generates Q-classes for Spring Data Elasticsearch `@Document` annotated classes, enabling type-safe field access and path construction.
 
-### Why QElasticsearch?
+### Why Metalastic?
 
 - 🚫 **No more string-based field names** - Compile-time validation prevents typos
 - 🔍 **IDE auto-completion** - Full IntelliSense support for nested document structures
@@ -48,8 +48,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
-    ksp("com.qelasticsearch:processor:1.0-SNAPSHOT")
+    implementation("com.metalastic:core:1.0-SNAPSHOT")
+    ksp("com.metalastic:processor:1.0-SNAPSHOT")
 }
 ```
 
@@ -63,7 +63,7 @@ ksp {
     arg("metamodels.main.className", "SearchMetamodels")
 
     // Enable debug reporting (optional)
-    arg("qelasticsearch.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+    arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
 
@@ -88,7 +88,7 @@ SearchSourceBuilder()
 
 ```mermaid
 graph LR
-    A[Spring Data ES<br>@Document Classes] --> B[QElasticsearch<br>Annotation Processor]
+    A[Spring Data ES<br>@Document Classes] --> B[Metalastic<br>Annotation Processor]
     B --> C[Generated<br>Q-Classes]
     C --> D[Type-safe<br>Query Building]
 
@@ -207,7 +207,7 @@ class QActivity(
 
 #### Centralized Registry
 ```kotlin
-@Generated("com.qelasticsearch.processor.QElasticsearchSymbolProcessor")
+@Generated("com.metalastic.processor.MetalasticSymbolProcessor")
 data object Metamodels {
     /**
      * Metamodel for @Document class [com.example.Person]
@@ -279,7 +279,7 @@ val nestedQuery = QueryBuilders.nestedQuery(
 
 ### Multi-field Support
 
-QElasticsearch handles `@MultiField` annotations with inner fields:
+Metalastic handles `@MultiField` annotations with inner fields:
 
 ```java
 @MultiField(
@@ -341,7 +341,7 @@ order.customer.name.path() shouldBe "customer.name"
 
 ### Complex Type Support
 
-For complex generic types that don't warrant their own Q-classes, QElasticsearch generates terminal ObjectField instances:
+For complex generic types that don't warrant their own Q-classes, Metalastic generates terminal ObjectField instances:
 
 ```java
 @Document(indexName = "document")
@@ -419,10 +419,10 @@ ksp {
     arg("metamodels.className", "GlobalMetamodels")
 
     // Feature toggles
-    arg("qelasticsearch.generateJavaCompatibility", "true")  // default: true
+    arg("metalastic.generateJavaCompatibility", "true")  // default: true
 
     // Debug reporting (generates detailed build reports)
-    arg("qelasticsearch.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+    arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
 
@@ -430,12 +430,12 @@ ksp {
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `metamodels.{sourceSet}.package` | Custom package for specific source set | `com.qelasticsearch.metamodels.{sourceSet}` |
+| `metamodels.{sourceSet}.package` | Custom package for specific source set | `com.metalastic.metamodels.{sourceSet}` |
 | `metamodels.{sourceSet}.className` | Custom class name for specific source set | `Metamodels` |
-| `metamodels.package` | Global fallback package | `com.qelasticsearch` |
+| `metamodels.package` | Global fallback package | `com.metalastic` |
 | `metamodels.className` | Global fallback class name | `Metamodels` |
-| `qelasticsearch.generateJavaCompatibility` | Add `@JvmField` for Java interop | `true` |
-| `qelasticsearch.reportingPath` | Path for debug reports (relative to project root) | disabled |
+| `metalastic.generateJavaCompatibility` | Add `@JvmField` for Java interop | `true` |
+| `metalastic.reportingPath` | Path for debug reports (relative to project root) | disabled |
 
 ### Debug Reporting
 
@@ -443,7 +443,7 @@ Enable detailed processor reporting to understand code generation:
 
 ```kotlin
 ksp {
-    arg("qelasticsearch.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+    arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
 
@@ -456,7 +456,7 @@ This generates a comprehensive markdown report with:
 
 Example report sections:
 ```markdown
-# QElasticsearch Processor Reports
+# Metalastic Processor Reports
 
 ## 📋 Table of Contents
 - [Report 1 - 2025-09-18 15:06:17](#report-1---2025-09-18-150617) - Duration: 254ms
@@ -478,7 +478,7 @@ Example report sections:
 
 ## Supported Field Types
 
-QElasticsearch supports all Spring Data Elasticsearch field types through **runtime detection**:
+Metalastic supports all Spring Data Elasticsearch field types through **runtime detection**:
 
 | Elasticsearch Type | Generated Field Class | Kotlin Type |
 |-------------------|----------------------|-------------|
@@ -515,7 +515,7 @@ The processor uses **runtime field type detection**, automatically supporting:
 ### Project Structure
 
 ```
-QElasticsearch/
+Metalastic/
 ├── modules/
 │   ├── core/                    # DSL runtime library
 │   │   ├── src/main/kotlin/     # Field classes, Index base classes
@@ -534,8 +534,8 @@ QElasticsearch/
 
 ```bash
 # Clone and build
-git clone https://gitlab.ekino.com/iperia/qelasticsearch.git
-cd qelasticsearch
+git clone https://gitlab.ekino.com/iperia/metalastic.git
+cd metalastic
 
 # Build all modules
 ./gradlew build
@@ -598,11 +598,11 @@ When Spring Data Elasticsearch adds new field types:
 
 ## Publishing
 
-QElasticsearch is published to GitLab Maven Registry:
+Metalastic is published to GitLab Maven Registry:
 
-- **Repository**: https://gitlab.ekino.com/iperia/qelasticsearch
-- **Package Registry**: https://gitlab.ekino.com/iperia/qelasticsearch/-/packages
-- **Group ID**: `com.qelasticsearch`
+- **Repository**: https://gitlab.ekino.com/iperia/metalastic
+- **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
+- **Group ID**: `com.metalastic`
 - **Artifacts**: `core`, `processor`, `test`
 
 CI/CD automatically publishes on master branch pushes.
@@ -634,4 +634,4 @@ CI/CD automatically publishes on master branch pushes.
 
 ---
 
-**Ready to get started?** Check out the [Quick Start](#quick-start) section or dive into the [examples](#examples) to see QElasticsearch in action! 🚀
+**Ready to get started?** Check out the [Quick Start](#quick-start) section or dive into the [examples](#examples) to see Metalastic in action! 🚀
