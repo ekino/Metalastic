@@ -14,7 +14,13 @@ allprojects {
         if (gitVersion.isEmpty() || gitVersion.startsWith("fatal:")) {
             "0.0.1-SNAPSHOT" // Fallback for repos without tags
         } else {
-            gitVersion.removePrefix("v") // Remove 'v' prefix from tags like v1.0.0
+            val cleanVersion = gitVersion.removePrefix("v") // Remove 'v' prefix from tags like v1.0.0
+            // Add -SNAPSHOT suffix if this is not an exact tag match (contains commits ahead or dirty)
+            if (cleanVersion.contains("-") || gitVersion.endsWith("-dirty")) {
+                "$cleanVersion-SNAPSHOT"
+            } else {
+                cleanVersion
+            }
         }
     }
 
@@ -47,7 +53,6 @@ subprojects {
     }
 
     dependencies {
-        add("testImplementation", "org.junit.jupiter:junit-jupiter:5.10.1")
         add("testImplementation", "org.jetbrains.kotlin:kotlin-test")
     }
 
@@ -65,7 +70,7 @@ subprojects {
         kotlin {
             target("**/*.kt")
             targetExclude("**/build/generated/**")
-            ktfmt().googleStyle()
+            ktfmt(libs.versions.ktfmt.get()).googleStyle()
             trimTrailingWhitespace()
             endWithNewline()
         }

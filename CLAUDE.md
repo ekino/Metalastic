@@ -337,6 +337,3 @@ object CoreConstants {
 - use KSP for annotation processing (not kapt)
 - path() is a function, not a property
 - isNestedPath() for nested detection, not fieldPath.isNested
-- **IMPORTANT**: @Document-to-@Document references now work through class instantiation, not data objects
-- **IMPORTANT**: Always use `Metamodels.documentName` for accessing document metamodels in consumer code
-- **IMPORTANT**: All field properties in generated classes use `@JvmField` for Java compatibility

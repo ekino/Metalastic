@@ -1,7 +1,9 @@
 package com.qelasticsearchtest.integration
 
+import com.qelasticsearch.core.BooleanField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 
 class BooleanGetterMethodTest :
   ShouldSpec({
@@ -29,7 +31,7 @@ class BooleanGetterMethodTest :
         // isVerified() -> verified (is prefix removed)
         // isPublished() -> published (is prefix removed)
         // someOtherMethod() -> someOtherMethod (no prefix, used as-is)
-        val item = QBooleanTestItem(null, "", false)
+        val item = QBooleanTestItem<Any>(null, "", false)
 
         // Verify property names match expected pattern
         item.enabled.path() shouldBe "enabled"
@@ -39,13 +41,13 @@ class BooleanGetterMethodTest :
       }
 
       should("generate correct field types from annotated methods") {
-        val booleanItem = QBooleanTestItem(null, "test", false)
+        val booleanItem = QBooleanTestItem<Any>(null, "test", false)
 
         // Verify field types match annotated method return types
-        booleanItem.enabled::class.java.simpleName shouldBe "BooleanField"
-        booleanItem.verified::class.java.simpleName shouldBe "BooleanField"
-        booleanItem.published::class.java.simpleName shouldBe "BooleanField"
-        booleanItem.someOtherMethod::class.java.simpleName shouldBe "BooleanField"
+        booleanItem.enabled.shouldBeInstanceOf<BooleanField<Boolean>>()
+        booleanItem.verified.shouldBeInstanceOf<BooleanField<Boolean>>()
+        booleanItem.published.shouldBeInstanceOf<BooleanField<Boolean>>()
+        booleanItem.someOtherMethod.shouldBeInstanceOf<BooleanField<Boolean>>()
       }
 
       should("ignore non-annotated boolean getter methods") {
@@ -100,14 +102,14 @@ class BooleanGetterMethodTest :
 
       should("support both getXxx() and isXxx() patterns") {
         // Verify TestItem still works (getActive -> active)
-        val testItem = QTestItem(null, "", false)
+        val testItem = QTestItem<Any>(null, "", false)
         testItem.active.path() shouldBe "active"
-        testItem.active::class.java.simpleName shouldBe "BooleanField"
+        testItem.active.shouldBeInstanceOf<BooleanField<Boolean>>()
 
         // Verify BooleanTestItem works (isEnabled -> enabled)
-        val booleanItem = QBooleanTestItem(null, "", false)
+        val booleanItem = QBooleanTestItem<Any>(null, "", false)
         booleanItem.enabled.path() shouldBe "enabled"
-        booleanItem.enabled::class.java.simpleName shouldBe "BooleanField"
+        booleanItem.enabled.shouldBeInstanceOf<BooleanField<Boolean>>()
       }
     }
   })

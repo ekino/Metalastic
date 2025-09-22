@@ -110,7 +110,7 @@ printPipeline {
 
     val artifactVersion = when {
         tagName != null -> tagName.removePrefix("v") // v1.2.3 -> 1.2.3
-        else -> "SNAPSHOT" // Will be determined by Git-based versioning in build.gradle.kts
+        else -> "SNAPSHOT-${ciCommitSha.name.take(7)}" // Use 7 chars to match git describe default
     }
     
     // Workflow rules for child pipeline - essential for parent_pipeline source
@@ -131,10 +131,10 @@ printPipeline {
     
     // Global defaults
     default {
-        image("openjdk:21-jdk-slim")
-        
+        image("amazoncorretto:21-alpine-jdk")
+
         beforeScript {
-            +"apt-get update && apt-get install -y git"
+            +"apk update && apk add --no-cache git nodejs npm"
             +"chmod +x ./gradlew"
         }
     }
@@ -223,8 +223,14 @@ printPipeline {
     // Manual publish for MRs and feature branches
     job("publish-manual ($artifactVersion)") {
         stage(Stages.publish)
-        
+
         script {
+            +"# Get the exact version that Gradle will use"
+            +"VERSION=\$(git describe --tags --always --dirty --abbrev=7 | sed 's/^v//')"
+            +"if echo \"\$VERSION\" | grep -q '-'; then"
+            +"  VERSION=\"\$VERSION-SNAPSHOT\""
+            +"fi"
+            +"echo \"📦 Publishing snapshot version: \$VERSION\""
             +"$gradlewCmd publish"
         }
         
