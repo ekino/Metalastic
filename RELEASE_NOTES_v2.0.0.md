@@ -1,14 +1,14 @@
-# QElasticsearch v2.0.0 Release Notes
+# Metalastic v2.0.0 Release Notes
 
 🎉 **Major Release: V2 Processor Architecture**
 
-We're excited to announce QElasticsearch v2.0.0, featuring a completely redesigned annotation processor architecture that delivers enhanced performance, improved code generation, and better developer experience.
+We're excited to announce Metalastic v2.0.0, featuring a completely redesigned annotation processor architecture that delivers enhanced performance, improved code generation, and better developer experience.
 
 ## 🚀 Major Features
 
 ### Complete V2 Processor Architecture Redesign
 - **Enhanced Collecting Phase**: Completely rewritten annotation processor with a modern, maintainable architecture
-- **Unified Model Hierarchy**: New `QElasticsearchModel` sealed class hierarchy for better type safety
+- **Unified Model Hierarchy**: New `MetalasticModel` sealed class hierarchy for better type safety
 - **2-Step Collection Approach**:
   - Discovery phase for initial document scanning
   - Recursive exploration phase with cycle detection
@@ -91,8 +91,8 @@ For most users, this should be a drop-in replacement. The generated Q-classes ma
 **Installation**:
 ```kotlin
 dependencies {
-    implementation("com.qelasticsearch:core:2.0.0")
-    ksp("com.qelasticsearch:processor:2.0.0")
+    implementation("com.metalastic:core:2.0.0")
+    ksp("com.metalastic:processor:2.0.0")
 }
 ```
 

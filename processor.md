@@ -1,6 +1,6 @@
-# QElasticsearch Annotation Processor Architecture
+# Metalastic Annotation Processor Architecture
 
-This document provides a comprehensive overview of the QElasticsearch annotation processor module, which generates type-safe DSL classes from Spring Data Elasticsearch `@Document` annotated classes at compile time.
+This document provides a comprehensive overview of the Metalastic annotation processor module, which generates type-safe DSL classes from Spring Data Elasticsearch `@Document` annotated classes at compile time.
 
 ## Overview
 
@@ -11,7 +11,7 @@ The processor is built on **Kotlin Symbol Processing (KSP)** and uses **KotlinPo
 ```mermaid
 graph TB
     subgraph "Processor Module"
-        A[QElasticsearchSymbolProcessor] --> B[NestedClassProcessor]
+        A[MetalasticSymbolProcessor] --> B[NestedClassProcessor]
         A --> C[FieldGenerators]
         A --> D[ObjectFieldRegistry]
         A --> E[FieldTypeExtractor]
@@ -23,7 +23,7 @@ graph TB
         
         G[SharedTypes] --> A
         H[FieldTypeMappingBuilder] --> A
-        I[QElasticsearchSymbolProcessorProvider] --> A
+        I[MetalasticSymbolProcessorProvider] --> A
     end
     
     subgraph "External Dependencies"
@@ -39,7 +39,7 @@ graph TB
 
 ## Core Components
 
-### 1. QElasticsearchSymbolProcessor
+### 1. MetalasticSymbolProcessor
 **Main orchestrator** that coordinates the entire code generation process.
 
 **Key Responsibilities:**
@@ -88,7 +88,7 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant KSP as KSP Runtime
-    participant Main as QElasticsearchSymbolProcessor
+    participant Main as MetalasticSymbolProcessor
     participant Nested as NestedClassProcessor
     participant FieldExt as FieldTypeExtractor
     participant FieldGen as FieldGenerators
@@ -312,7 +312,7 @@ sequenceDiagram
 
 ## Import Management System
 
-The QElasticsearch processor uses a sophisticated **import optimization system** with package proximity prioritization to ensure generated files have clean, optimal imports while avoiding conflicts. **KotlinPoet automatically handles external type imports**, while the processor manages core DSL type imports.
+The Metalastic processor uses a sophisticated **import optimization system** with package proximity prioritization to ensure generated files have clean, optimal imports while avoiding conflicts. **KotlinPoet automatically handles external type imports**, while the processor manages core DSL type imports.
 
 ### Import Management Architecture
 
@@ -354,7 +354,7 @@ graph TD
 **1. Core DSL Type Management**
 ```kotlin
 // Type usage registration during code generation
-importContext.registerTypeUsage("com.qelasticsearch.core.TextField")
+importContext.registerTypeUsage("com.metalastic.core.TextField")
 importContext.registerTypeUsage("com.example.domain.User")
 importContext.registerTypeUsage("com.example.other.User") // Conflict!
 
@@ -367,7 +367,7 @@ importContext.registerTypeUsage("com.example.other.User") // Conflict!
 **2. Conflict Resolution and Optimal Naming**
 ```kotlin
 // After finalization, optimal type names are determined:
-importContext.getOptimalTypeName("com.qelasticsearch.core.TextField") // -> "TextField" (imported)
+importContext.getOptimalTypeName("com.metalastic.core.TextField") // -> "TextField" (imported)
 importContext.getOptimalTypeName("com.example.domain.User") // -> "User" (priority winner, imported)  
 importContext.getOptimalTypeName("com.example.other.User") // -> "com.example.other.User" (fully qualified)
 ```
@@ -472,10 +472,10 @@ private fun addImportsToFileBuilder(fileBuilder: FileSpec.Builder, importContext
 **Simple Document:**
 ```kotlin
 // Generated imports for basic document  
-import com.qelasticsearch.core.Index
-import com.qelasticsearch.core.KeywordField
-import com.qelasticsearch.core.ObjectField
-import com.qelasticsearch.core.TextField
+import com.metalastic.core.Index
+import com.metalastic.core.KeywordField
+import com.metalastic.core.ObjectField
+import com.metalastic.core.TextField
 import jakarta.annotation.Generated
 import kotlin.String
 import kotlin.jvm.JvmField
@@ -485,10 +485,10 @@ import kotlin.jvm.JvmName
 **Complex Document with Nested Objects:**
 ```kotlin
 // Generated imports for complex document with conflict resolution
-import com.qelasticsearch.core.Index
-import com.qelasticsearch.core.MultiField
-import com.qelasticsearch.core.ObjectField
-import com.qelasticsearch.core.TextField
+import com.metalastic.core.Index
+import com.metalastic.core.MultiField
+import com.metalastic.core.ObjectField
+import com.metalastic.core.TextField
 import com.example.domain.Category  // Automatic via KotlinPoet
 import com.example.domain.Review     // Automatic via KotlinPoet
 import jakarta.annotation.Generated
@@ -547,7 +547,7 @@ graph TD
 ### Document Q-Class Example
 
 ```kotlin
-@Generated("com.qelasticsearch.processor.QElasticsearchSymbolProcessor")
+@Generated("com.metalastic.processor.MetalasticSymbolProcessor")
 data object QUser : Index("users") {
     /**
      * Elasticsearch field for property [com.example.User.id].
@@ -711,7 +711,7 @@ graph TD
 
 ## Conclusion
 
-The QElasticsearch annotation processor represents a sophisticated code generation system that:
+The Metalastic annotation processor represents a sophisticated code generation system that:
 
 - ✅ **Efficiently processes** only the classes that matter
 - ✅ **Generates type-safe** DSL code with full IDE support  

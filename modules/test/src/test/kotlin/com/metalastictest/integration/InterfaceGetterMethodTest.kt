@@ -9,7 +9,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 /**
- * Tests for interface getter method support in QElasticsearch annotation processor.
+ * Tests for interface getter method support in Metalastic annotation processor.
  *
  * This test verifies that interfaces with @Field annotated getter methods are correctly processed
  * and included in generated Q-classes.

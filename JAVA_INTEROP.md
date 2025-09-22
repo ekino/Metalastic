@@ -1,10 +1,10 @@
-# QElasticsearch Java Interoperability Guide
+# Metalastic Java Interoperability Guide
 
-QElasticsearch is designed to work seamlessly in mixed Java/Kotlin projects, especially those using QueryDSL. This guide demonstrates how to use QElasticsearch in Java projects.
+Metalastic is designed to work seamlessly in mixed Java/Kotlin projects, especially those using QueryDSL. This guide demonstrates how to use Metalastic in Java projects.
 
 ## Overview
 
-QElasticsearch generates Q-classes that follow QueryDSL naming conventions and are fully compatible with Java code. The generated classes use proper `@JvmName` annotations for optimal Java interoperability.
+Metalastic generates Q-classes that follow QueryDSL naming conventions and are fully compatible with Java code. The generated classes use proper `@JvmName` annotations for optimal Java interoperability.
 
 ## Java Integration
 
@@ -136,15 +136,15 @@ plugins {
 }
 
 dependencies {
-    // QElasticsearch
-    implementation 'com.qelasticsearch:core:1.0.0'
-    ksp 'com.qelasticsearch:processor:1.0.0'
+    // Metalastic
+    implementation 'com.metalastic:core:1.0.0'
+    ksp 'com.metalastic:processor:1.0.0'
     
     // Spring Data Elasticsearch
     implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
     
     
-    // QueryDSL (if using alongside QElasticsearch)
+    // QueryDSL (if using alongside Metalastic)
     implementation 'com.querydsl:querydsl-core:5.0.0'
     
     // Testing
@@ -156,9 +156,9 @@ dependencies {
 
 ```xml
 <dependencies>
-    <!-- QElasticsearch -->
+    <!-- Metalastic -->
     <dependency>
-        <groupId>com.qelasticsearch</groupId>
+        <groupId>com.metalastic</groupId>
         <artifactId>core</artifactId>
         <version>1.0.0</version>
     </dependency>
@@ -180,12 +180,12 @@ dependencies {
             <version>1.9.21-1.0.15</version>
             <configuration>
                 <processors>
-                    <processor>com.qelasticsearch.processor.QElasticsearchSymbolProcessorProvider</processor>
+                    <processor>com.metalastic.processor.MetalasticSymbolProcessorProvider</processor>
                 </processors>
             </configuration>
             <dependencies>
                 <dependency>
-                    <groupId>com.qelasticsearch</groupId>
+                    <groupId>com.metalastic</groupId>
                     <artifactId>processor</artifactId>
                     <version>1.0.0</version>
                 </dependency>
@@ -197,18 +197,18 @@ dependencies {
 
 ## QueryDSL Compatibility
 
-QElasticsearch follows QueryDSL conventions and can be used alongside QueryDSL for other data sources:
+Metalastic follows QueryDSL conventions and can be used alongside QueryDSL for other data sources:
 
 ### Side-by-Side Usage
 
 ```java
-import static com.yourpackage.QProduct.*; // QElasticsearch
+import static com.yourpackage.QProduct.*; // Metalastic
 import static com.yourpackage.QCustomer.*; // QueryDSL for JPA
 
 public class SearchService {
     
     public void searchProducts() {
-        // Use QElasticsearch for Elasticsearch
+        // Use Metalastic for Elasticsearch
         var productIndex = QProduct.INSTANCE;
         var nameField = productIndex.getName();
         var isActiveField = productIndex.isActive();
@@ -243,7 +243,7 @@ public class SearchService {
 
 ### Property Naming Rules
 
-QElasticsearch follows Java naming conventions when generating accessors:
+Metalastic follows Java naming conventions when generating accessors:
 
 | Java Property | Generated Field | Field Path |
 |---------------|-----------------|------------|
@@ -255,7 +255,7 @@ QElasticsearch follows Java naming conventions when generating accessors:
 
 ### Java POJO Integration
 
-QElasticsearch automatically detects standard Java getters and setters:
+Metalastic automatically detects standard Java getters and setters:
 
 ```java
 @Document(indexName = "user")
@@ -327,7 +327,7 @@ public class ProductSearchService {
 
 ### 3. IDE Integration
 
-QElasticsearch works with Java IDEs for autocompletion and refactoring:
+Metalastic works with Java IDEs for autocompletion and refactoring:
 
 - **IntelliJ IDEA**: Full autocompletion for generated Q-classes
 - **Eclipse**: Automatic import suggestions and field navigation
@@ -335,7 +335,7 @@ QElasticsearch works with Java IDEs for autocompletion and refactoring:
 
 ## Migration from QueryDSL
 
-If you're already using QueryDSL for other data sources, QElasticsearch integrates seamlessly:
+If you're already using QueryDSL for other data sources, Metalastic integrates seamlessly:
 
 ### Before (Manual Elasticsearch queries)
 
@@ -349,7 +349,7 @@ public class SearchService {
 }
 ```
 
-### After (QElasticsearch)
+### After (Metalastic)
 
 ```java
 public class SearchService {

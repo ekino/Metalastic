@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Demonstrates usage of QElasticsearch from Java code,
+ * Demonstrates usage of Metalastic from Java code,
  * showcasing interoperability with Java + QueryDSL patterns
  */
 public class JavaUsageTest {

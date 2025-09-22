@@ -14,7 +14,7 @@ import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 
 /**
- * Java document class to test interoperability with QElasticsearch processor.
+ * Java document class to test interoperability with Metalastic processor.
  * This simulates a real-world scenario where Java + Spring Data Elasticsearch are used together.
  */
 @Document(indexName = "java_test_document")

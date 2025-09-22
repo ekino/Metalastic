@@ -1,4 +1,4 @@
-# QElasticsearch Publishing & Consumption Guide
+# Metalastic Publishing & Consumption Guide
 
 ## Publishing to GitLab Maven Registry
 
@@ -25,7 +25,7 @@ Add the GitLab Package Registry to your project:
 
 #### For Project Members (Recommended)
 
-If you're a member of the QElasticsearch project, no credentials are needed:
+If you're a member of the Metalastic project, no credentials are needed:
 
 ##### Gradle (Kotlin DSL)
 ```kotlin
@@ -126,16 +126,16 @@ repositories {
 #### For Kotlin Projects
 ```kotlin
 dependencies {
-    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
-    ksp("com.qelasticsearch:processor:1.0-SNAPSHOT")
+    implementation("com.metalastic:core:1.0-SNAPSHOT")
+    ksp("com.metalastic:processor:1.0-SNAPSHOT")
 }
 ```
 
 #### For Java Projects  
 ```kotlin
 dependencies {
-    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
-    annotationProcessor("com.qelasticsearch:processor:1.0-SNAPSHOT")
+    implementation("com.metalastic:core:1.0-SNAPSHOT")
+    annotationProcessor("com.metalastic:processor:1.0-SNAPSHOT")
 }
 ```
 
