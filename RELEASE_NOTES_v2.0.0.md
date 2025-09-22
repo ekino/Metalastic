@@ -86,7 +86,7 @@ For most users, this should be a drop-in replacement. The generated Q-classes ma
 
 ---
 
-**Full Changelog**: Compare [v1.0.0...v2.0.0](https://gitlab.ekino.com/iperia/qelasticsearch/-/compare/v1.0.0...master)
+**Full Changelog**: Compare [v1.0.0...v2.0.0](https://gitlab.ekino.com/iperia/metalastic/-/compare/v1.0.0...master)
 
 **Installation**:
 ```kotlin

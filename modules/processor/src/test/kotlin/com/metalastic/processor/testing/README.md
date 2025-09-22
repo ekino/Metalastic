@@ -17,7 +17,7 @@ The most convenient approach using a fluent builder API:
 
 ```kotlin
 should("test processor with builder pattern") {
-  ProcessorTestBuilder.forQElasticsearchV2()
+  ProcessorTestBuilder.forMetalasticV2()
     .withSource(TestDataSources.simpleDocument())
     .test { components, processor ->
       // Test during active compilation
@@ -48,7 +48,7 @@ should("test with base class approach") {
       testDuringActiveCompilation(
         sources = listOf(TestDataSources.complexDocument())
       ) { components ->
-        val processor = QElasticsearchSymbolProcessorV2(
+        val processor = MetalasticSymbolProcessorV2(
           kspLogger = components.logger,
           codeGenerator = components.codeGenerator,
           kspOptions = components.options
@@ -128,7 +128,7 @@ Fluent builder for common scenarios:
 - `withSource()` / `withSources()` - Add source files
 - `withOption()` / `withOptions()` - Configure KSP options
 - `withProcessor()` - Custom processor factory
-- `withQElasticsearchV2()` - Pre-configured for QElasticsearch
+- `withMetalasticV2()` - Pre-configured for Metalastic
 - `test()` - Execute the test
 
 ### TestDataSources
@@ -160,7 +160,7 @@ data class KspTestComponents(
 ### Simple Test
 
 ```kotlin
-ProcessorTestBuilder.forQElasticsearchV2()
+ProcessorTestBuilder.forMetalasticV2()
   .withSource(TestDataSources.simpleDocument())
   .test { components, processor ->
     val result = processor.process(components.resolver)
@@ -171,9 +171,9 @@ ProcessorTestBuilder.forQElasticsearchV2()
 ### Custom Options
 
 ```kotlin
-ProcessorTestBuilder.forQElasticsearchV2()
+ProcessorTestBuilder.forMetalasticV2()
   .withOptions(mapOf(
-    "qelasticsearch.generateJavaCompatibility" to "false"
+    "metalastic.generateJavaCompatibility" to "false"
   ))
   .withSource(TestDataSources.allTypesDocument())
   .test { components, processor ->
@@ -184,7 +184,7 @@ ProcessorTestBuilder.forQElasticsearchV2()
 ### Multiple Sources
 
 ```kotlin
-ProcessorTestBuilder.forQElasticsearchV2()
+ProcessorTestBuilder.forMetalasticV2()
   .withSources(
     TestDataSources.simpleDocument(),
     TestDataSources.nestedDocument(),
@@ -201,7 +201,7 @@ ProcessorTestBuilder.forQElasticsearchV2()
 ### Custom Source
 
 ```kotlin
-ProcessorTestBuilder.forQElasticsearchV2()
+ProcessorTestBuilder.forMetalasticV2()
   .withKotlinSource("Custom.kt", """
     @Document(indexName = "custom")
     data class CustomDoc(@Field val id: String)
@@ -235,7 +235,7 @@ New approach (works reliably):
 
 ```kotlin
 // ✅ This works during active compilation
-ProcessorTestBuilder.forQElasticsearchV2()
+ProcessorTestBuilder.forMetalasticV2()
   .test { components, processor ->
     // getSymbolsWithAnnotation() works here
     val symbols = components.resolver.getSymbolsWithAnnotation("...")

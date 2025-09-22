@@ -112,7 +112,7 @@ subprojects {
                     pom {
                         name.set("Metalastic ${project.name}")
                         description.set("A type-safe metamodel library for Elasticsearch in Kotlin")
-                        url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                        url.set("https://gitlab.ekino.com/iperia/metalastic")
 
                         licenses {
                             license {
@@ -122,9 +122,9 @@ subprojects {
                         }
 
                         scm {
-                            connection.set("scm:git:git://gitlab.ekino.com/iperia/qelasticsearch.git")
-                            developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/qelasticsearch.git")
-                            url.set("https://gitlab.ekino.com/iperia/qelasticsearch")
+                            connection.set("scm:git:git://gitlab.ekino.com/iperia/metalastic.git")
+                            developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/metalastic.git")
+                            url.set("https://gitlab.ekino.com/iperia/metalastic")
                         }
                     }
                 }

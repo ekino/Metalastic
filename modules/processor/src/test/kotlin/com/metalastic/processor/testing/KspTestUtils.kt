@@ -135,5 +135,5 @@ object KspTestUtils {
 
   /** Default KSP options for testing */
   private fun defaultOptions(): Map<String, String> =
-    mapOf("ksp.incremental" to "false", "qelasticsearch.generateJavaCompatibility" to "true")
+    mapOf("ksp.incremental" to "false", "metalastic.generateJavaCompatibility" to "true")
 }

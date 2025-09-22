@@ -37,5 +37,5 @@ ksp {
 
   // Feature Toggles
   arg("metalastic.generateJavaCompatibility", "true") // default: true
-  arg("metalastic.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+  arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }

@@ -269,9 +269,9 @@ This allows for:
 ## Publishing
 
 This project is published to GitLab Maven Registry:
-- **Repository**: https://gitlab.ekino.com/iperia/qelasticsearch
+- **Repository**: https://gitlab.ekino.com/iperia/metalastic
 - **CI/CD Pipeline**: Automatic publishing on master branch pushes
-- **Package Registry**: https://gitlab.ekino.com/iperia/qelasticsearch/-/packages
+- **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
 - **Group ID**: `com.metalastic`
 - **Artifacts**: `metalastic-core`, `metalastic-processor`, `metalastic-test`
 

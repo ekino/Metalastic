@@ -2,8 +2,8 @@
 
 A type-safe metamodel library for Elasticsearch in Kotlin that generates compile-time field definitions from Spring Data Elasticsearch document classes.
 
-[![GitLab CI/CD](https://gitlab.ekino.com/iperia/qelasticsearch/badges/master/pipeline.svg)](https://gitlab.ekino.com/iperia/qelasticsearch/pipelines)
-[![Maven Repository](https://img.shields.io/badge/maven-GitLab%20Registry-blue)](https://gitlab.ekino.com/iperia/qelasticsearch/-/packages)
+[![GitLab CI/CD](https://gitlab.ekino.com/iperia/metalastic/badges/master/pipeline.svg)](https://gitlab.ekino.com/iperia/metalastic/pipelines)
+[![Maven Repository](https://img.shields.io/badge/maven-GitLab%20Registry-blue)](https://gitlab.ekino.com/iperia/metalastic/-/packages)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-purple)](https://kotlinlang.org/)
 [![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.1-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
@@ -63,7 +63,7 @@ ksp {
     arg("metamodels.main.className", "SearchMetamodels")
 
     // Enable debug reporting (optional)
-    arg("metalastic.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+    arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
 
@@ -422,7 +422,7 @@ ksp {
     arg("metalastic.generateJavaCompatibility", "true")  // default: true
 
     // Debug reporting (generates detailed build reports)
-    arg("metalastic.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+    arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
 
@@ -443,7 +443,7 @@ Enable detailed processor reporting to understand code generation:
 
 ```kotlin
 ksp {
-    arg("metalastic.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+    arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
 
@@ -535,7 +535,7 @@ Metalastic/
 ```bash
 # Clone and build
 git clone https://gitlab.ekino.com/iperia/metalastic.git
-cd qelasticsearch
+cd metalastic
 
 # Build all modules
 ./gradlew build
@@ -600,8 +600,8 @@ When Spring Data Elasticsearch adds new field types:
 
 Metalastic is published to GitLab Maven Registry:
 
-- **Repository**: https://gitlab.ekino.com/iperia/qelasticsearch
-- **Package Registry**: https://gitlab.ekino.com/iperia/qelasticsearch/-/packages
+- **Repository**: https://gitlab.ekino.com/iperia/metalastic
+- **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
 - **Group ID**: `com.metalastic`
 - **Artifacts**: `core`, `processor`, `test`
 
