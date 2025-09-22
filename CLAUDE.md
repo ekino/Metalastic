@@ -1,4 +1,4 @@
-# QElasticsearch
+# Metalastic
 
 A QueryDSL-like library for Elasticsearch in Kotlin, inspired by http://querydsl.com/
 
@@ -116,16 +116,16 @@ class QAddress(
 
 ```kotlin
 // Centralized registry for all document metamodels
-@Generated("com.qelasticsearch.processor.QElasticsearchSymbolProcessor")
+@Generated("com.metalastic.processor.MetalasticSymbolProcessor")
 data object Metamodels {
     /**
-     * Metamodel for @Document class [com.qelasticsearch.integration.TestDocument]
+     * Metamodel for @Document class [com.metalastic.integration.TestDocument]
      */
     @JvmField
     val testDocument: QTestDocument = QTestDocument()
     
     /**
-     * Metamodel for @Document class [com.qelasticsearch.integration.ExampleDocument]
+     * Metamodel for @Document class [com.metalastic.integration.ExampleDocument]
      */
     @JvmField
     val exampleDocument: QExampleDocument = QExampleDocument()
@@ -272,8 +272,8 @@ This project is published to GitLab Maven Registry:
 - **Repository**: https://gitlab.ekino.com/iperia/qelasticsearch
 - **CI/CD Pipeline**: Automatic publishing on master branch pushes
 - **Package Registry**: https://gitlab.ekino.com/iperia/qelasticsearch/-/packages
-- **Group ID**: `com.qelasticsearch`
-- **Artifacts**: `qelasticsearch-dsl`, `qelasticsearch-processor`, `qelasticsearch-test`
+- **Group ID**: `com.metalastic`
+- **Artifacts**: `metalastic-core`, `metalastic-processor`, `metalastic-test`
 
 ### For Consumers
 ```kotlin
@@ -286,8 +286,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.qelasticsearch:core:1.0-SNAPSHOT")
-    ksp("com.qelasticsearch:processor:1.0-SNAPSHOT")
+    implementation("com.metalastic:core:1.0-SNAPSHOT")
+    ksp("com.metalastic:processor:1.0-SNAPSHOT")
 }
 ```
 
@@ -314,14 +314,14 @@ All generation constants are centralized in `CoreConstants`:
 
 ```kotlin
 object CoreConstants {
-    const val CORE_PACKAGE = "com.qelasticsearch.core"
-    const val METAMODELS_PACKAGE = "com.qelasticsearch"
+    const val CORE_PACKAGE = "com.metalastic.core"
+    const val METAMODELS_PACKAGE = "com.metalastic"
     const val Q_PREFIX = "Q"
     const val INDEX_CLASS = "Index"
     const val OBJECT_FIELDS_CLASS = "ObjectField"
     const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
     const val METAMODELS_CLASS_NAME = "Metamodels"
-    const val PRODUCT_NAME = "QElasticsearch"
+    const val PRODUCT_NAME = "Metalastic"
 }
 ```
 

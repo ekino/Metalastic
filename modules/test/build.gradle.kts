@@ -36,6 +36,6 @@ ksp {
   //  arg("metamodels.className", "GlobalMetamodels")
 
   // Feature Toggles
-  arg("qelasticsearch.generateJavaCompatibility", "true") // default: true
-  arg("qelasticsearch.reportingPath", "build/reports/qelasticsearch/processor-report.md")
+  arg("metalastic.generateJavaCompatibility", "true") // default: true
+  arg("metalastic.reportingPath", "build/reports/qelasticsearch/processor-report.md")
 }
