@@ -50,6 +50,7 @@ object CoreConstants {
 
   object ProcessorOptions {
     const val GENERATE_JAVA_COMPATIBILITY = "metalastic.generateJavaCompatibility"
+    const val GENERATE_PRIVATE_CLASS_METAMODELS = "metalastic.generatePrivateClassMetamodels"
     const val REPORTING_PATH = "metalastic.reportingPath"
 
     object Metamodels {

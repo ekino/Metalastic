@@ -37,5 +37,6 @@ ksp {
 
   // Feature Toggles
   arg("metalastic.generateJavaCompatibility", "true") // default: true
+  // arg("metalastic.generatePrivateClassMetamodels", "true") // default: false
   arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }

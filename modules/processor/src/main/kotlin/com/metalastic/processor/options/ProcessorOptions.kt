@@ -5,6 +5,7 @@ import com.metalastic.processor.CoreConstants.ProcessorOptions.Metamodels
 
 data class ProcessorOptions(
   val generateJavaCompatibility: Boolean = true,
+  val generatePrivateClassMetamodels: Boolean = false,
   val reportingPath: String? = null,
   val metamodelsConfiguration: MetamodelsConfiguration,
 ) {
@@ -19,6 +20,9 @@ data class ProcessorOptions(
         generateJavaCompatibility =
           kspOptions[CoreConstants.ProcessorOptions.GENERATE_JAVA_COMPATIBILITY]?.toBoolean()
             ?: true,
+        generatePrivateClassMetamodels =
+          kspOptions[CoreConstants.ProcessorOptions.GENERATE_PRIVATE_CLASS_METAMODELS]?.toBoolean()
+            ?: false,
         reportingPath =
           kspOptions[CoreConstants.ProcessorOptions.REPORTING_PATH]?.takeIf { it.isNotBlank() },
         metamodelsConfiguration = createMetamodelsConfiguration(kspOptions),

@@ -62,6 +62,9 @@ ksp {
     arg("metamodels.main.package", "com.example.search.metamodels")
     arg("metamodels.main.className", "SearchMetamodels")
 
+    // Include private classes in metamodel generation (default: false)
+    arg("metalastic.generatePrivateClassMetamodels", "true")
+
     // Enable debug reporting (optional)
     arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
@@ -435,7 +438,35 @@ ksp {
 | `metamodels.package` | Global fallback package | `com.metalastic` |
 | `metamodels.className` | Global fallback class name | `Metamodels` |
 | `metalastic.generateJavaCompatibility` | Add `@JvmField` for Java interop | `true` |
+| `metalastic.generatePrivateClassMetamodels` | Generate metamodels for private `@Document` classes | `false` |
 | `metalastic.reportingPath` | Path for debug reports (relative to project root) | disabled |
+
+### Private Class Handling
+
+By default, Metalastic **excludes private classes** from metamodel generation to keep generated code clean and focused on publicly accessible documents. When other classes reference private classes in their fields, the types are automatically replaced with `UnExposablePrivateClass` for type safety.
+
+```kotlin
+// Private classes are excluded by default (recommended)
+@Document(indexName = "internal_audit")
+private class InternalAuditDocument { /* ... */ }
+// → No QInternalAuditDocument generated
+
+// But references to private classes are handled safely
+@Document(indexName = "public_report")
+class PublicReport {
+    @Field(type = FieldType.Object)
+    val auditData: InternalAuditDocument // Private class reference
+}
+// → Generates: ObjectField<UnExposablePrivateClass>
+```
+
+To **include private classes** in generation (not recommended for most use cases):
+
+```kotlin
+ksp {
+    arg("metalastic.generatePrivateClassMetamodels", "true")
+}
+```
 
 ### Debug Reporting
 

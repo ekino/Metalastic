@@ -238,4 +238,75 @@ class CollectingPhaseTestSpec :
       val javaAddressModel = graph.objectModels().find { it.qClassName == "QJavaAddress" }
       javaAddressModel.shouldNotBeNull()
     }
+
+    should("exclude private classes by default") {
+      val graph =
+        ProcessorTestBuilder.withKotlinSource(
+            "TestPrivateClass.kt",
+            """
+            package com.example.test
+            import org.springframework.data.elasticsearch.annotations.Document
+            import org.springframework.data.elasticsearch.annotations.Field
+            import org.springframework.data.elasticsearch.annotations.FieldType
+
+            @Document(indexName = "public_doc")
+            class PublicDocument {
+                @Field(type = FieldType.Keyword)
+                val id: String = ""
+            }
+
+            @Document(indexName = "private_doc")
+            private class PrivateDocument {
+                @Field(type = FieldType.Keyword)
+                val id: String = ""
+            }
+            """
+              .trimIndent(),
+          )
+          .testMetalasticGraph()
+
+      // Should only have the public document, private document should be excluded
+      graph.documentModels() shouldHaveSize 1
+      graph.documentModels().first().qClassName shouldBe "QPublicDocument"
+
+      // Verify private document is not present
+      graph.models().find { it.qClassName == "QPrivateDocument" } shouldBe null
+    }
+
+    should("include private classes when option is enabled") {
+      val graph =
+        ProcessorTestBuilder.withKotlinSource(
+            "TestPrivateClass.kt",
+            """
+            package com.example.test
+            import org.springframework.data.elasticsearch.annotations.Document
+            import org.springframework.data.elasticsearch.annotations.Field
+            import org.springframework.data.elasticsearch.annotations.FieldType
+
+            @Document(indexName = "public_doc")
+            class PublicDocument {
+                @Field(type = FieldType.Keyword)
+                val id: String = ""
+            }
+
+            @Document(indexName = "private_doc")
+            private class PrivateDocument {
+                @Field(type = FieldType.Keyword)
+                val id: String = ""
+            }
+            """
+              .trimIndent(),
+          )
+          .withOption("metalastic.generatePrivateClassMetamodels", "true")
+          .testMetalasticGraph()
+
+      // Should have both documents when option is enabled
+      graph.documentModels() shouldHaveSize 2
+
+      val publicDoc = graph.documentModels().find { it.qClassName == "QPublicDocument" }
+      publicDoc.shouldNotBeNull()
+
+      val privateDoc = graph.documentModels().find { it.qClassName == "QPrivateDocument" }
+      privateDoc.shouldNotBeNull()
+    }
   })
