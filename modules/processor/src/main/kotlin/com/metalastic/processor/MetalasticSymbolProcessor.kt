@@ -35,7 +35,7 @@ class MetalasticSymbolProcessor(
 
           // Phase 1: COLLECTING - Discover and analyze all @Document classes
           val elasticsearchModels =
-            measureTimedValue { GraphBuilder(resolver).build() }
+            measureTimedValue { GraphBuilder(resolver, options).build() }
               .let { (graph, duration) ->
                 reporter.debug { "🔬 COLLECTING phase completed in $duration 📊" }
                 graph

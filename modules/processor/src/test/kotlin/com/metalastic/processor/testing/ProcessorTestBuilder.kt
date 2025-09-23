@@ -70,7 +70,7 @@ class ProcessorTestBuilder {
     return KspTestUtils.testDuringActiveCompilation(
       sources = sources,
       options = options,
-      testBlockProvider = { GraphBuilder(it.resolver) },
+      testBlockProvider = { GraphBuilder(it.resolver, it.processorOptions) },
       testBlock = testBlock,
     )
   }
@@ -79,7 +79,7 @@ class ProcessorTestBuilder {
     return KspTestUtils.testDuringActiveCompilation(
       sources = sources,
       options = options,
-      testBlockProvider = { GraphBuilder(it.resolver).build() },
+      testBlockProvider = { GraphBuilder(it.resolver, it.processorOptions).build() },
       testBlock = { it },
     )
   }
@@ -89,7 +89,11 @@ class ProcessorTestBuilder {
       sources = sources,
       options = options,
       testBlockProvider = {
-        BuildingOrchestrator(GraphBuilder(it.resolver).build(), it.processorOptions).build()
+        BuildingOrchestrator(
+            GraphBuilder(it.resolver, it.processorOptions).build(),
+            it.processorOptions,
+          )
+          .build()
       },
       testBlock = { it },
     )

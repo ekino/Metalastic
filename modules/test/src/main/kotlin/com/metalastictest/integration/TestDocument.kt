@@ -39,3 +39,13 @@ class Tag {
 
   @Field(type = FieldType.Integer) var weight: Int = 0
 }
+
+@Document(indexName = "test_document_with_typed_id")
+@Suppress("UnusedPrivateClass")
+private class SomePrivateClass(
+  @Field(type = FieldType.Text)
+  val privateUsage2: Map<SomeOtherPrivateClass, Map<String, SomeOtherPrivateClass>>,
+  @Field(type = FieldType.Object) val privateUsage: List<SomeOtherPrivateClass>,
+)
+
+private class SomeOtherPrivateClass(@Field(type = FieldType.Keyword) val id: String)

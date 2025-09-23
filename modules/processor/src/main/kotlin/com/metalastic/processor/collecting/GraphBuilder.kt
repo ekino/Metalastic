@@ -1,14 +1,17 @@
 package com.metalastic.processor.collecting
 
+import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.Visibility
 import com.metalastic.processor.CoreConstants
 import com.metalastic.processor.model.MetalasticGraph
+import com.metalastic.processor.options.ProcessorOptions
 import com.metalastic.processor.report.reporter
 import org.springframework.data.elasticsearch.annotations.Document
 
-class GraphBuilder(val resolver: Resolver) {
+class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
 
   fun build(): MetalasticGraph =
     collectQClasses().toGraphWithoutFields().linkModelsAndPopulateFields()
@@ -19,6 +22,9 @@ class GraphBuilder(val resolver: Resolver) {
       resolver
         .getSymbolsWithAnnotation(CoreConstants.DOCUMENT_ANNOTATION)
         .filterIsInstance<KSClassDeclaration>()
+        .filter {
+          it.getVisibility() != Visibility.PRIVATE || options.generatePrivateClassMetamodels
+        }
 
     // Use a map to safely compare KSClassDeclaration by fully qualified name
     val foundQClasses = documents.associateBy { it.fullyQualifiedName() }.toMutableMap()
