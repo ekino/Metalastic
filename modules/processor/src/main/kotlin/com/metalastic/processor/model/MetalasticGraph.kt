@@ -107,6 +107,12 @@ class MetalasticGraph {
           else -> "${parent.fullyQualifiedName}.$qClassName"
         }
 
+    val qualifier: String
+      get() =
+        fullyQualifiedName.removePrefix(
+          packageName.takeUnless { it.isBlank() }?.plus(".").orEmpty()
+        )
+
     fun nestedClasses() = graph.models().filter { it.parentModel == this }
   }
 }

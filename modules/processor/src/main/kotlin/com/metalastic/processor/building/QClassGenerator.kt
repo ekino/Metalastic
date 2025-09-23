@@ -6,7 +6,6 @@ import com.metalastic.processor.CoreConstants.PRODUCT_NAME
 import com.metalastic.processor.MetalasticSymbolProcessor
 import com.metalastic.processor.collecting.fullyQualifiedName
 import com.metalastic.processor.collecting.toSafeTypeName
-import com.metalastic.processor.kspimplementation.MetaClassModelClassDeclaration
 import com.metalastic.processor.model.FieldModel
 import com.metalastic.processor.model.InnerFieldModel
 import com.metalastic.processor.model.MetalasticGraph
@@ -27,7 +26,6 @@ import com.squareup.kotlinpoet.TypeName
 import com.squareup.kotlinpoet.TypeSpec
 import com.squareup.kotlinpoet.TypeVariableName
 import com.squareup.kotlinpoet.asTypeName
-import com.squareup.kotlinpoet.ksp.toClassName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import java.util.Date
@@ -155,7 +153,6 @@ class QClassGenerator(
   /** Generates a simple field property (Text, Keyword, Date, etc.). */
   private fun generateSimpleFieldProperty(field: SimpleFieldModel): PropertySpec {
     val fieldTypeClass = FieldTypeMappings.classOf(field.fieldType)
-
     val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
     val typeName = fieldTypeClass.className.parameterizedBy(sourceTypeName)
 
@@ -172,15 +169,13 @@ class QClassGenerator(
     if (field.targetModel == null) {
       return generateTerminalObjectField(field)
     }
-
-    val qClassKsClassDeclaration = MetaClassModelClassDeclaration(field.targetModel)
+    val qClassName = field.targetModel.toClassName()
     val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
 
-    val parameterizedTypeName =
-      qClassKsClassDeclaration.toClassName().parameterizedBy(sourceTypeName)
+    val parameterizedTypeName = qClassName.parameterizedBy(sourceTypeName)
     return PropertySpec.builder(field.name, parameterizedTypeName)
       .addModifiers(KModifier.PUBLIC)
-      .objectFieldInitializer(field, qClassKsClassDeclaration.toClassName())
+      .objectFieldInitializer(field, qClassName)
       .addKdoc(generateFieldKDoc(field))
       .withOptionalJavaCompatibility()
       .build()
@@ -355,10 +350,10 @@ class QClassGenerator(
     val companionBuilder = TypeSpec.companionObjectBuilder()
 
     // Build the ClassName for the Q-class
-    val qClassName = MetaClassModelClassDeclaration(document).toClassName()
+    val qClassName = document.toClassName()
     // Use the source class type for the generic parameter
     val sourceTypeName =
-      document.sourceClassDeclaration.asStarProjectedType().toTypeName(typeParameterResolver)
+      document.sourceClassDeclaration.asStarProjectedType().toSafeTypeName(typeParameterResolver)
     val parameterizedTypeName = qClassName.parameterizedBy(sourceTypeName)
 
     val indexNameConstant =
@@ -489,3 +484,7 @@ class QClassGenerator(
     }
   }
 }
+
+/** Extension function to create ClassName directly from MetaClassModel. */
+private fun MetalasticGraph.MetaClassModel.toClassName(): ClassName =
+  ClassName(packageName, qualifier.split("."))
