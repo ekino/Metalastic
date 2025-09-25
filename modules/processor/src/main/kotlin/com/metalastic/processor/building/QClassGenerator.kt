@@ -166,7 +166,7 @@ class QClassGenerator(
 
     return PropertySpec.builder(field.name, typeName)
       .addModifiers(KModifier.PUBLIC)
-      .initializer("%L(%S)", fieldTypeClass.helperMethodName, field.name)
+      .initializer("%L(%S)", fieldTypeClass.helperMethodName, field.elasticsearchFieldName)
       .addKdoc(generateFieldKDoc(field))
       .withOptionalJavaCompatibility()
       .build()
@@ -197,14 +197,14 @@ class QClassGenerator(
       initializer(
         "%T(this, %S, true, typeOf<%T>())",
         typeName,
-        field.name,
+        field.elasticsearchFieldName,
         field.type.toSafeTypeName(typeParameterResolver),
       )
     } else {
       initializer(
         "%T(this, %S, false, typeOf<%T>())",
         typeName,
-        field.name,
+        field.elasticsearchFieldName,
         field.type.toSafeTypeName(typeParameterResolver),
       )
     }
@@ -224,7 +224,7 @@ class QClassGenerator(
           initializer(
             "object : %T(parent = this, name = %S, nested = %L, fieldType = typeOf<%T>()) {}",
             objectFieldAnyType,
-            field.name,
+            field.elasticsearchFieldName,
             nested,
             sourceTypeName,
           )
@@ -232,7 +232,7 @@ class QClassGenerator(
           initializer(
             "object : %T(parent = this, name = %S, nested = false, fieldType = typeOf<%T>()) {}",
             objectFieldAnyType,
-            field.name,
+            field.elasticsearchFieldName,
             sourceTypeName,
           )
         }
@@ -251,7 +251,7 @@ class QClassGenerator(
 
     return PropertySpec.builder(field.name, parameterizedMultiFieldClassName)
       .addModifiers(KModifier.PUBLIC)
-      .initializer("%L(this, %S)", multifieldClassName, field.name)
+      .initializer("%L(this, %S)", multifieldClassName, field.elasticsearchFieldName)
       .addKdoc(generateFieldKDoc(field))
       .withOptionalJavaCompatibility()
       .build()

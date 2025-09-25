@@ -20,6 +20,7 @@ sealed class FieldModel {
   abstract val sourceDeclaration: KSDeclaration
   abstract val fieldType: FieldType
   abstract val annotations: List<KSAnnotation>
+  abstract val elasticsearchFieldName: String
 
   val name
     get() = sourceDeclaration.toFieldName()
@@ -39,6 +40,7 @@ data class SimpleFieldModel(
   override val sourceDeclaration: KSDeclaration,
   override val fieldType: FieldType,
   override val annotations: List<KSAnnotation>,
+  override val elasticsearchFieldName: String,
 ) : FieldModel()
 
 /** Object field model for FieldType.Object fields that reference other classes */
@@ -47,6 +49,7 @@ data class ObjectFieldModel(
   override val sourceDeclaration: KSDeclaration,
   override val fieldType: FieldType,
   override val annotations: List<KSAnnotation>,
+  override val elasticsearchFieldName: String,
   val targetModel: MetalasticGraph.MetaClassModel?,
   val nested: Boolean,
 ) : FieldModel()
@@ -57,6 +60,7 @@ data class MultiFieldModel(
   override val sourceDeclaration: KSDeclaration,
   override val fieldType: FieldType, // Main field type
   override val annotations: List<KSAnnotation>,
+  override val elasticsearchFieldName: String,
   val innerFields: List<InnerFieldModel>,
 ) : FieldModel() {
 

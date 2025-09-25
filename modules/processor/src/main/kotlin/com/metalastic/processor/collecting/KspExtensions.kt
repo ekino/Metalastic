@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.metalastic.processor.collecting
 
 import com.google.devtools.ksp.getAnnotationsByType
@@ -130,3 +132,30 @@ fun KSDeclaration.toFieldName() =
 
     else -> error("Unexpected declaration type") // should never happen
   }
+
+/** Checks if a string is a valid Kotlin/Java identifier using stdlib functions. */
+fun String.isValidKotlinIdentifier(): Boolean =
+  isNotEmpty() && first().isJavaIdentifierStart() && drop(1).all { it.isJavaIdentifierPart() }
+
+private const val MIN_IS_LENGTH = 2
+private const val MIN_GET_LENGTH = 3
+
+/** Checks if the annotation name would be a better Kotlin property name than the original. */
+fun String.isBetterKotlinName(originalName: String): Boolean {
+  // If annotation name is not a valid identifier, don't use it
+  if (!isValidKotlinIdentifier()) return false
+
+  // If original name starts with "is" or "get" prefix and annotation name is cleaner, prefer
+  // annotation
+  return when {
+    originalName.startsWith("is") && originalName.length > MIN_IS_LENGTH -> {
+      val withoutIs = originalName.removePrefix("is").replaceFirstChar { it.lowercase() }
+      this == withoutIs
+    }
+    originalName.startsWith("get") && originalName.length > MIN_GET_LENGTH -> {
+      val withoutGet = originalName.removePrefix("get").replaceFirstChar { it.lowercase() }
+      this == withoutGet
+    }
+    else -> false
+  }
+}
