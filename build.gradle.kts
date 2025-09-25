@@ -11,11 +11,9 @@ allprojects {
         // CI environment - use git describe for consistent versioning with CI pipeline
         System.getenv("CI") != null -> {
             val tag = System.getenv("CI_COMMIT_TAG")
-            if (tag != null) {
-                tag.removePrefix("v") // v1.2.3 -> 1.2.3
-            } else {
-                // Use git describe to match CI pipeline versioning exactly
-                try {
+            tag?.removePrefix("v") // v1.2.3 -> 1.2.3
+                ?: // Use git describe to match CI pipeline versioning exactly
+                runCatching {
                     val gitDescribe = providers.exec {
                         commandLine("git", "describe", "--tags", "--always", "--dirty", "--abbrev=7")
                     }.standardOutput.asText.get().trim()
@@ -25,12 +23,11 @@ allprojects {
                     } else {
                         "$version-SNAPSHOT"
                     }
-                } catch (e: Exception) {
+                } .getOrElse { 
                     // Fallback to CI_COMMIT_SHA if git describe fails
                     val sha = System.getenv("CI_COMMIT_SHA") ?: "unknown"
                     "${sha.take(7)}-SNAPSHOT"
                 }
-            }
         }
         // Local development - ALWAYS use localVersion from gradle.properties
         else -> project.findProperty("localVersion") as String? ?: "2.0.1-SNAPSHOT"
