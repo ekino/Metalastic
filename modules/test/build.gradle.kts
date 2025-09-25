@@ -1,15 +1,19 @@
-plugins { alias(libs.plugins.ksp) }
+plugins {
+  alias(libs.plugins.ksp)
+  // Note: Cannot use id("com.metalastic") within the same project
+  // Will be available once published: id("com.metalastic") version "PROJECT_VERSION"
+}
 
 // Generated code is automatically excluded by Spotless configuration in parent build.gradle.kts
 
 dependencies {
-  // DSL runtime needed for generated code
+  // Dependencies need to be added manually since we can't use the plugin within the same project
   implementation(project(":modules:core"))
-  api(libs.jakarta.annotation.api)
   ksp(project(":modules:processor"))
 
   // Spring Data Elasticsearch for real document classes
   implementation(libs.spring.data.elasticsearch)
+  api(libs.jakarta.annotation.api)
 
   // Testing dependencies
   testImplementation(libs.junit.jupiter)
@@ -24,19 +28,40 @@ dependencies {
   testImplementation(libs.kotlin.logging)
 }
 
+// Demonstration of what the plugin DSL will look like for consumers:
+/*
+metalastic {
+  metamodels {
+    main {
+      packageName = "com.example.search.metamodels"
+      className = "MainMetamodels"
+    }
+    test {
+      packageName = "com.example.test.metamodels"
+      className = "TestMetamodels"
+    }
+    fallbackPackage = "com.example.metamodels"
+  }
+
+  features {
+    generateJavaCompatibility = true
+    generatePrivateClassMetamodels = false
+  }
+
+  reporting {
+    enabled = true
+    outputPath = "build/reports/metalastic/processor-report.md"
+  }
+}
+*/
+
+// Manual KSP configuration (equivalent to the plugin DSL above)
 ksp {
-  // Package and Class Name Customization
   arg("metamodels.main.package", "com.example.search.metamodels")
   arg("metamodels.main.className", "MainMetamodels")
   arg("metamodels.test.package", "com.example.test.metamodels")
   arg("metamodels.test.className", "TestMetamodels")
-
-  //     Global Fallbacks
   arg("metamodels.package", "com.example.metamodels")
-  //  arg("metamodels.className", "GlobalMetamodels")
-
-  // Feature Toggles
-  arg("metalastic.generateJavaCompatibility", "true") // default: true
-  // arg("metalastic.generatePrivateClassMetamodels", "true") // default: false
+  arg("metalastic.generateJavaCompatibility", "true")
   arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }

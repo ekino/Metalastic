@@ -29,6 +29,7 @@ class MetalasticSymbolProcessor(
 ) : SymbolProcessor {
 
   override fun process(resolver: Resolver): List<KSAnnotated> {
+    logger.info("🔍 MetalasticSymbolProcessor.process() called")
     measureTimedValue {
         runCatching {
           reporter.debug { "Starting $PRODUCT_NAME annotation processing" }

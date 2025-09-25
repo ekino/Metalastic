@@ -8,7 +8,9 @@ import com.metalastic.processor.report.ReporterFactory
 
 class MetalasticSymbolProcessorProvider : SymbolProcessorProvider {
   override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {
+    environment.logger.info("🔍 MetalasticSymbolProcessorProvider.create() called")
     val options = ProcessorOptions.fromKspOptions(environment.options)
+    environment.logger.info("🔍 Processor options: $options")
     ReporterFactory.initialize(options = options, kspLogger = environment.logger)
     return MetalasticSymbolProcessor(
       codeGenerator = environment.codeGenerator,

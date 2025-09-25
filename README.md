@@ -36,10 +36,28 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 
 ## Quick Start
 
-### 1. Add Dependencies
+### 1. Configure Plugin Repository
+
+```kotlin
+// settings.gradle.kts
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        maven {
+            url = uri("https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven")
+        }
+    }
+}
+```
+
+### 2. Apply the Gradle Plugin
 
 ```kotlin
 // build.gradle.kts
+plugins {
+    id("com.metalastic") version "2.0.0"
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -47,25 +65,57 @@ repositories {
     }
 }
 
-dependencies {
-    implementation("com.metalastic:core:1.0-SNAPSHOT")
-    ksp("com.metalastic:processor:1.0-SNAPSHOT")
-}
+// Dependencies are automatically added by the plugin
 ```
 
-### 2. Configure Processor (Optional)
+### 3. Configure Metamodels (Optional)
 
 ```kotlin
 // build.gradle.kts
+metalastic {
+    metamodels {
+        main {
+            packageName = "com.example.search.metamodels"
+            className = "SearchMetamodels"
+        }
+        test {
+            packageName = "com.example.test.metamodels"
+            className = "TestMetamodels"
+        }
+        fallbackPackage = "com.example.metamodels"
+    }
+
+    features {
+        generateJavaCompatibility = true // default: true
+        generatePrivateClassMetamodels = false // default: false
+    }
+
+    reporting {
+        enabled = true
+        outputPath = "build/reports/metalastic/processor-report.md"
+    }
+}
+```
+
+### Alternative: Manual KSP Setup
+
+If you prefer not to use the plugin, you can configure manually:
+
+```kotlin
+// build.gradle.kts
+plugins {
+    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+}
+
+dependencies {
+    implementation("com.metalastic:core:2.0.0")
+    ksp("com.metalastic:processor:2.0.0")
+}
+
 ksp {
-    // Customize generated package and class names
     arg("metamodels.main.package", "com.example.search.metamodels")
     arg("metamodels.main.className", "SearchMetamodels")
-
-    // Include private classes in metamodel generation (default: false)
-    arg("metalastic.generatePrivateClassMetamodels", "true")
-
-    // Enable debug reporting (optional)
+    arg("metalastic.generatePrivateClassMetamodels", "false")
     arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
 }
 ```
@@ -405,9 +455,41 @@ fun buildSearchAcrossAllIndices(term: String): SearchRequest {
 
 ## Configuration
 
-### KSP Processor Options
+### Gradle Plugin DSL (Recommended)
 
-Configure the annotation processor through KSP arguments in `build.gradle.kts`:
+The Gradle plugin provides a **type-safe, discoverable DSL** for configuration:
+
+```kotlin
+// build.gradle.kts
+metalastic {
+    metamodels {
+        main {
+            packageName = "com.example.search.metamodels"
+            className = "SearchMetamodels"
+        }
+        test {
+            packageName = "com.example.test.metamodels"
+            className = "TestMetamodels"
+        }
+        fallbackPackage = "com.example.metamodels"
+        fallbackClassName = "GlobalMetamodels"
+    }
+
+    features {
+        generateJavaCompatibility = true  // default: true
+        generatePrivateClassMetamodels = false  // default: false
+    }
+
+    reporting {
+        enabled = true
+        outputPath = "build/reports/metalastic/processor-report.md"
+    }
+}
+```
+
+### Manual KSP Configuration
+
+For projects that prefer direct KSP configuration:
 
 ```kotlin
 ksp {
@@ -423,6 +505,7 @@ ksp {
 
     // Feature toggles
     arg("metalastic.generateJavaCompatibility", "true")  // default: true
+    arg("metalastic.generatePrivateClassMetamodels", "false")  // default: false
 
     // Debug reporting (generates detailed build reports)
     arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
@@ -462,6 +545,16 @@ class PublicReport {
 
 To **include private classes** in generation (not recommended for most use cases):
 
+**Using Gradle Plugin DSL:**
+```kotlin
+metalastic {
+    features {
+        generatePrivateClassMetamodels = true
+    }
+}
+```
+
+**Using Manual KSP Configuration:**
 ```kotlin
 ksp {
     arg("metalastic.generatePrivateClassMetamodels", "true")
@@ -472,6 +565,17 @@ ksp {
 
 Enable detailed processor reporting to understand code generation:
 
+**Using Gradle Plugin DSL:**
+```kotlin
+metalastic {
+    reporting {
+        enabled = true
+        outputPath = "build/reports/metalastic/processor-report.md"
+    }
+}
+```
+
+**Using Manual KSP Configuration:**
 ```kotlin
 ksp {
     arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
@@ -554,6 +658,9 @@ Metalastic/
 │   ├── processor/               # KSP annotation processor
 │   │   ├── src/main/kotlin/     # Code generation logic
 │   │   └── src/test/kotlin/     # Processor unit tests
+│   ├── gradle-plugin/           # Gradle plugin with type-safe DSL
+│   │   ├── src/main/kotlin/     # Plugin implementation and configuration DSL
+│   │   └── src/main/resources/  # Plugin descriptor files
 │   └── test/                    # Integration tests
 │       └── src/test/kotlin/     # End-to-end tests with real Spring Data ES
 ├── build.gradle.kts             # Root build configuration
@@ -634,7 +741,7 @@ Metalastic is published to GitLab Maven Registry:
 - **Repository**: https://gitlab.ekino.com/iperia/metalastic
 - **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
 - **Group ID**: `com.metalastic`
-- **Artifacts**: `core`, `processor`, `test`
+- **Artifacts**: `core`, `processor`, `gradle-plugin`, `test`
 
 CI/CD automatically publishes on master branch pushes.
 
@@ -651,6 +758,7 @@ CI/CD automatically publishes on master branch pushes.
 - Performance monitoring and debug reporting
 - Java compatibility with @JvmField annotations
 - Version-agnostic Spring Data ES compatibility
+- **Gradle plugin with type-safe DSL configuration**
 
 ### 🚧 In Progress
 - Enhanced query building DSL
