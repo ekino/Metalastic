@@ -12,6 +12,7 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 
 - **core**: Core DSL runtime library containing field definitions, index abstractions, and the DSL API
 - **processor**: Annotation processor that generates QIndex classes from @Document annotated classes
+- **gradle-plugin**: Gradle plugin providing type-safe DSL configuration for the annotation processor
 - **test**: Integration tests that verify the annotation processor works correctly with real Spring Data Elasticsearch documents
 
 ## Goals
@@ -26,6 +27,7 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 - Handle all @Field annotation FieldType configurations
 - Provide a reusable library for integration into other projects
 - Support both Java and Kotlin consumer projects
+- Type-safe Gradle plugin with discoverable DSL configuration
 
 ## Technology Stack
 
@@ -43,6 +45,7 @@ This is a multi-module project that provides a type-safe, fluent query builder f
 - Multi-module project structure using Gradle with Kotlin DSL
 - **modules/core** module: Core DSL runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
 - **modules/processor** module: Annotation processor implementation
+- **modules/gradle-plugin** module: Gradle plugin with type-safe DSL configuration
 - **modules/test** module: Integration tests for the entire library
 - Annotation processor will scan for `@Document` annotations from Spring Data Elasticsearch
 - Generated QIndex classes will follow Q* naming convention (similar to QueryDSL)
@@ -273,9 +276,35 @@ This project is published to GitLab Maven Registry:
 - **CI/CD Pipeline**: Automatic publishing on master branch pushes
 - **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
 - **Group ID**: `com.metalastic`
-- **Artifacts**: `metalastic-core`, `metalastic-processor`, `metalastic-test`
+- **Artifacts**: `metalastic-core`, `metalastic-processor`, `metalastic-gradle-plugin`, `metalastic-test`
 
 ### For Consumers
+
+**Using Gradle Plugin (Recommended):**
+```kotlin
+plugins {
+    id("com.metalastic") version "2.0.0"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri("https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven")
+        // No credentials needed for project members
+    }
+}
+
+metalastic {
+    metamodels {
+        main {
+            packageName = "com.example.metamodels"
+            className = "SearchMetamodels"
+        }
+    }
+}
+```
+
+**Manual Configuration:**
 ```kotlin
 repositories {
     mavenCentral()
@@ -286,8 +315,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.metalastic:core:1.0-SNAPSHOT")
-    ksp("com.metalastic:processor:1.0-SNAPSHOT")
+    implementation("com.metalastic:core:2.0.0")
+    ksp("com.metalastic:processor:2.0.0")
 }
 ```
 

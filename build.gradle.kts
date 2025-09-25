@@ -7,21 +7,19 @@ plugins {
 
 allprojects {
     group = "com.metalastic"
-    version = providers.exec {
-        commandLine("git", "describe", "--tags", "--always", "--dirty")
-        isIgnoreExitValue = true
-    }.standardOutput.asText.get().trim().let { gitVersion ->
-        if (gitVersion.isEmpty() || gitVersion.startsWith("fatal:")) {
-            "0.0.1-SNAPSHOT" // Fallback for repos without tags
-        } else {
-            val cleanVersion = gitVersion.removePrefix("v") // Remove 'v' prefix from tags like v1.0.0
-            // Add -SNAPSHOT suffix if this is not an exact tag match (contains commits ahead or dirty)
-            if (cleanVersion.contains("-") || gitVersion.endsWith("-dirty")) {
-                "$cleanVersion-SNAPSHOT"
+    version = when {
+        // CI environment - match CI pipeline versioning logic
+        System.getenv("CI") != null -> {
+            val tag = System.getenv("CI_COMMIT_TAG")
+            if (tag != null) {
+                tag.removePrefix("v") // v1.2.3 -> 1.2.3
             } else {
-                cleanVersion
+                val sha = System.getenv("CI_COMMIT_SHA") ?: "unknown"
+                "SNAPSHOT-${sha.take(7)}" // Match CI format exactly
             }
         }
+        // Local development - use configurable version from gradle.properties
+        else -> project.findProperty("localVersion") as String? ?: "2.0.1-SNAPSHOT"
     }
 
     repositories {

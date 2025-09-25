@@ -7,5 +7,6 @@ rootProject.name = "Metalastic"
 include(
     ":modules:core",
     ":modules:processor",
+    ":modules:gradle-plugin",
     ":modules:test"
 )
