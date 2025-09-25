@@ -1,6 +1,7 @@
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
+  `maven-publish`
 }
 
 dependencies {
@@ -66,3 +67,18 @@ tasks.processResources { dependsOn(generateVersionPropertiesTask) }
 
 // Plugin marker artifact for easier application
 tasks.withType<GenerateModuleMetadata> { enabled = false }
+
+// Publishing configuration for the plugin
+publishing {
+  repositories {
+    maven {
+      name = "GitLab"
+      url = uri("https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
+      credentials(HttpHeaderCredentials::class) {
+        name = "Job-Token"
+        value = System.getenv("CI_JOB_TOKEN")
+      }
+      authentication { create("header", HttpHeaderAuthentication::class) }
+    }
+  }
+}

@@ -110,7 +110,7 @@ printPipeline {
 
     val artifactVersion = when {
         tagName != null -> tagName.removePrefix("v") // v1.2.3 -> 1.2.3
-        else -> "SNAPSHOT-${ciCommitSha.name.take(7)}" // Use 7 chars to match git describe default
+        else -> "${ciCommitSha.name.take(7)}-SNAPSHOT" // Use correct Maven snapshot format
     }
     
     // Workflow rules for child pipeline - essential for parent_pipeline source
