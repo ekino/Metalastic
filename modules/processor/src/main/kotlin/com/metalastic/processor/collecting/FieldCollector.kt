@@ -71,6 +71,7 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
   val potentialQClass = extractPotentialQClass()
   val annotations = annotations.toList()
   val isMultiField = getAnnotationsByType(MultiField::class).any()
+  val (elasticsearchFieldName, propertyName) = resolveFieldNames()
 
   // Handle @MultiField properties (extract field type from mainField)
   if (isMultiField) {
@@ -87,6 +88,8 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
       sourceDeclaration = this,
       fieldType = fieldType,
       annotations = annotations,
+      elasticsearchFieldName = elasticsearchFieldName,
+      name = propertyName,
       innerFields = innerFields,
     )
   }
@@ -105,6 +108,8 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
         sourceDeclaration = this,
         annotations = annotations,
         fieldType = fieldType,
+        elasticsearchFieldName = elasticsearchFieldName,
+        name = propertyName,
         targetModel = qClassModel.graph.getModel(potentialQClass),
         nested = fieldType == FieldType.Nested,
       )
@@ -116,6 +121,8 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
         sourceDeclaration = this,
         fieldType = fieldType,
         annotations = annotations,
+        elasticsearchFieldName = elasticsearchFieldName,
+        name = propertyName,
       )
     }
   }
@@ -138,4 +145,32 @@ private fun KSFunctionDeclaration.hasFieldAnnotation(): Boolean = isAnnotationPr
 /** Extension function to check if a function is a getter method. */
 private fun KSFunctionDeclaration.isGetterMethod(): Boolean {
   return parameters.isEmpty() && returnType != null
+}
+
+/** Resolves the Elasticsearch field name and Kotlin property name from a declaration. */
+private fun KSDeclaration.resolveFieldNames(): Pair<String, String> {
+  val originalPropertyName = toFieldName()
+
+  val annotationName =
+    when {
+      isAnnotationPresent(MultiField::class) -> {
+        getAnnotationsByType(MultiField::class).first().mainField.name
+      }
+      isAnnotationPresent(Field::class) -> {
+        getAnnotationsByType(Field::class).first().name
+      }
+      else -> ""
+    }
+
+  return if (annotationName.isNotBlank()) {
+    val propertyName =
+      if (annotationName.isValidKotlinIdentifier()) {
+        annotationName // Use annotation name if it's a valid identifier
+      } else {
+        originalPropertyName // Fall back to original property name
+      }
+    annotationName to propertyName
+  } else {
+    originalPropertyName to originalPropertyName
+  }
 }

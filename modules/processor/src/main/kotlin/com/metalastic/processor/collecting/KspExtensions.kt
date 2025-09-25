@@ -1,3 +1,5 @@
+@file:Suppress("TooManyFunctions")
+
 package com.metalastic.processor.collecting
 
 import com.google.devtools.ksp.getAnnotationsByType
@@ -130,3 +132,31 @@ fun KSDeclaration.toFieldName() =
 
     else -> error("Unexpected declaration type") // should never happen
   }
+
+/**
+ * Checks if a string is a valid Kotlin identifier that follows naming conventions.
+ *
+ * Valid Kotlin property names should:
+ * - Be valid Java/Kotlin identifiers
+ * - Follow camelCase naming convention (no underscores unless truly necessary)
+ * - Start with lowercase letter
+ */
+fun String.isValidKotlinIdentifier(): Boolean =
+  isNotEmpty() &&
+    first().isJavaIdentifierStart() &&
+    drop(1).all { it.isJavaIdentifierPart() } &&
+    followsKotlinNamingConvention()
+
+/**
+ * Checks if a string follows Kotlin property naming conventions (camelCase). Allows underscores
+ * only if the name starts with underscore (private convention).
+ */
+private fun String.followsKotlinNamingConvention(): Boolean {
+  return when {
+    isEmpty() -> false
+    first() == '_' -> true // Allow _privateProperty convention
+    first().isUpperCase() -> false // Property names should start with lowercase
+    contains('_') -> false // Avoid snake_case in favor of camelCase
+    else -> true
+  }
+}
