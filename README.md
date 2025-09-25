@@ -24,6 +24,7 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 ## Key Features
 
 - ✅ **Type-safe field access** - `document.name.path()` instead of `"name"`
+- ✅ **Smart field naming** - Uses `@Field(name)` when it follows Kotlin conventions
 - ✅ **Nested object support** - `document.address.city.path()` for nested structures
 - ✅ **Path traversal** - Automatic dotted notation for Elasticsearch queries
 - ✅ **All field types** - Complete support for every Elasticsearch field type
@@ -329,6 +330,50 @@ val nestedQuery = QueryBuilders.nestedQuery(
 ```
 
 ## Advanced Features
+
+### Smart Field Name Resolution
+
+Metalastic intelligently resolves property names from `@Field(name)` annotations, following Kotlin naming conventions:
+
+```java
+@Document(indexName = "example")
+public class ExampleDocument {
+    // Uses annotation name when it follows camelCase conventions
+    @Field(type = FieldType.Boolean, name = "active")
+    private boolean isActive;
+
+    // Keeps original property name for non-conventional names
+    @Field(type = FieldType.Text, name = "search_content")
+    private String searchableText;
+
+    // Keeps original property name for invalid identifiers
+    @Field(type = FieldType.Text, name = "987field")
+    private String numericField;
+}
+```
+
+Generates:
+```kotlin
+class QExampleDocument(/* ... */) : Document<ExampleDocument>(/* ... */) {
+    // ✅ Uses "active" - follows camelCase convention
+    @JvmField
+    val active: BooleanField<Boolean> = boolean("active")
+
+    // ✅ Keeps "searchableText" - "search_content" doesn't follow camelCase
+    @JvmField
+    val searchableText: TextField<String> = text("search_content")
+
+    // ✅ Keeps "numericField" - "987field" is invalid identifier
+    @JvmField
+    val numericField: TextField<String> = text("987field")
+}
+```
+
+**Benefits:**
+- 🎯 **Convention-compliant** - Generated properties follow Kotlin camelCase standards
+- 🔄 **Dual-name system** - Annotation names used for Elasticsearch, property names for Kotlin
+- 🛡️ **Safe fallback** - Invalid or non-conventional names keep original property names
+- 📝 **IDE-friendly** - Better code completion and consistency
 
 ### Multi-field Support
 
@@ -759,6 +804,7 @@ CI/CD automatically publishes on master branch pushes.
 - Java compatibility with @JvmField annotations
 - Version-agnostic Spring Data ES compatibility
 - **Gradle plugin with type-safe DSL configuration**
+- **Smart field name resolution** - Convention-aware `@Field(name)` handling
 
 ### 🚧 In Progress
 - Enhanced query building DSL

@@ -6,7 +6,6 @@ import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
 import com.metalastic.processor.CoreConstants
-import com.metalastic.processor.collecting.toFieldName
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /**
@@ -21,9 +20,7 @@ sealed class FieldModel {
   abstract val fieldType: FieldType
   abstract val annotations: List<KSAnnotation>
   abstract val elasticsearchFieldName: String
-
-  val name
-    get() = sourceDeclaration.toFieldName()
+  abstract val name: String
 
   val type: KSType by lazy {
     when (val declaration = sourceDeclaration) {
@@ -41,6 +38,7 @@ data class SimpleFieldModel(
   override val fieldType: FieldType,
   override val annotations: List<KSAnnotation>,
   override val elasticsearchFieldName: String,
+  override val name: String,
 ) : FieldModel()
 
 /** Object field model for FieldType.Object fields that reference other classes */
@@ -50,6 +48,7 @@ data class ObjectFieldModel(
   override val fieldType: FieldType,
   override val annotations: List<KSAnnotation>,
   override val elasticsearchFieldName: String,
+  override val name: String,
   val targetModel: MetalasticGraph.MetaClassModel?,
   val nested: Boolean,
 ) : FieldModel()
@@ -61,6 +60,7 @@ data class MultiFieldModel(
   override val fieldType: FieldType, // Main field type
   override val annotations: List<KSAnnotation>,
   override val elasticsearchFieldName: String,
+  override val name: String,
   val innerFields: List<InnerFieldModel>,
 ) : FieldModel() {
 

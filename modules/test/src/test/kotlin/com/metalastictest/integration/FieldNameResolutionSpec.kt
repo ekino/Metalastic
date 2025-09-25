@@ -6,24 +6,24 @@ import io.kotest.matchers.shouldNotBe
 
 class FieldNameResolutionSpec :
   ShouldSpec({
-    should("support @Field(name) attribute with conservative property naming") {
+    should("use annotation name when it's a valid identifier") {
       val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
-      // Case 1: Conservative approach - @Field(name = "valid") on isValid keeps "isValid" property
+      // Case 1: Valid identifier - @Field(name = "valid") on isValid should use "valid" as property
       // name
-      // but uses "valid" as Elasticsearch field name
-      document.isValid shouldNotBe null
-      document.isValid.path() shouldBe "valid"
+      document.valid shouldNotBe null
+      document.valid.path() shouldBe "valid"
     }
 
-    should("keep original property names when annotation name doesn't improve conventions") {
+    should("keep original property name when annotation name doesn't follow conventions") {
       val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
-      // Case 2: Keep original - @Field(name = "search_content") on searchableText should stay
-      // "searchableText"
+      // Case 2: Valid identifier but non-conventional (underscore) - @Field(name =
+      // "search_content")
+      // should keep original "searchableText" property name but use "search_content" as ES field
+      // name
       document.searchableText shouldNotBe null
-      document.searchableText.path() shouldBe
-        "search_content" // But ES field name should be from annotation
+      document.searchableText.path() shouldBe "search_content"
     }
 
     should("handle invalid identifiers by keeping original property name") {
@@ -37,13 +37,14 @@ class FieldNameResolutionSpec :
     should("support MultiField with name attribute") {
       val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
-      // Case 4: MultiField conservative naming - @MultiField(mainField = @Field(name = "fulltext"))
-      // on getText
-      // keeps "getText" property name but uses "fulltext" for Elasticsearch
-      document.getText shouldNotBe null
-      document.getText.path() shouldBe "fulltext"
+      // Case 4: MultiField with valid conventional name - @MultiField(mainField = @Field(name =
+      // "fulltext"))
+      // should use "fulltext" as property name
+      document.fulltext shouldNotBe null
+      document.fulltext.path() shouldBe "fulltext"
 
-      // Case 5: MultiField keeping original - description field
+      // Case 5: MultiField with non-conventional name (underscore) - should keep original property
+      // name
       document.description shouldNotBe null
       document.description.path() shouldBe "description_field"
     }
@@ -51,15 +52,17 @@ class FieldNameResolutionSpec :
     should("support object and nested fields with name attribute") {
       val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
-      // Case 6: Object field - @Field(name = "user_profile")
+      // Case 6: Object field with non-conventional name (underscore) - should keep original
+      // property name
       document.profile shouldNotBe null
       document.profile.path() shouldBe "user_profile"
 
-      // Case 7: Nested field - @Field(name = "contact_methods")
+      // Case 7: Nested field with non-conventional name (underscore) - should keep original
+      // property name
       document.contacts shouldNotBe null
       document.contacts.path() shouldBe "contact_methods"
 
-      // Test nested object field names
+      // Test nested object field names - also non-conventional, keep original names
       document.profile.name.path() shouldBe "user_profile.display_name"
       document.profile.email.path() shouldBe "user_profile.email_addr"
 
@@ -78,8 +81,8 @@ class FieldNameResolutionSpec :
 
     should("maintain proper Java compatibility") {
       // Since we use @JvmField, properties should be accessible as static fields from Java
-      val isValidField = QFieldNameResolutionTestDocument::class.java.getDeclaredField("isValid")
-      isValidField shouldNotBe null
+      val validField = QFieldNameResolutionTestDocument::class.java.getDeclaredField("valid")
+      validField shouldNotBe null
 
       val searchableTextField =
         QFieldNameResolutionTestDocument::class.java.getDeclaredField("searchableText")

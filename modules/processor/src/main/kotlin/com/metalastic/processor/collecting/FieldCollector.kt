@@ -89,6 +89,7 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
       fieldType = fieldType,
       annotations = annotations,
       elasticsearchFieldName = elasticsearchFieldName,
+      name = propertyName,
       innerFields = innerFields,
     )
   }
@@ -108,6 +109,7 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
         annotations = annotations,
         fieldType = fieldType,
         elasticsearchFieldName = elasticsearchFieldName,
+        name = propertyName,
         targetModel = qClassModel.graph.getModel(potentialQClass),
         nested = fieldType == FieldType.Nested,
       )
@@ -120,6 +122,7 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
         fieldType = fieldType,
         annotations = annotations,
         elasticsearchFieldName = elasticsearchFieldName,
+        name = propertyName,
       )
     }
   }
@@ -161,10 +164,10 @@ private fun KSDeclaration.resolveFieldNames(): Pair<String, String> {
 
   return if (annotationName.isNotBlank()) {
     val propertyName =
-      if (annotationName.isBetterKotlinName(originalPropertyName)) {
-        annotationName
+      if (annotationName.isValidKotlinIdentifier()) {
+        annotationName // Use annotation name if it's a valid identifier
       } else {
-        originalPropertyName
+        originalPropertyName // Fall back to original property name
       }
     annotationName to propertyName
   } else {

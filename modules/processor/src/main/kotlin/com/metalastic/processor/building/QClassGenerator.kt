@@ -61,10 +61,11 @@ class QClassGenerator(
 
   private fun buildTypeSpec(model: MetalasticGraph.MetaClassModel): TypeSpec {
     reporter.debug { "Generating TypeSpec for ${model::class.simpleName}: ${model.qClassName}" }
-    val classBuilder =
-      TypeSpec.classBuilder(model.qClassName)
-        .addModifiers(KModifier.PUBLIC)
-        .addGeneratedAnnotation()
+    val classBuilder = TypeSpec.classBuilder(model.qClassName).addModifiers(KModifier.PUBLIC)
+
+    if (!model.isNested) {
+      classBuilder.addGeneratedAnnotation()
+    }
 
     // Setup based on model type
     when (model) {
@@ -482,6 +483,7 @@ class QClassGenerator(
         |**Original Property:**
         |- [$containingClassName.$propertyName]
         |- Elasticsearch Type: `$elasticsearchType`
+        |- Elasticsearch Path: `${field.elasticsearchFieldName}`
         |
       """
       .trimMargin()
@@ -505,11 +507,11 @@ class QClassGenerator(
   private fun generateMultiFieldClassKDoc(field: MultiFieldModel): String {
     val containingClass = field.parentModel.sourceClassDeclaration
     val containingClassName = containingClass.qualifiedName?.asString() ?: "Unknown"
-    val propertyName = field.name
-
+    val propertyName = field.sourceDeclaration.simpleName.asString()
     return """
         |
-        |**Metamodel for multifield [${containingClassName}.${propertyName}].**
+        |**Metamodel for multifield.**
+        | - [${containingClassName}.${propertyName}]
         |
       """
       .trimMargin()
