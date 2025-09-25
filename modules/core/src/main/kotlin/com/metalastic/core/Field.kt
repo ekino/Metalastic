@@ -1,10 +1,17 @@
 package com.metalastic.core
 
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
+
 /**
  * Sealed class for all field types in the DSL. Provides path traversal functionality for nested
  * field access. Using sealed class ensures exhaustive pattern matching and type safety.
  */
-sealed class Field<T>(private val parent: ObjectField<*>? = null, private val name: String) {
+sealed class Field<T : Any?>(
+  private val parent: ObjectField<*>? = null,
+  private val name: String,
+  private val fieldType: KType,
+) {
 
   private val path: String by lazy {
     parents()
@@ -24,7 +31,7 @@ sealed class Field<T>(private val parent: ObjectField<*>? = null, private val na
 
   fun parents() = generateSequence(parent()) { it.parent() }
 
-  fun isNestedPath(): kotlin.Boolean = parents().any { it.nested() }
+  fun isNestedPath(): Boolean = parents().any { it.nested() }
 
   fun nestedPaths(): Sequence<String> =
     parents().mapNotNull {
@@ -34,4 +41,17 @@ sealed class Field<T>(private val parent: ObjectField<*>? = null, private val na
         null
       }
     }
+
+  fun fieldType(): KType = fieldType
+
+  /**
+   * Returns the KClass for this field's type, or null if the type is not a concrete class (e.g., if
+   * it's a type parameter or complex type intersection).
+   *
+   * For generated metamodels, this will always return a non-null KClass.
+   *
+   * @return The KClass representing this field's type, or null if not a concrete class
+   */
+  @Suppress("UNCHECKED_CAST")
+  fun fieldClass(): KClass<out T & Any>? = fieldType.classifier as? KClass<out T & Any>
 }

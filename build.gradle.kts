@@ -8,17 +8,28 @@ plugins {
 allprojects {
     group = "com.metalastic"
     version = when {
-        // CI environment - match CI pipeline versioning logic
+        // CI environment - use git describe for consistent versioning with CI pipeline
         System.getenv("CI") != null -> {
             val tag = System.getenv("CI_COMMIT_TAG")
-            if (tag != null) {
-                tag.removePrefix("v") // v1.2.3 -> 1.2.3
-            } else {
-                val sha = System.getenv("CI_COMMIT_SHA") ?: "unknown"
-                "SNAPSHOT-${sha.take(7)}" // Match CI format exactly
-            }
+            tag?.removePrefix("v") // v1.2.3 -> 1.2.3
+                ?: // Use git describe to match CI pipeline versioning exactly
+                runCatching {
+                    val gitDescribe = providers.exec {
+                        commandLine("git", "describe", "--tags", "--always", "--dirty", "--abbrev=7")
+                    }.standardOutput.asText.get().trim()
+                    val version = gitDescribe.removePrefix("v")
+                    if (version.contains("-")) {
+                        "$version-SNAPSHOT"
+                    } else {
+                        "$version-SNAPSHOT"
+                    }
+                } .getOrElse { 
+                    // Fallback to CI_COMMIT_SHA if git describe fails
+                    val sha = System.getenv("CI_COMMIT_SHA") ?: "unknown"
+                    "${sha.take(7)}-SNAPSHOT"
+                }
         }
-        // Local development - use configurable version from gradle.properties
+        // Local development - ALWAYS use localVersion from gradle.properties
         else -> project.findProperty("localVersion") as String? ?: "2.0.1-SNAPSHOT"
     }
 
@@ -36,7 +47,8 @@ subprojects {
     }
 
     // Skip publishing for test module - it's only for integration testing
-    val shouldPublish = project.name != "test"
+    // gradle-plugin has its own special publication setup
+    val shouldPublish = project.name != "test" && project.name != "gradle-plugin"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")

@@ -4,13 +4,14 @@ import com.metalastic.integration.QIndexPerson
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlin.reflect.typeOf
 
 class CompanionObjectTest :
   ShouldSpec({
     should("provide static access via companion object") {
       // Test that companion object provides static access
       val staticInstance = QIndexPerson.indexPerson
-      val manualInstance = QIndexPerson<Any>()
+      val manualInstance = QIndexPerson<Any>(fieldType = typeOf<Any>())
 
       // Both should be valid instances
       staticInstance shouldNotBe null

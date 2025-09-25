@@ -366,3 +366,4 @@ object CoreConstants {
 - use KSP for annotation processing (not kapt)
 - path() is a function, not a property
 - isNestedPath() for nested detection, not fieldPath.isNested
+- remember to use spotless before any commit

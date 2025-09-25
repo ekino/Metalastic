@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import java.util.Date
+import kotlin.reflect.typeOf
 
 /**
  * Comprehensive test suite for DSL usage patterns and delegate functions. Tests the actual
@@ -13,7 +14,7 @@ class DSLUsageSpec :
   ShouldSpec({
     should("create text field via helper method") {
       val index =
-        object : ObjectField<Any>(name = "") {
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val title = text<String>("title")
           val content = text<String>("content")
         }
@@ -26,7 +27,7 @@ class DSLUsageSpec :
 
     should("create keyword field via helper method") {
       val index =
-        object : ObjectField<Any>(name = "") {
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val status = keyword<String>("status")
           val category = keyword<String>("category")
         }
@@ -37,9 +38,10 @@ class DSLUsageSpec :
 
     should("handle generic types with delegates") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val tags = KeywordField<List<String>>(this, "tags")
-          val metadata = KeywordField<Map<String, String>>(this, "metadata")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val tags = KeywordField<List<String>>(this, "tags", typeOf<List<String>>())
+          val metadata =
+            KeywordField<Map<String, String>>(this, "metadata", typeOf<Map<String, String>>())
         }
 
       index.tags.shouldBeInstanceOf<KeywordField<List<String>>>()
@@ -47,15 +49,15 @@ class DSLUsageSpec :
     }
     should("create all numeric field types via delegates") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val count = LongField<Long>(this, "count")
-          val views = IntegerField<Int>(this, "views")
-          val ratio = DoubleField<Double>(this, "ratio")
-          val score = FloatField<Float>(this, "score")
-          val precision = HalfFloatField<Boolean>(this, "precision")
-          val percentage = ScaledFloatField<Long>(this, "percentage")
-          val port = ShortField<Short>(this, "port")
-          val flag = ByteField<Byte>(this, "flag")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val count = LongField<Long>(this, "count", typeOf<Long>())
+          val views = IntegerField<Int>(this, "views", typeOf<Int>())
+          val ratio = DoubleField<Double>(this, "ratio", typeOf<Double>())
+          val score = FloatField<Float>(this, "score", typeOf<Float>())
+          val precision = HalfFloatField<Boolean>(this, "precision", typeOf<Boolean>())
+          val percentage = ScaledFloatField<Long>(this, "percentage", typeOf<Long>())
+          val port = ShortField<Short>(this, "port", typeOf<Short>())
+          val flag = ByteField<Byte>(this, "flag", typeOf<Byte>())
         }
 
       index.count.shouldBeInstanceOf<LongField<Long>>()
@@ -69,9 +71,9 @@ class DSLUsageSpec :
     }
     should("create date field types via delegates") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val createdAt = DateField<Date>(this, "createdAt")
-          val timestamp = DateNanosField<Date>(this, "timestamp")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val createdAt = DateField<Date>(this, "createdAt", typeOf<Date>())
+          val timestamp = DateNanosField<Date>(this, "timestamp", typeOf<Date>())
         }
 
       index.createdAt.shouldBeInstanceOf<DateField<Date>>()
@@ -79,13 +81,13 @@ class DSLUsageSpec :
     }
     should("create all range field types via delegates") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val ageRange = IntegerRangeField<String>(this, "ageRange")
-          val timeRange = LongRangeField<String>(this, "timeRange")
-          val priceRange = DoubleRangeField<String>(this, "priceRange")
-          val scoreRange = FloatRangeField<String>(this, "scoreRange")
-          val dateRange = DateRangeField<String>(this, "dateRange")
-          val ipRange = IpRangeField<String>(this, "ipRange")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val ageRange = IntegerRangeField<String>(this, "ageRange", typeOf<String>())
+          val timeRange = LongRangeField<String>(this, "timeRange", typeOf<String>())
+          val priceRange = DoubleRangeField<String>(this, "priceRange", typeOf<String>())
+          val scoreRange = FloatRangeField<String>(this, "scoreRange", typeOf<String>())
+          val dateRange = DateRangeField<String>(this, "dateRange", typeOf<String>())
+          val ipRange = IpRangeField<String>(this, "ipRange", typeOf<String>())
         }
 
       index.ageRange.shouldBeInstanceOf<IntegerRangeField<String>>()
@@ -97,20 +99,20 @@ class DSLUsageSpec :
     }
     should("create specialized field types via delegates") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val isActive = BooleanField<Boolean>(this, "isActive")
-          val data = BinaryField<String>(this, "data")
-          val clientIp = IpField<String>(this, "clientIp")
-          val suggest = CompletionField<String>(this, "suggest")
-          val wordCount = TokenCountField<String>(this, "wordCount")
-          val query = PercolatorField<String>(this, "query")
-          val relevance = RankFeatureField<String>(this, "relevance")
-          val features = RankFeatureField<String>(this, "features")
-          val metadata = FlattenedField<String>(this, "metadata")
-          val pattern = WildcardField<String>(this, "pattern")
-          val category = ConstantKeywordField<String>(this, "category")
-          val geometry = ShapeField<String>(this, "geometry")
-          val coordinate = PointField<String>(this, "coordinate")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val isActive = BooleanField<Boolean>(this, "isActive", typeOf<Boolean>())
+          val data = BinaryField<String>(this, "data", typeOf<String>())
+          val clientIp = IpField<String>(this, "clientIp", typeOf<String>())
+          val suggest = CompletionField<String>(this, "suggest", typeOf<String>())
+          val wordCount = TokenCountField<String>(this, "wordCount", typeOf<String>())
+          val query = PercolatorField<String>(this, "query", typeOf<String>())
+          val relevance = RankFeatureField<String>(this, "relevance", typeOf<String>())
+          val features = RankFeatureField<String>(this, "features", typeOf<String>())
+          val metadata = FlattenedField<String>(this, "metadata", typeOf<String>())
+          val pattern = WildcardField<String>(this, "pattern", typeOf<String>())
+          val category = ConstantKeywordField<String>(this, "category", typeOf<String>())
+          val geometry = ShapeField<String>(this, "geometry", typeOf<String>())
+          val coordinate = PointField<String>(this, "coordinate", typeOf<String>())
         }
 
       index.isActive.shouldBeInstanceOf<BooleanField<Boolean>>()
@@ -129,15 +131,15 @@ class DSLUsageSpec :
     }
     should("create object fields via delegate") {
       class AddressFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val street = TextField<String>(this, "street")
-        val city = TextField<String>(this, "city")
-        val zipCode = KeywordField<String>(this, "zipCode")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val street = TextField<String>(this, "street", typeOf<String>())
+        val city = TextField<String>(this, "city", typeOf<String>())
+        val zipCode = KeywordField<String>(this, "zipCode", typeOf<String>())
       }
 
       val index =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val address = AddressFields(this, "address")
         }
 
@@ -149,14 +151,18 @@ class DSLUsageSpec :
 
     should("create object multifield via delegate") {
       class SomeMultiField(parent: ObjectField<*>, name: String) :
-        MultiField<String, TextField<String>>(parent, TextField(parent, name)) {
-        val search = TextField<String>(this, "search")
-        val description = TextField<String>(this, "description")
+        MultiField<String, TextField<String>>(
+          parent,
+          TextField(parent, name, typeOf<String>()),
+          typeOf<String>(),
+        ) {
+        val search = TextField<String>(this, "search", typeOf<String>())
+        val description = TextField<String>(this, "description", typeOf<String>())
       }
 
       val index =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val multiField = SomeMultiField(this, "multiField")
         }
 
@@ -169,14 +175,14 @@ class DSLUsageSpec :
 
     should("create nested fields via delegate") {
       class TagFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val name = KeywordField<String>(this, "name")
-        val weight = IntegerField<Int>(this, "weight")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val name = KeywordField<String>(this, "name", typeOf<String>())
+        val weight = IntegerField<Int>(this, "weight", typeOf<Int>())
       }
 
       val index =
-        object : ObjectField<Any>(name = "") {
-          val title = TextField<String>(this, "title")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val title = TextField<String>(this, "title", typeOf<String>())
           val tags = TagFields(this, "tags", true)
         }
 
@@ -186,40 +192,40 @@ class DSLUsageSpec :
     }
     should("support complex e-commerce document structure") {
       class PriceFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val amount = DoubleField<Double>(this, "amount")
-        val currency = KeywordField<String>(this, "currency")
-        val discount = DoubleField<Double>(this, "discount")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val amount = DoubleField<Double>(this, "amount", typeOf<Double>())
+        val currency = KeywordField<String>(this, "currency", typeOf<String>())
+        val discount = DoubleField<Double>(this, "discount", typeOf<Double>())
       }
 
       class CategoryFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val id = KeywordField<String>(this, "id")
-        val name = TextField<String>(this, "name")
-        val level = IntegerField<Int>(this, "level")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val id = KeywordField<String>(this, "id", typeOf<String>())
+        val name = TextField<String>(this, "name", typeOf<String>())
+        val level = IntegerField<Int>(this, "level", typeOf<Int>())
       }
 
       class ReviewFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val rating = FloatField<Float>(this, "rating")
-        val comment = TextField<String>(this, "comment")
-        val reviewer = KeywordField<String>(this, "reviewer")
-        val reviewDate = DateField<Date>(this, "reviewDate")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val rating = FloatField<Float>(this, "rating", typeOf<Float>())
+        val comment = TextField<String>(this, "comment", typeOf<String>())
+        val reviewer = KeywordField<String>(this, "reviewer", typeOf<String>())
+        val reviewDate = DateField<Date>(this, "reviewDate", typeOf<Date>())
       }
 
       val product =
-        object : ObjectField<Any>(name = "") {
-          val title = TextField<String>(this, "title")
-          val description = TextField<String>(this, "description")
-          val sku = KeywordField<String>(this, "sku")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val title = TextField<String>(this, "title", typeOf<String>())
+          val description = TextField<String>(this, "description", typeOf<String>())
+          val sku = KeywordField<String>(this, "sku", typeOf<String>())
           val price = PriceFields(this, "price")
           val category = CategoryFields(this, "category")
-          val tags = KeywordField<List<String>>(this, "tags")
-          val inStock = BooleanField<Boolean>(this, "inStock")
-          val stockCount = IntegerField<Int>(this, "stockCount")
+          val tags = KeywordField<List<String>>(this, "tags", typeOf<List<String>>())
+          val inStock = BooleanField<Boolean>(this, "inStock", typeOf<Boolean>())
+          val stockCount = IntegerField<Int>(this, "stockCount", typeOf<Int>())
           val reviews = ReviewFields(this, "reviews", true)
-          val createdAt = DateField<Date>(this, "createdAt")
-          val updatedAt = DateField<Date>(this, "updatedAt")
+          val createdAt = DateField<Date>(this, "createdAt", typeOf<Date>())
+          val updatedAt = DateField<Date>(this, "updatedAt", typeOf<Date>())
         }
 
       // Verify structure
@@ -240,39 +246,39 @@ class DSLUsageSpec :
         parent: ObjectField<*>?,
         name: String,
         nested: kotlin.Boolean = false,
-      ) : ObjectField<Any>(parent, name, nested) {
-        val read = BooleanField<Boolean>(this, "read")
-        val write = BooleanField<Boolean>(this, "write")
-        val admin = BooleanField<Boolean>(this, "admin")
+      ) : ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val read = BooleanField<Boolean>(this, "read", typeOf<Boolean>())
+        val write = BooleanField<Boolean>(this, "write", typeOf<Boolean>())
+        val admin = BooleanField<Boolean>(this, "admin", typeOf<Boolean>())
       }
 
       class ProfileFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val firstName = TextField<String>(this, "firstName")
-        val lastName = TextField<String>(this, "lastName")
-        val bio = TextField<String>(this, "bio")
-        val avatar = KeywordField<String>(this, "avatar")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val firstName = TextField<String>(this, "firstName", typeOf<String>())
+        val lastName = TextField<String>(this, "lastName", typeOf<String>())
+        val bio = TextField<String>(this, "bio", typeOf<String>())
+        val avatar = KeywordField<String>(this, "avatar", typeOf<String>())
         val permissions = PermissionsFields(this, "permissions", true)
       }
 
       class ActivityFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-        ObjectField<Any>(parent, name, nested) {
-        val action = KeywordField<String>(this, "action")
-        val timestamp = DateField<Date>(this, "timestamp")
-        val ipAddress = IpField<Any>(this, "ipAddress")
-        val userAgent = TextField<String>(this, "userAgent")
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+        val action = KeywordField<String>(this, "action", typeOf<String>())
+        val timestamp = DateField<Date>(this, "timestamp", typeOf<Date>())
+        val ipAddress = IpField<Any>(this, "ipAddress", typeOf<Any>())
+        val userAgent = TextField<String>(this, "userAgent", typeOf<String>())
       }
 
       val user =
-        object : ObjectField<Any>(name = "") {
-          val email = KeywordField<String>(this, "email")
-          val username = KeywordField<String>(this, "username")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val email = KeywordField<String>(this, "email", typeOf<String>())
+          val username = KeywordField<String>(this, "username", typeOf<String>())
           val profile = ProfileFields(this, "profile", true)
-          val isActive = BooleanField<kotlin.Boolean>(this, "isActive")
-          val roles = KeywordField<List<String>>(this, "roles")
-          val lastLogin = DateField<Date>(this, "lastLogin")
+          val isActive = BooleanField<kotlin.Boolean>(this, "isActive", typeOf<kotlin.Boolean>())
+          val roles = KeywordField<List<String>>(this, "roles", typeOf<List<String>>())
+          val lastLogin = DateField<Date>(this, "lastLogin", typeOf<Date>())
           val activities = ActivityFields(this, "activities", true)
-          val createdAt = DateField<Date>(this, "createdAt")
+          val createdAt = DateField<Date>(this, "createdAt", typeOf<Date>())
         }
 
       // Test deep nesting
@@ -304,39 +310,39 @@ class DSLUsageSpec :
       should("thoroughly test nested object functionality with multiple nesting levels") {
         // Create a complex structure with multiple levels of nesting
         class DeepMetricsFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-          ObjectField<Any>(parent, name, nested) {
-          val clicks = LongField<Long>(this, "clicks")
-          val impressions = LongField<Long>(this, "impressions")
-          val conversionRate = DoubleField<Double>(this, "conversionRate")
+          ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+          val clicks = LongField<Long>(this, "clicks", typeOf<Long>())
+          val impressions = LongField<Long>(this, "impressions", typeOf<Long>())
+          val conversionRate = DoubleField<Double>(this, "conversionRate", typeOf<Double>())
         }
 
         class CampaignAnalyticsFields(
           parent: ObjectField<*>?,
           name: String,
           nested: Boolean = false,
-        ) : ObjectField<Any>(parent, name, nested) {
-          val period = KeywordField<String>(this, "period")
+        ) : ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+          val period = KeywordField<String>(this, "period", typeOf<String>())
           val metrics = DeepMetricsFields(this, "metrics") // Regular object field
           val dailyMetrics = DeepMetricsFields(this, "dailyMetrics", true) // Nested field
         }
 
         class AdvertiserFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-          ObjectField<Any>(parent, name, nested) {
-          val name = TextField<String>(this, "name")
+          ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val campaigns = CampaignAnalyticsFields(this, "campaigns", true) // Nested field
         }
 
         class LocationFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
-          ObjectField<Any>(parent, name, nested) {
-          val city = TextField<String>(this, "city")
-          val country = KeywordField<String>(this, "country")
+          ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+          val city = TextField<String>(this, "city", typeOf<String>())
+          val country = KeywordField<String>(this, "country", typeOf<String>())
           val advertisers = AdvertiserFields(this, "advertisers", true) // Nested field
         }
 
         val complexDocument =
-          object : ObjectField<Any>(name = "") {
-            val documentId = KeywordField<String>(this, "documentId")
-            val timestamp = DateField<Date>(this, "timestamp")
+          object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+            val documentId = KeywordField<String>(this, "documentId", typeOf<String>())
+            val timestamp = DateField<Date>(this, "timestamp", typeOf<Date>())
             val location = LocationFields(this, "location") // Regular object field
             val globalAdvertisers =
               AdvertiserFields(this, "globalAdvertisers", true) // Nested field at root

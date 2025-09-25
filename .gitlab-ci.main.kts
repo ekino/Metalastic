@@ -105,12 +105,35 @@ fun printPipeline(block: GitlabCiDsl.() -> Unit) {
 */
 printPipeline {
     
-    // Calculate actual artifact version for job names
+    // Helper function for executing git commands
+    fun String.execute(): String {
+        return ProcessBuilder(*this.split(" ").toTypedArray())
+            .start()
+            .inputStream
+            .bufferedReader()
+            .readText()
+    }
+
+    // Calculate actual artifact version for job names - match Gradle build logic
     val tagName = ciCommitTag?.name
 
     val artifactVersion = when {
         tagName != null -> tagName.removePrefix("v") // v1.2.3 -> 1.2.3
-        else -> "SNAPSHOT-${ciCommitSha.name.take(7)}" // Use 7 chars to match git describe default
+        else -> {
+            // Use git describe to match Gradle versioning exactly
+            try {
+                val gitDescribe = "git describe --tags --always --dirty --abbrev=7".execute().trim()
+                val version = gitDescribe.removePrefix("v")
+                if (version.contains("-")) {
+                    "$version-SNAPSHOT"
+                } else {
+                    "$version-SNAPSHOT"
+                }
+            } catch (e: Exception) {
+                // Fallback to simple SHA-SNAPSHOT if git describe fails
+                "${ciCommitSha.name.take(7)}-SNAPSHOT"
+            }
+        }
     }
     
     // Workflow rules for child pipeline - essential for parent_pipeline source

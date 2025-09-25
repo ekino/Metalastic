@@ -7,6 +7,7 @@ import com.metalastic.core.TextField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.reflect.typeOf
 
 /**
  * Tests for interface getter method support in Metalastic annotation processor.
@@ -34,7 +35,7 @@ class InterfaceGetterMethodTest :
     }
 
     should("generate correct field types from getter method return types") {
-      val testItem = QTestItem<Any>(null, "test", false)
+      val testItem = QTestItem<Any>(null, "test", false, typeOf<Any>())
 
       // Verify field types match getter method return types
       testItem.category.shouldBeInstanceOf<KeywordField<String>>()

@@ -3,6 +3,7 @@ package com.metalastic.core
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.reflect.typeOf
 
 /**
  * Basic test suite for core field functionality after delegation removal. Tests basic field
@@ -12,7 +13,7 @@ class BasicFieldsSpec :
   ShouldSpec({
     should("create Index with helper method field initialization") {
       val index =
-        object : ObjectField<Any>(name = "") {
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val name = text<String>("name")
           val age = integer<Int>("age")
           val active = boolean<kotlin.Boolean>("active")
@@ -30,7 +31,7 @@ class BasicFieldsSpec :
 
     should("construct correct field paths") {
       val index =
-        object : ObjectField<Any>(name = "") {
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val email = keyword<String>("email")
           val firstName = text<String>("firstName")
           val lastLogin = date<java.util.Date>("lastLogin")
@@ -43,7 +44,7 @@ class BasicFieldsSpec :
 
     should("create simple ObjectFields with helper method initialization") {
       class SimpleAddress(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
         val city = text<String>("city")
         val country = keyword<String>("country")
       }
@@ -58,12 +59,12 @@ class BasicFieldsSpec :
 
     should("handle nested path construction") {
       class NestedObject(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
         val field1 = text<String>("field1")
         val field2 = integer<Int>("field2")
       }
 
-      val parent = object : ObjectField<Any>(name = "") {}
+      val parent = object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {}
       val nestedObj = NestedObject(parent, "nested")
 
       nestedObj.field1.path() shouldBe "nested.field1"

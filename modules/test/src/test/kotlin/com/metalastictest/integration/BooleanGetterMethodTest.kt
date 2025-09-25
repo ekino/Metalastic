@@ -4,6 +4,7 @@ import com.metalastic.core.BooleanField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import kotlin.reflect.typeOf
 
 class BooleanGetterMethodTest :
   ShouldSpec({
@@ -31,7 +32,7 @@ class BooleanGetterMethodTest :
         // isVerified() -> verified (is prefix removed)
         // isPublished() -> published (is prefix removed)
         // someOtherMethod() -> someOtherMethod (no prefix, used as-is)
-        val item = QBooleanTestItem<Any>(null, "", false)
+        val item = QBooleanTestItem<Any>(null, "", false, typeOf<Any>())
 
         // Verify property names match expected pattern
         item.enabled.path() shouldBe "enabled"
@@ -41,7 +42,7 @@ class BooleanGetterMethodTest :
       }
 
       should("generate correct field types from annotated methods") {
-        val booleanItem = QBooleanTestItem<Any>(null, "test", false)
+        val booleanItem = QBooleanTestItem<Any>(null, "test", false, typeOf<Any>())
 
         // Verify field types match annotated method return types
         booleanItem.enabled.shouldBeInstanceOf<BooleanField<Boolean>>()
@@ -102,12 +103,12 @@ class BooleanGetterMethodTest :
 
       should("support both getXxx() and isXxx() patterns") {
         // Verify TestItem still works (getActive -> active)
-        val testItem = QTestItem<Any>(null, "", false)
+        val testItem = QTestItem<Any>(null, "", false, typeOf<Any>())
         testItem.active.path() shouldBe "active"
         testItem.active.shouldBeInstanceOf<BooleanField<Boolean>>()
 
         // Verify BooleanTestItem works (isEnabled -> enabled)
-        val booleanItem = QBooleanTestItem<Any>(null, "", false)
+        val booleanItem = QBooleanTestItem<Any>(null, "", false, typeOf<Any>())
         booleanItem.enabled.path() shouldBe "enabled"
         booleanItem.enabled.shouldBeInstanceOf<BooleanField<Boolean>>()
       }
