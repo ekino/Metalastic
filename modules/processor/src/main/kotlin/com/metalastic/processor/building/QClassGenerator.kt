@@ -47,14 +47,16 @@ class QClassGenerator(
       ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.ObjectFieldClass.SIMPLE_NAME)
     val multifieldClass =
       ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.MultiFieldClass.SIMPLE_NAME)
-    val typeParameterTAny = TypeVariableName("T : Any")
+    val typeParameterTAny = TypeVariableName("T : Any?")
     val typeParameterT = TypeVariableName("T")
+    val kType = ClassName("kotlin.reflect", "KType")
   }
 
   /** Entry point to build TypeSpec for the root model and its inner classes */
   fun buildFieldSpec(): FileSpec =
     FileSpec.builder(rootModel.packageName, rootModel.qClassName)
       .addType(buildTypeSpec(rootModel))
+      .addImport("kotlin.reflect", "typeOf")
       .build()
 
   private fun buildTypeSpec(model: MetalasticGraph.MetaClassModel): TypeSpec {
@@ -84,13 +86,16 @@ class QClassGenerator(
           .addSuperclassConstructorParameter(
             CoreConstants.ObjectFieldClass.NESTED_PROPERTY.namedArgument
           )
+          .addSuperclassConstructorParameter(
+            CoreConstants.ObjectFieldClass.FIELD_TYPE_PROPERTY.namedArgument
+          )
           .addFunction(buildIndexNameFunction())
           .addKdoc(generateDocumentKdoc(model))
       }
 
       is MetalasticGraph.ObjectClass -> {
-        // Add generic type parameter T
-        classBuilder.addTypeVariable(typeParameterT)
+        // Add generic type parameter T:Any
+        classBuilder.addTypeVariable(typeParameterTAny)
 
         // Create parameterized ObjectField type
         val parameterizedObjectField = objectFieldClass.parameterizedBy(typeParameterT)
@@ -106,6 +111,9 @@ class QClassGenerator(
           )
           .addSuperclassConstructorParameter(
             CoreConstants.ObjectFieldClass.NESTED_PROPERTY.namedArgument
+          )
+          .addSuperclassConstructorParameter(
+            CoreConstants.ObjectFieldClass.FIELD_TYPE_PROPERTY.namedArgument
           )
           .addKdoc(generateObjectFieldKdoc(model))
       }
@@ -186,9 +194,19 @@ class QClassGenerator(
     typeName: TypeName,
   ) = apply {
     if (field.nested) {
-      initializer("%T(this, %S, true)", typeName, field.name)
+      initializer(
+        "%T(this, %S, true, typeOf<%T>())",
+        typeName,
+        field.name,
+        field.type.toSafeTypeName(typeParameterResolver),
+      )
     } else {
-      initializer("%T(this, %S)", typeName, field.name)
+      initializer(
+        "%T(this, %S, false, typeOf<%T>())",
+        typeName,
+        field.name,
+        field.type.toSafeTypeName(typeParameterResolver),
+      )
     }
   }
 
@@ -204,13 +222,19 @@ class QClassGenerator(
       .apply {
         if (field.nested) {
           initializer(
-            "object : %T(parent = this, name = %S, nested = %L) {}",
+            "object : %T(parent = this, name = %S, nested = %L, fieldType = typeOf<%T>()) {}",
             objectFieldAnyType,
             field.name,
             nested,
+            sourceTypeName,
           )
         } else {
-          initializer("object : %T(parent = this, name = %S) {}", objectFieldAnyType, field.name)
+          initializer(
+            "object : %T(parent = this, name = %S, nested = false, fieldType = typeOf<%T>()) {}",
+            objectFieldAnyType,
+            field.name,
+            sourceTypeName,
+          )
         }
       }
       .addKdoc(generateFieldKDoc(field))
@@ -256,8 +280,13 @@ class QClassGenerator(
         .primaryConstructor(buildMultiFieldConstructor())
         .addSuperclassConstructorParameter(CoreConstants.MultiFieldClass.PARENT_PROPERTY.name)
         .addSuperclassConstructorParameter(
-          "%T(${CoreConstants.MultiFieldClass.PARENT_PROPERTY.name}, ${CoreConstants.MultiFieldClass.MAIN_FIELD_PROPERTY})",
+          "%T(${CoreConstants.MultiFieldClass.PARENT_PROPERTY.name}, ${CoreConstants.MultiFieldClass.MAIN_FIELD_PROPERTY}, typeOf<%T>())",
           fieldTypeClass.className,
+          field.type.toSafeTypeName(typeParameterResolver),
+        )
+        .addSuperclassConstructorParameter(
+          "typeOf<%T>()",
+          field.type.toSafeTypeName(typeParameterResolver),
         )
         .addKdoc(generateMultiFieldClassKDoc(field))
 
@@ -317,6 +346,10 @@ class QClassGenerator(
           .defaultValue("false")
           .build()
       )
+      .addParameter(
+        ParameterSpec.builder(CoreConstants.ObjectFieldClass.FIELD_TYPE_PROPERTY.name, kType)
+          .build()
+      )
       .build()
   }
 
@@ -331,6 +364,10 @@ class QClassGenerator(
       .addParameter(
         ParameterSpec.builder(CoreConstants.ObjectFieldClass.NESTED_PROPERTY.name, Boolean::class)
           .defaultValue("false")
+          .build()
+      )
+      .addParameter(
+        ParameterSpec.builder(CoreConstants.ObjectFieldClass.FIELD_TYPE_PROPERTY.name, kType)
           .build()
       )
       .build()
@@ -366,7 +403,7 @@ class QClassGenerator(
     val property =
       PropertySpec.builder(document.companionPropertyName, parameterizedTypeName)
         .addModifiers(KModifier.PUBLIC)
-        .initializer("%T()", qClassName)
+        .initializer("%T(fieldType = typeOf<%T>())", qClassName, sourceTypeName)
         .addKdoc(generateCompanionPropertyKdoc(document))
         .withOptionalJavaCompatibility()
         .build()

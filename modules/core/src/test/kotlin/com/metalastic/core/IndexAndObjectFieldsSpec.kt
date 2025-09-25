@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import java.util.Date
+import kotlin.reflect.typeOf
 
 /**
  * Comprehensive test suite for Index and ObjectFields functionality. Tests index creation, object
@@ -13,10 +14,10 @@ class IndexAndObjectFieldsSpec :
   ShouldSpec({
     should("create fields with correct paths in Index") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val email = KeywordField<String>(this, "email")
-          val firstName = TextField<String>(this, "firstName")
-          val lastLogin = DateField<Date>(this, "lastLogin")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val email = KeywordField<String>(this, "email", typeOf<String>())
+          val firstName = TextField<String>(this, "firstName", typeOf<String>())
+          val lastLogin = DateField<Date>(this, "lastLogin", typeOf<Date>())
         }
 
       index.email.path() shouldBe "email"
@@ -26,11 +27,11 @@ class IndexAndObjectFieldsSpec :
 
     should("maintain field types in Index") {
       val index =
-        object : ObjectField<Any>(name = "") {
-          val title = TextField<String>(this, "title")
-          val price = DoubleField<Double>(this, "price")
-          val inStock = BooleanField<kotlin.Boolean>(this, "inStock")
-          val category = KeywordField<String>(this, "category")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val title = TextField<String>(this, "title", typeOf<String>())
+          val price = DoubleField<Double>(this, "price", typeOf<Double>())
+          val inStock = BooleanField<kotlin.Boolean>(this, "inStock", typeOf<kotlin.Boolean>())
+          val category = KeywordField<String>(this, "category", typeOf<String>())
         }
 
       index.title.shouldBeInstanceOf<TextField<String>>()
@@ -40,11 +41,11 @@ class IndexAndObjectFieldsSpec :
     }
     should("create ObjectFields with correct field types") {
       class AddressFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val street = TextField<String>(this, "street")
-        val city = TextField<String>(this, "city")
-        val country = KeywordField<String>(this, "country")
-        val zipCode = KeywordField<String>(this, "zipCode")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val street = TextField<String>(this, "street", typeOf<String>())
+        val city = TextField<String>(this, "city", typeOf<String>())
+        val country = KeywordField<String>(this, "country", typeOf<String>())
+        val zipCode = KeywordField<String>(this, "zipCode", typeOf<String>())
       }
 
       val address = AddressFields(null, "address")
@@ -57,7 +58,7 @@ class IndexAndObjectFieldsSpec :
 
     should("handle empty ObjectFields") {
       class EmptyFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested)
+        ObjectField<Any>(parent, path, nested, typeOf<Any>())
 
       val empty = EmptyFields(null, "empty")
       // Should not throw any exceptions
@@ -65,14 +66,14 @@ class IndexAndObjectFieldsSpec :
     }
     should("construct correct paths for simple object fields") {
       class AddressFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val city = TextField<String>(this, "city")
-        val country = KeywordField<String>(this, "country")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val city = TextField<String>(this, "city", typeOf<String>())
+        val country = KeywordField<String>(this, "country", typeOf<String>())
       }
 
       val person =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val address = AddressFields(this, "address")
         }
       person.address.city.path() shouldBe "address.city"
@@ -81,21 +82,21 @@ class IndexAndObjectFieldsSpec :
 
     should("handle nested object fields correctly") {
       class LocationFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val latitude = DoubleField<Double>(this, "latitude")
-        val longitude = DoubleField<Double>(this, "longitude")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val latitude = DoubleField<Double>(this, "latitude", typeOf<Double>())
+        val longitude = DoubleField<Double>(this, "longitude", typeOf<Double>())
       }
 
       class AddressFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val street = TextField<String>(this, "street")
-        val city = TextField<String>(this, "city")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val street = TextField<String>(this, "street", typeOf<String>())
+        val city = TextField<String>(this, "city", typeOf<String>())
         val location = LocationFields(this, "location")
       }
 
       val venue =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val address = AddressFields(this, "address")
         }
 
@@ -107,20 +108,20 @@ class IndexAndObjectFieldsSpec :
 
     should("handle multiple object fields in same index") {
       class ContactFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val email = KeywordField<String>(this, "email")
-        val phone = KeywordField<String>(this, "phone")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val email = KeywordField<String>(this, "email", typeOf<String>())
+        val phone = KeywordField<String>(this, "phone", typeOf<String>())
       }
 
       class AddressFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val street = TextField<String>(this, "street")
-        val city = TextField<String>(this, "city")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val street = TextField<String>(this, "street", typeOf<String>())
+        val city = TextField<String>(this, "city", typeOf<String>())
       }
 
       val person =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val contact = ContactFields(this, "contact")
           val address = AddressFields(this, "address")
         }
@@ -132,14 +133,14 @@ class IndexAndObjectFieldsSpec :
     }
     should("create nested fields correctly") {
       class TagFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = true) :
-        ObjectField<Any>(parent, path, nested) {
-        val name = KeywordField<String>(this, "name")
-        val weight = IntegerField<Int>(this, "weight")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val name = KeywordField<String>(this, "name", typeOf<String>())
+        val weight = IntegerField<Int>(this, "weight", typeOf<Int>())
       }
 
       val article =
-        object : ObjectField<Any>(name = "") {
-          val title = TextField<String>(this, "title")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val title = TextField<String>(this, "title", typeOf<String>())
           val tags = TagFields(this, "tags", true)
         }
 
@@ -149,20 +150,20 @@ class IndexAndObjectFieldsSpec :
 
     should("handle nested fields with object fields inside") {
       class LocationFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val city = TextField<String>(this, "city")
-        val country = KeywordField<String>(this, "country")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val city = TextField<String>(this, "city", typeOf<String>())
+        val country = KeywordField<String>(this, "country", typeOf<String>())
       }
 
       class EventFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val name = TextField<String>(this, "name")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val name = TextField<String>(this, "name", typeOf<String>())
         val location = LocationFields(this, "location")
       }
 
       val user =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name = TextField<String>(this, "name", typeOf<String>())
           val events = EventFields(this, "events", true)
         }
 
@@ -172,28 +173,28 @@ class IndexAndObjectFieldsSpec :
     }
     should("handle deep nesting correctly") {
       class MetricsFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val views = LongField<Long>(this, "views")
-        val clicks = LongField<Long>(this, "clicks")
-        val conversions = DoubleField<Double>(this, "conversions")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val views = LongField<Long>(this, "views", typeOf<Long>())
+        val clicks = LongField<Long>(this, "clicks", typeOf<Long>())
+        val conversions = DoubleField<Double>(this, "conversions", typeOf<Double>())
       }
 
       class AnalyticsFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val period = KeywordField<String>(this, "period")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val period = KeywordField<String>(this, "period", typeOf<String>())
         val metrics = MetricsFields(this, "metrics")
       }
 
       class CampaignFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val name = TextField<String>(this, "name")
-        val budget = DoubleField<Double>(this, "budget")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val name = TextField<String>(this, "name", typeOf<String>())
+        val budget = DoubleField<Double>(this, "budget", typeOf<Double>())
         val analytics = AnalyticsFields(this, "analytics", true)
       }
 
       val advertiser =
-        object : ObjectField<Any>(name = "") {
-          val company = TextField<String>(this, "company")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val company = TextField<String>(this, "company", typeOf<String>())
           val campaigns = CampaignFields(this, "campaigns", true)
         }
 
@@ -213,26 +214,26 @@ class IndexAndObjectFieldsSpec :
         parent: ObjectField<*>?,
         path: String,
         nested: kotlin.Boolean = false,
-      ) : ObjectField<Any>(parent, path, nested) {
-        val count = LongField<Long>(this, "count")
-        val average = DoubleField<Double>(this, "average")
-        val isValid = BooleanField<kotlin.Boolean>(this, "isValid")
-        val lastUpdated = DateField<java.util.Date>(this, "lastUpdated")
-        val tags = KeywordField<List<String>>(this, "tags")
+      ) : ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val count = LongField<Long>(this, "count", typeOf<Long>())
+        val average = DoubleField<Double>(this, "average", typeOf<Double>())
+        val isValid = BooleanField<kotlin.Boolean>(this, "isValid", typeOf<kotlin.Boolean>())
+        val lastUpdated = DateField<java.util.Date>(this, "lastUpdated", typeOf<java.util.Date>())
+        val tags = KeywordField<List<String>>(this, "tags", typeOf<List<String>>())
       }
 
       class DocumentFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val content = TextField<String>(this, "content")
-        val metadata = FlattenedField<Math>(this, "metadata")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val content = TextField<String>(this, "content", typeOf<String>())
+        val metadata = FlattenedField<Math>(this, "metadata", typeOf<Math>())
         val statistics = StatisticsFields(this, "statistics")
       }
 
       val search =
-        object : ObjectField<Any>(name = "") {
-          val query = TextField<String>(this, "query")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val query = TextField<String>(this, "query", typeOf<String>())
           val documents = DocumentFields(this, "documents", true)
-          val timestamp = DateField<java.util.Date>(this, "timestamp")
+          val timestamp = DateField<java.util.Date>(this, "timestamp", typeOf<java.util.Date>())
         }
 
       // Verify all field types work in nested context
@@ -255,15 +256,17 @@ class IndexAndObjectFieldsSpec :
     }
     should("handle ObjectFields with same field names in different contexts") {
       class CommonFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val name = TextField<String>(this, "name")
-        val id = KeywordField<String>(this, "id")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val name = TextField<String>(this, "name", typeOf<String>())
+        val id = KeywordField<String>(this, "id", typeOf<String>())
       }
 
       val index =
-        object : ObjectField<Any>(name = "") {
-          val name = TextField<String>(this, "name") // Same name as in CommonFields
-          val id = KeywordField<String>(this, "id") // Same name as in CommonFields
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val name =
+            TextField<String>(this, "name", typeOf<String>()) // Same name as in CommonFields
+          val id =
+            KeywordField<String>(this, "id", typeOf<String>()) // Same name as in CommonFields
           val user = CommonFields(this, "user")
           val group = CommonFields(this, "group")
         }
@@ -281,30 +284,30 @@ class IndexAndObjectFieldsSpec :
 
     should("handle empty field names gracefully") {
       class TestFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
         // Note: This might not be practical in real use, but testing edge case
       }
 
       val index =
-        object : ObjectField<Any>(name = "") {
-          val content = TextField<String>(this, "content")
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
+          val content = TextField<String>(this, "content", typeOf<String>())
         }
 
       index.content.path() shouldBe "content"
     }
     should("maintain type safety through object traversal") {
       class TypedFields(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
-        ObjectField<Any>(parent, path, nested) {
-        val stringField = TextField<String>(this, "stringField")
-        val intField = IntegerField<Int>(this, "intField")
-        val doubleField = DoubleField<Double>(this, "doubleField")
-        val boolField = BooleanField<kotlin.Boolean>(this, "boolField")
-        val listField = KeywordField<List<String>>(this, "listField")
-        val mapField = FlattenedField<Short>(this, "mapField")
+        ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
+        val stringField = TextField<String>(this, "stringField", typeOf<String>())
+        val intField = IntegerField<Int>(this, "intField", typeOf<Int>())
+        val doubleField = DoubleField<Double>(this, "doubleField", typeOf<Double>())
+        val boolField = BooleanField<kotlin.Boolean>(this, "boolField", typeOf<kotlin.Boolean>())
+        val listField = KeywordField<List<String>>(this, "listField", typeOf<List<String>>())
+        val mapField = FlattenedField<Short>(this, "mapField", typeOf<Short>())
       }
 
       val index =
-        object : ObjectField<Any>(name = "") {
+        object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val typed = TypedFields(this, "typed")
         }
 

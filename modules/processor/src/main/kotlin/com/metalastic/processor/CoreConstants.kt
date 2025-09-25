@@ -22,6 +22,7 @@ object CoreConstants {
     val NAME_PROPERTY = FieldClass.NAME_PROPERTY
     val PARENT_PROPERTY = PropertyConst("parent")
     val NESTED_PROPERTY = PropertyConst("nested")
+    val FIELD_TYPE_PROPERTY = PropertyConst("fieldType")
   }
 
   object DocumentClass {

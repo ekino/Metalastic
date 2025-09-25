@@ -1,90 +1,128 @@
 package com.metalastic.core
-class AutoField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+
+import kotlin.reflect.KType
+
+class AutoField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Text fields
-class TextField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class TextField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class KeywordField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class KeywordField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Numeric fields
-class LongField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class LongField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class IntegerField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class IntegerField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class ShortField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class ShortField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class ByteField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class ByteField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class DoubleField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class DoubleField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class FloatField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class FloatField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class HalfFloatField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class HalfFloatField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class ScaledFloatField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class ScaledFloatField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Date fields
-class DateField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class DateField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class DateNanosField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class DateNanosField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Boolean field
-class BooleanField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class BooleanField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Binary field
-class BinaryField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class BinaryField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class IpField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class IpField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Specialized fields
-class CompletionField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class CompletionField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class TokenCountField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class TokenCountField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class PercolatorField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class PercolatorField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class RankFeatureField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class RankFeatureField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class RankFeaturesField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class RankFeaturesField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class FlattenedField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class FlattenedField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class ShapeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class ShapeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class PointField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class PointField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class ConstantKeywordField<T>(parent: ObjectField<*>, fieldName: String) :
-  Field<T>(parent, fieldName)
+class ConstantKeywordField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class WildcardField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class WildcardField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Range fields
-class IntegerRangeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class IntegerRangeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class FloatRangeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class FloatRangeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class LongRangeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class LongRangeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class DoubleRangeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class DoubleRangeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class DateRangeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class DateRangeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class IpRangeField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class IpRangeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
 // Advanced fields
-class SearchAsYouTypeField<T>(parent: ObjectField<*>, fieldName: String) :
-  Field<T>(parent, fieldName)
+class SearchAsYouTypeField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class DenseVectorField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class DenseVectorField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class AliasField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class AliasField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class VersionField<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class VersionField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class Murmur3Field<T>(parent: ObjectField<*>, fieldName: String) : Field<T>(parent, fieldName)
+class Murmur3Field<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class MatchOnlyTextField<T>(parent: ObjectField<*>, fieldName: String) :
-  Field<T>(parent, fieldName)
+class MatchOnlyTextField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
 
-class AnnotatedTextField<T>(parent: ObjectField<*>, fieldName: String) :
-  Field<T>(parent, fieldName)
+class AnnotatedTextField<T : Any?>(parent: ObjectField<*>, fieldName: String, fieldType: KType) :
+  Field<T>(parent, fieldName, fieldType)
