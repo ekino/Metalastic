@@ -14,7 +14,7 @@ abstract class ObjectField<T : Any?>(
   fieldType: KType,
 ) : Field<T>(parent, name, fieldType) {
 
-  fun nested(): kotlin.Boolean = nested
+  fun isNested(): Boolean = nested
 
   // Auto field helpers
   inline fun <reified T : Any?> auto(fieldName: String): AutoField<T> =

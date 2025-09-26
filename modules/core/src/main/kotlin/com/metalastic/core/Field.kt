@@ -31,11 +31,11 @@ sealed class Field<T : Any?>(
 
   fun parents() = generateSequence(parent()) { it.parent() }
 
-  fun isNestedPath(): Boolean = parents().any { it.nested() }
+  fun isNestedPath(): Boolean = parents().any { it.isNested() }
 
   fun nestedPaths(): Sequence<String> =
     parents().mapNotNull {
-      if (it.nested()) {
+      if (it.isNested()) {
         it.path()
       } else {
         null
