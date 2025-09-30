@@ -1,6 +1,5 @@
 package com.metalastic.integration;
 
-import com.metalastictest.integration.ExampleDocument;
 
 import java.time.temporal.Temporal;
 import java.util.Date;
@@ -14,14 +13,21 @@ import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 @Document(indexName = "person")
-public class IndexPerson<T> {
-
-    @Field(type = FieldType.Object)
-    private ExampleDocument exampleDocument;
+public class IndexPerson<Q> {
+    @Field(type = FieldType.Auto)
+    private String autoField;
 
     @Field(type = FieldType.Object)
     private Map<String,? extends Temporal> unsupportedNow;
 
+    @Field(type = FieldType.Object)
+    private Map<String,?> unsupportedNow3;
+    @Field(type = FieldType.Object)
+    private List<Q> unsupportedNow4;
+
+
+    @Field(type = FieldType.Object)
+    private IndexPerson<?> selfReference;
 
     @Field(type = FieldType.Nested)
     private Map<String,Boolean> unsupportedNow2;

@@ -111,7 +111,6 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
         elasticsearchFieldName = elasticsearchFieldName,
         name = propertyName,
         targetModel = qClassModel.graph.getModel(potentialQClass),
-        nested = fieldType == FieldType.Nested,
       )
     }
 

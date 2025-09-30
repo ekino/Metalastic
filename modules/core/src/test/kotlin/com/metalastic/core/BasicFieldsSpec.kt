@@ -16,7 +16,7 @@ class BasicFieldsSpec :
         object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val name = text<String>("name")
           val age = integer<Int>("age")
-          val active = boolean<kotlin.Boolean>("active")
+          val active = boolean<Boolean>("active")
           val score = double<Double>("score")
           val category = keyword<String>("category")
         }
@@ -43,7 +43,7 @@ class BasicFieldsSpec :
     }
 
     should("create simple ObjectFields with helper method initialization") {
-      class SimpleAddress(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
+      class SimpleAddress(parent: ObjectField<*>?, path: String, nested: Boolean = false) :
         ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
         val city = text<String>("city")
         val country = keyword<String>("country")
@@ -58,7 +58,7 @@ class BasicFieldsSpec :
     }
 
     should("handle nested path construction") {
-      class NestedObject(parent: ObjectField<*>?, path: String, nested: kotlin.Boolean = false) :
+      class NestedObject(parent: ObjectField<*>?, path: String, nested: Boolean = false) :
         ObjectField<Any>(parent, path, nested, typeOf<Any>()) {
         val field1 = text<String>("field1")
         val field2 = integer<Int>("field2")

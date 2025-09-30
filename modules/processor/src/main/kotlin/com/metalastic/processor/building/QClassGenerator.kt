@@ -1,8 +1,10 @@
 package com.metalastic.processor.building
 
+import com.google.devtools.ksp.getAnnotationsByType
 import com.metalastic.processor.CoreConstants
 import com.metalastic.processor.CoreConstants.DocumentClass.INDEX_NAME_CONSTANT
 import com.metalastic.processor.CoreConstants.PRODUCT_NAME
+import com.metalastic.processor.CoreConstants.SPRING_DATA_ELASTICSEARCH_PACKAGE
 import com.metalastic.processor.MetalasticSymbolProcessor
 import com.metalastic.processor.collecting.fullyQualifiedName
 import com.metalastic.processor.collecting.toSafeTypeName
@@ -29,6 +31,7 @@ import com.squareup.kotlinpoet.asTypeName
 import com.squareup.kotlinpoet.ksp.toTypeName
 import com.squareup.kotlinpoet.ksp.toTypeParameterResolver
 import java.util.Date
+import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /** Pure Q-class TypeSpec generation. */
@@ -47,6 +50,10 @@ class QClassGenerator(
       ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.ObjectFieldClass.SIMPLE_NAME)
     val multifieldClass =
       ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.MultiFieldClass.SIMPLE_NAME)
+    val unModellableObjectClass =
+      ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.UnModellableObjectClass.SIMPLE_NAME)
+    val selfReferencingObjectClass =
+      ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.SelfReferencingObjectClass.SIMPLE_NAME)
     val typeParameterTAny = TypeVariableName("T : Any?")
     val typeParameterT = TypeVariableName("T")
     val kType = ClassName("kotlin.reflect", "KType")
@@ -165,6 +172,45 @@ class QClassGenerator(
     val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
     val typeName = fieldTypeClass.className.parameterizedBy(sourceTypeName)
 
+    if (field.fieldType == FieldType.Date) {
+      val formats =
+        field.sourceDeclaration.getAnnotationsByType(Field::class).first().format.toList()
+
+      val formatArgs =
+        if (formats.isNotEmpty()) {
+          formats.map { ClassName(SPRING_DATA_ELASTICSEARCH_PACKAGE, "DateFormat") to it.name }
+        } else {
+          emptyList()
+        }
+
+      val formatString = buildString {
+        append("%L(%S")
+        if (formatArgs.isNotEmpty()) {
+          append(", listOf(")
+          append(formatArgs.joinToString(", ") { "%T.%L" })
+          append(")")
+        }
+        append(")")
+      }
+
+      val initializerArgs = buildList {
+        add(fieldTypeClass.helperMethodName)
+        add(field.elasticsearchFieldName)
+        formatArgs.forEach { (className, formatName) ->
+          add(className)
+          add(formatName)
+        }
+      }
+
+      @Suppress("SpreadOperator") // KotlinPoet requires varargs
+      return PropertySpec.builder(field.name, typeName)
+        .addModifiers(KModifier.PUBLIC)
+        .initializer(formatString, *initializerArgs.toTypedArray())
+        .addKdoc(generateFieldKDoc(field))
+        .withOptionalJavaCompatibility()
+        .build()
+    }
+
     return PropertySpec.builder(field.name, typeName)
       .addModifiers(KModifier.PUBLIC)
       .initializer("%L(%S)", fieldTypeClass.helperMethodName, field.elasticsearchFieldName)
@@ -175,10 +221,17 @@ class QClassGenerator(
 
   /** Generates an object field property. */
   private fun generateObjectFieldProperty(field: ObjectFieldModel): PropertySpec {
-    if (field.targetModel == null) {
-      return generateTerminalObjectField(field)
+    return when {
+      field.targetModel == null -> generateUnModellableObjectField(field)
+      field.parentModel.fullyQualifiedName == field.targetModel.fullyQualifiedName ->
+        generateSelfReferencingObjectField(field)
+      else -> generateRegularObjectField(field)
     }
-    val qClassName = field.targetModel.toClassName()
+  }
+
+  /** Generates a regular object field property with a target model. */
+  private fun generateRegularObjectField(field: ObjectFieldModel): PropertySpec {
+    val qClassName = field.targetModel!!.toClassName()
     val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
 
     val parameterizedTypeName = qClassName.parameterizedBy(sourceTypeName)
@@ -194,51 +247,75 @@ class QClassGenerator(
     field: ObjectFieldModel,
     typeName: TypeName,
   ) = apply {
-    if (field.nested) {
-      initializer(
-        "%T(this, %S, true, typeOf<%T>())",
-        typeName,
-        field.elasticsearchFieldName,
-        field.type.toSafeTypeName(typeParameterResolver),
-      )
-    } else {
-      initializer(
-        "%T(this, %S, false, typeOf<%T>())",
-        typeName,
-        field.elasticsearchFieldName,
-        field.type.toSafeTypeName(typeParameterResolver),
-      )
-    }
+    initializer(
+      "%T(this, %S, %L, typeOf<%T>())",
+      typeName,
+      field.elasticsearchFieldName,
+      field.nested,
+      field.type.toSafeTypeName(typeParameterResolver),
+    )
   }
 
-  private fun generateTerminalObjectField(field: ObjectFieldModel): PropertySpec {
-    val nested = field.fieldType == FieldType.Nested
-
+  /**
+   * generates an object field property for terminal objects without a target model or
+   * self-referencing fields
+   */
+  private fun generateUnModellableObjectField(field: ObjectFieldModel): PropertySpec {
     // Create ObjectField<*> type for terminal objects
-    val objectFieldStarType = objectFieldClass.parameterizedBy(com.squareup.kotlinpoet.STAR)
-    val sourceTypeName = field.type.toTypeName(typeParameterResolver)
-    val objectFieldAnyType = objectFieldClass.parameterizedBy(sourceTypeName)
+    val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
+    val objectFieldType = unModellableObjectClass.parameterizedBy(sourceTypeName)
 
-    return PropertySpec.builder(field.name, objectFieldStarType)
+    val kdocDescription =
+      """
+        |**🚫 UN-HANDLED collection or generic type**
+        |
+        |`${field.name}` with original type `$sourceTypeName` cannot be modeled.
+        |
+        """
+        .trimMargin()
+
+    return PropertySpec.builder(field.name, objectFieldType)
       .apply {
-        if (field.nested) {
-          initializer(
-            "object : %T(parent = this, name = %S, nested = %L, fieldType = typeOf<%T>()) {}",
-            objectFieldAnyType,
-            field.elasticsearchFieldName,
-            nested,
-            sourceTypeName,
-          )
-        } else {
-          initializer(
-            "object : %T(parent = this, name = %S, nested = false, fieldType = typeOf<%T>()) {}",
-            objectFieldAnyType,
-            field.elasticsearchFieldName,
-            sourceTypeName,
-          )
-        }
+        initializer(
+          "%T(this, %S, %L, typeOf<%T>())",
+          objectFieldType,
+          field.elasticsearchFieldName,
+          field.nested,
+          sourceTypeName,
+        )
       }
-      .addKdoc(generateFieldKDoc(field))
+      .addKdoc(generateFieldKDoc(field, kdocDescription))
+      .withOptionalJavaCompatibility()
+      .build()
+  }
+
+  private fun generateSelfReferencingObjectField(field: ObjectFieldModel): PropertySpec {
+    // Create ObjectField<*> type for terminal objects
+    val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
+    val objectFieldType = selfReferencingObjectClass.parameterizedBy(sourceTypeName)
+
+    val kdocDescription =
+      """
+        | **∞ SELF-REFERENCING FIELD**
+        |
+        |`${field.name}` is a self reference to [${field.targetModel?.sourceClassDeclaration?.fullyQualifiedName()}].
+        |
+        |Using a terminal object to avoid infinite recursion.
+        |
+        """
+        .trimMargin()
+
+    return PropertySpec.builder(field.name, objectFieldType)
+      .apply {
+        initializer(
+          "%T(this, %S, %L, typeOf<%T>())",
+          objectFieldType,
+          field.elasticsearchFieldName,
+          field.nested,
+          sourceTypeName,
+        )
+      }
+      .addKdoc(generateFieldKDoc(field, kdocDescription))
       .withOptionalJavaCompatibility()
       .build()
   }
@@ -415,36 +492,54 @@ class QClassGenerator(
   }
 
   private fun generateDocumentKdoc(document: MetalasticGraph.DocumentClass): String {
-    return """
-            Metamodel for Elasticsearch index `${document.indexName}`.
-
-            This class was automatically generated by $PRODUCT_NAME annotation processor
-            from the source class [${document.sourceClassDeclaration.fullyQualifiedName()}].
-
-            **Do not modify this file directly.** Any changes will be overwritten
-            during the next compilation. To modify the metamodel structure, update the
-            annotations on the source document class.
-
-            @see ${document.sourceClassDeclaration.fullyQualifiedName()}
-            """
-      .trimIndent()
+    val hierarchy = buildFieldHierarchy(document)
+    return buildString {
+      appendLine("Metamodel for Elasticsearch index `${document.indexName}`.")
+      appendLine()
+      appendLine("This class was automatically generated by $PRODUCT_NAME annotation processor")
+      appendLine("from the source class [${document.sourceClassDeclaration.fullyQualifiedName()}].")
+      appendLine()
+      appendLine("## Field Hierarchy")
+      appendLine("```")
+      appendLine("${document.qClassName}<T>")
+      if (hierarchy.isNotEmpty()) {
+        appendLine(hierarchy)
+      }
+      appendLine("```")
+      appendLine()
+      appendLine("**Do not modify this file directly.** Any changes will be overwritten")
+      appendLine("during the next compilation. To modify the metamodel structure, update the")
+      appendLine("annotations on the source document class.")
+      appendLine()
+      append("@see ${document.sourceClassDeclaration.fullyQualifiedName()}")
+    }
   }
 
   private fun generateObjectFieldKdoc(objectModel: MetalasticGraph.MetaClassModel): String {
     val className = objectModel.fullyQualifiedName.substringAfterLast(".")
-    return """
-            Metamodel for class `$className`.
-
-            This class was automatically generated by $PRODUCT_NAME annotation processor
-            from the source class [${objectModel.sourceClassDeclaration.fullyQualifiedName()}].
-
-            **Do not modify this file directly.** Any changes will be overwritten
-            during the next compilation. To modify the metamodel structure, update the
-            annotations on the source class.
-
-            @see ${objectModel.sourceClassDeclaration.fullyQualifiedName()}
-            """
-      .trimIndent()
+    val hierarchy = buildFieldHierarchy(objectModel)
+    return buildString {
+      appendLine("Metamodel for class `$className`.")
+      appendLine()
+      appendLine("This class was automatically generated by $PRODUCT_NAME annotation processor")
+      appendLine(
+        "from the source class [${objectModel.sourceClassDeclaration.fullyQualifiedName()}]."
+      )
+      appendLine()
+      appendLine("## Field Hierarchy")
+      appendLine("```")
+      appendLine("${objectModel.qClassName}<T>")
+      if (hierarchy.isNotEmpty()) {
+        appendLine(hierarchy)
+      }
+      appendLine("```")
+      appendLine()
+      appendLine("**Do not modify this file directly.** Any changes will be overwritten")
+      appendLine("during the next compilation. To modify the metamodel structure, update the")
+      appendLine("annotations on the source class.")
+      appendLine()
+      append("@see ${objectModel.sourceClassDeclaration.fullyQualifiedName()}")
+    }
   }
 
   private fun generateCompanionPropertyKdoc(document: MetalasticGraph.DocumentClass): String {
@@ -454,11 +549,93 @@ class QClassGenerator(
       .trimIndent()
   }
 
+  /**
+   * Builds a visual tree representation of the field hierarchy for KDoc.
+   *
+   * Renders fields with tree characters (├──, └──) showing:
+   * - Simple fields with their type
+   * - MultiFields with their inner fields
+   * - Object/Nested fields with their target type
+   * - Terminal objects (SelfReferencing, UnModellable) with indicators
+   */
+  private fun buildFieldHierarchy(model: MetalasticGraph.MetaClassModel): String {
+    if (model.fields.isEmpty()) {
+      return ""
+    }
+
+    val lines = mutableListOf<String>()
+    model.fields.forEachIndexed { index, field ->
+      val isLast = index == model.fields.lastIndex
+      val prefix = if (isLast) "└── " else "├── "
+      val connector = if (isLast) "    " else "│   "
+
+      lines.add(prefix + formatFieldLine(field))
+
+      // Add inner fields for MultiField
+      if (field is MultiFieldModel) {
+        field.innerFields.forEachIndexed { innerIndex, innerField ->
+          val isLastInner = innerIndex == field.innerFields.lastIndex
+          val innerPrefix = if (isLastInner) "└── " else "├── "
+          lines.add(
+            "$connector$innerPrefix${innerField.suffix}: ${formatFieldType(innerField.fieldType)}"
+          )
+        }
+      }
+
+      // Add nested structure indicator for ObjectField
+      if (field is ObjectFieldModel && field.targetModel != null) {
+        val nestedIndicator = if (field.nested) " (nested)" else ""
+        lines.add("$connector    └── ...${field.targetModel.qClassName} structure$nestedIndicator")
+      }
+    }
+
+    return lines.joinToString("\n")
+  }
+
+  /** Formats a single field line for the hierarchy tree. */
+  private fun formatFieldLine(field: FieldModel): String {
+    val fieldName = field.name
+
+    return when (field) {
+      is SimpleFieldModel -> {
+        val fieldTypeClass = FieldTypeMappings.classOf(field.fieldType)
+        "$fieldName: ${fieldTypeClass.className.simpleName}"
+      }
+
+      is MultiFieldModel -> {
+        val mainFieldTypeClass = FieldTypeMappings.classOf(field.mainFieldType)
+        "$fieldName: ${mainFieldTypeClass.className.simpleName} MultiField"
+      }
+
+      is ObjectFieldModel -> {
+        when {
+          field.targetModel == null -> {
+            "$fieldName: UnModellableObject 🚫"
+          }
+          field.parentModel.fullyQualifiedName == field.targetModel.fullyQualifiedName -> {
+            "$fieldName: SelfReferencingObject ∞"
+          }
+          else -> {
+            val nestedIndicator = if (field.nested) " (nested)" else ""
+            "$fieldName: ${field.targetModel.qClassName}$nestedIndicator"
+          }
+        }
+      }
+    }
+  }
+
+  /** Formats a field type name for display in the hierarchy. */
+  private fun formatFieldType(fieldType: FieldType): String {
+    val fieldTypeClass = FieldTypeMappings.classOf(fieldType)
+    return fieldTypeClass.className.simpleName
+  }
+
   private fun getKotlinTypeForInnerField(fieldType: FieldType): TypeName {
     return when (fieldType) {
       FieldType.Auto,
       FieldType.Text,
       FieldType.Keyword -> String::class.asTypeName()
+
       FieldType.Long -> Long::class.asTypeName()
       FieldType.Integer -> Int::class.asTypeName()
       FieldType.Short -> Short::class.asTypeName()
@@ -472,14 +649,15 @@ class QClassGenerator(
   }
 
   /** Generates field KDoc. */
-  private fun generateFieldKDoc(field: FieldModel): String {
+  private fun generateFieldKDoc(field: FieldModel, description: String? = null): String {
     val containingClass = field.parentModel.sourceClassDeclaration
     val containingClassName = containingClass.qualifiedName?.asString() ?: "Unknown"
     val propertyName = field.sourceDeclaration.simpleName.asString()
     val elasticsearchType = field.fieldType.name
 
+    val description2 = description?.let { "\n$it\n" } ?: ""
     return """
-        |
+        | $description2
         |**Original Property:**
         |- [$containingClassName.$propertyName]
         |- Elasticsearch Type: `$elasticsearchType`

@@ -1,9 +1,11 @@
 package com.metalastic.processor
 
 import com.metalastic.core.Document
-import com.metalastic.core.Field
+import com.metalastic.core.Metamodel
 import com.metalastic.core.MultiField
 import com.metalastic.core.ObjectField
+import com.metalastic.core.SelfReferencingObject
+import com.metalastic.core.UnModellableObject
 
 /** Constants for Core logic generation. */
 object CoreConstants {
@@ -12,14 +14,14 @@ object CoreConstants {
   const val Q_PREFIX = "Q"
   const val MULTIFIELD_POSTFIX = "MultiField"
 
-  object FieldClass {
-    val SIMPLE_NAME = Field::class.simpleName!!
+  object MetaModelClass {
+    val SIMPLE_NAME = Metamodel::class.simpleName!!
     val NAME_PROPERTY = PropertyConst("name")
   }
 
   object ObjectFieldClass {
     val SIMPLE_NAME = ObjectField::class.simpleName!!
-    val NAME_PROPERTY = FieldClass.NAME_PROPERTY
+    val NAME_PROPERTY = MetaModelClass.NAME_PROPERTY
     val PARENT_PROPERTY = PropertyConst("parent")
     val NESTED_PROPERTY = PropertyConst("nested")
     val FIELD_TYPE_PROPERTY = PropertyConst("fieldType")
@@ -37,12 +39,21 @@ object CoreConstants {
     const val MAIN_FIELD_PROPERTY = "mainFieldName"
   }
 
+  object UnModellableObjectClass {
+    val SIMPLE_NAME = UnModellableObject::class.simpleName!!
+  }
+
+  object SelfReferencingObjectClass {
+    val SIMPLE_NAME = SelfReferencingObject::class.simpleName!!
+  }
+
   object Metamodels {
     const val SIMPLE_NAME = "Metamodels"
     const val ENTRIES_FUNCTION_NAME = "entries"
   }
 
   const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
+  const val SPRING_DATA_ELASTICSEARCH_PACKAGE = "org.springframework.data.elasticsearch.annotations"
 
   object MethodPrefixes {
     const val GET = "get"

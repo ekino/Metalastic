@@ -13,7 +13,6 @@ import com.metalastic.core.DateRangeField
 import com.metalastic.core.DenseVectorField
 import com.metalastic.core.DoubleField
 import com.metalastic.core.DoubleRangeField
-import com.metalastic.core.Field
 import com.metalastic.core.FlattenedField
 import com.metalastic.core.FloatField
 import com.metalastic.core.FloatRangeField
@@ -25,6 +24,7 @@ import com.metalastic.core.KeywordField
 import com.metalastic.core.LongField
 import com.metalastic.core.LongRangeField
 import com.metalastic.core.MatchOnlyTextField
+import com.metalastic.core.Metamodel
 import com.metalastic.core.Murmur3Field
 import com.metalastic.core.ObjectField
 import com.metalastic.core.PercolatorField
@@ -115,7 +115,7 @@ object FieldTypeMappings {
   }
 
   /** Safely adds a FieldType mapping if the enum value exists in the current version. */
-  private fun <T : Field<*>> MutableMap<FieldType, FieldTypeClass>.safeAddMapping(
+  private fun <T : Metamodel<*>> MutableMap<FieldType, FieldTypeClass>.safeAddMapping(
     fieldTypeName: String,
     fieldClass: KClass<T>,
   ) {

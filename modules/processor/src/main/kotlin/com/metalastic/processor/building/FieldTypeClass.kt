@@ -6,7 +6,7 @@ import com.squareup.kotlinpoet.ClassName
  * Field type mapping for generating core classes.
  *
  * @param className The ClassName of the field
- * @see [com.metalastic.core.Field]
+ * @see [com.metalastic.core.Metamodel]
  */
 @JvmInline
 value class FieldTypeClass(val className: ClassName) {

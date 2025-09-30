@@ -1,6 +1,7 @@
 package com.metalastictest.integration
 
 import com.metalastic.core.BooleanField
+import com.metalastic.integration.QIndexPerson
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -9,6 +10,7 @@ import kotlin.reflect.typeOf
 class BooleanGetterMethodTest :
   ShouldSpec({
     context("Boolean getter method processing") {
+      should("break") { QIndexPerson.indexPerson }
       should("generate Q-class fields from boolean isXxx() getter methods") {
         // Get all declared fields - @JvmField makes properties accessible as Java fields
         val publicFields =

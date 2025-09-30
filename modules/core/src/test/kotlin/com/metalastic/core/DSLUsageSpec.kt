@@ -4,6 +4,7 @@ import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import java.util.Date
+import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
 /**
@@ -12,6 +13,21 @@ import kotlin.reflect.typeOf
  */
 class DSLUsageSpec :
   ShouldSpec({
+    should("self referencing") {
+      class SelfReferenced(
+        parent: ObjectField<*>?,
+        name: String,
+        nested: Boolean = false,
+        fieldType: KType,
+      ) : ObjectField<Any>(parent = parent, name = name, nested = nested, fieldType = fieldType) {
+        val title = text<String>("title")
+
+        val self: SelfReferenced by lazy { SelfReferenced(this, "self", false, typeOf<Any>()) }
+      }
+
+      val index = SelfReferenced(null, "", false, typeOf<Any>())
+    }
+
     should("create text field via helper method") {
       val index =
         object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
@@ -242,11 +258,8 @@ class DSLUsageSpec :
     }
 
     should("support user management document structure") {
-      class PermissionsFields(
-        parent: ObjectField<*>?,
-        name: String,
-        nested: kotlin.Boolean = false,
-      ) : ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
+      class PermissionsFields(parent: ObjectField<*>?, name: String, nested: Boolean = false) :
+        ObjectField<Any>(parent, name, nested, typeOf<Any>()) {
         val read = BooleanField<Boolean>(this, "read", typeOf<Boolean>())
         val write = BooleanField<Boolean>(this, "write", typeOf<Boolean>())
         val admin = BooleanField<Boolean>(this, "admin", typeOf<Boolean>())
@@ -274,7 +287,7 @@ class DSLUsageSpec :
           val email = KeywordField<String>(this, "email", typeOf<String>())
           val username = KeywordField<String>(this, "username", typeOf<String>())
           val profile = ProfileFields(this, "profile", true)
-          val isActive = BooleanField<kotlin.Boolean>(this, "isActive", typeOf<kotlin.Boolean>())
+          val isActive = BooleanField<Boolean>(this, "isActive", typeOf<Boolean>())
           val roles = KeywordField<List<String>>(this, "roles", typeOf<List<String>>())
           val lastLogin = DateField<Date>(this, "lastLogin", typeOf<Date>())
           val activities = ActivityFields(this, "activities", true)
