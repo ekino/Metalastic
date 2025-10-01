@@ -34,6 +34,8 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 - ✅ **Centralized registry** - `Metamodels` object for discovering all documents
 - ✅ **Java compatibility** - Works seamlessly with Java projects
 - ✅ **Version agnostic** - Runtime detection of Spring Data ES capabilities
+- ✅ **Enhanced DSL** - Innovative `clause + { }` syntax for fluent query building
+- ✅ **Advanced range queries** - Google Guava Range integration with mathematical notation
 
 ## Quick Start
 
@@ -136,6 +138,132 @@ SearchSourceBuilder()
             .must(QueryBuilders.termQuery(document.name.path(), "John"))
             .filter(QueryBuilders.rangeQuery(document.age.path()).gte(25))
     )
+```
+
+## Enhanced Query Building DSL
+
+The `elasticsearch-dsl` module provides an innovative query building DSL with type-safe, fluent syntax:
+
+### Installation
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.metalastic:elasticsearch-dsl:5.0.12-1.0")
+}
+```
+
+**Version Format**: `{spring-data-es-version}-{dsl-version}`
+- **5.0.12** = Compatible with Spring Data Elasticsearch 5.0.12
+- **1.0** = elasticsearch-dsl module version 1.0
+
+### Innovative `clause + { }` Syntax
+
+Modern operator-overloaded syntax for intuitive query building:
+
+```kotlin
+// Clean, modern DSL with operator overloading
+builder.boolQueryDsl {
+    must + {
+        document.name match "elasticsearch"
+        document.status term "active"
+    }
+    mustNot + { document.status term "deleted" }
+    should + { document.priority beGreaterThanEqualTo 5 }
+    filter + { document.category term "tutorial" }
+}
+```
+
+**Key Benefits:**
+- ✨ **Operator overloading** - Uses `+` operator for natural clause composition
+- 🎯 **Type-safe** - Full compile-time validation of field types and operations
+- 📖 **Readable** - Closely mirrors Elasticsearch JSON query structure
+- 🔗 **Composable** - Easy to combine multiple clauses and conditions
+
+### Advanced Range Queries with Google Guava
+
+Mathematical notation for range queries using Google Guava Range:
+
+```kotlin
+import com.google.common.collect.Range
+
+builder.boolQueryDsl {
+    must + {
+        // Range queries with mathematical precision
+        document.price beInRange Range.closedOpen(10.0, 100.0)  // [10, 100)
+        document.score beInRange Range.atLeast(0.8)             // [0.8, ∞)
+        document.age beInRange Range.lessThan(65)               // (-∞, 65)
+
+        // Convenient range operators
+        document.priority beGreaterThanEqualTo 5
+        document.priority beLowerThanEqualTo 10
+
+        // Elegant StartBound syntax (coming soon)
+        document.price beInRange 10.0..100.0   // Mathematical notation
+    }
+}
+```
+
+### Complete DSL Features
+
+```kotlin
+val builder = BoolQuery.Builder()
+
+builder.boolQueryDsl {
+    // Must clauses (all conditions required)
+    must + {
+        metamodel.name match "John Doe"
+        metamodel.status term "active"
+        metamodel.score beGreaterThanEqualTo 0.8
+    }
+
+    // Should clauses (boost scoring)
+    should + {
+        metamodel.category term "premium"
+        metamodel.tags.termsQuery(listOf("important", "featured"))
+    }
+
+    // Must not clauses (exclusions)
+    mustNot + {
+        metamodel.status term "deleted"
+        metamodel.flags.term("spam")
+    }
+
+    // Filter clauses (no scoring impact)
+    filter + {
+        metamodel.timestamp beInRange Range.atLeast(yesterday)
+        metamodel.region term currentRegion
+    }
+
+    // Nested queries with type safety
+    must + {
+        metamodel.address.nestedQuery {
+            must + {
+                metamodel.address.city term "Paris"
+                metamodel.address.country term "France"
+            }
+        }
+    }
+}
+
+val query = Query(builder.build())
+```
+
+### Spring Data Integration
+
+Seamless integration with Spring Data Elasticsearch:
+
+```kotlin
+import org.springframework.data.elasticsearch.client.elc.NativeQuery
+
+val nativeQuery = NativeQuery.builder()
+    .withQuery(Query(builder.build()))
+    .withMaxResults(20)
+    .withMinScore(0.5f)
+    .build()
+
+// Use with ElasticsearchOperations
+val results = elasticsearchOperations.search(nativeQuery, Document::class.java)
 ```
 
 ## How It Works
@@ -690,6 +818,109 @@ The processor uses **runtime field type detection**, automatically supporting:
 - ✅ **Graceful degradation** - Unknown types logged but don't break compilation
 - ✅ **Zero configuration** - Uses your project's Spring Data ES version
 
+## Compatibility Matrix
+
+### Core Dependencies
+
+| Component | Version | Compatibility |
+|-----------|---------|---------------|
+| **Java** | 21+ | ✅ Required |
+| **Kotlin** | 2.2.0+ | ✅ Required |
+| **Gradle** | 8.5+ | ✅ Recommended |
+
+### Spring Data Elasticsearch Compatibility
+
+| Spring Data ES | Elasticsearch | Metalastic Core | elasticsearch-dsl |
+|----------------|---------------|-----------------|-------------------|
+| 5.5.x | 8.15.x | ✅ Full | ✅ Full |
+| 5.4.x | 8.14.x | ✅ Full | ✅ Full |
+| 5.3.x | 8.13.x | ✅ Full | ✅ Full |
+| 5.2.x | 8.12.x | ✅ Full | ✅ Full |
+| 5.1.x | 8.11.x | ✅ Full | ✅ Full |
+| 5.0.x | 8.7.x+ | ✅ Full | ✅ Full |
+
+### Framework Integration
+
+| Framework | Support Level | Notes |
+|-----------|---------------|-------|
+| **Spring Boot** | ✅ Full | Auto-configuration compatible |
+| **Spring Data** | ✅ Full | Native integration |
+| **Elasticsearch Java Client** | ✅ Full | Direct query building |
+| **Jackson** | ✅ Full | JSON serialization support |
+
+### Build Tools
+
+| Tool | Status | Configuration |
+|------|--------|---------------|
+| **Gradle (Kotlin DSL)** | ✅ Recommended | Type-safe plugin DSL |
+| **Gradle (Groovy DSL)** | ✅ Supported | Manual configuration |
+| **Maven** | ⚠️ Manual | KSP configuration required |
+| **Bazel** | ❌ Not tested | May work with manual setup |
+
+### IDE Support
+
+| IDE | Metamodel Generation | DSL Autocomplete | Debugging |
+|-----|---------------------|------------------|-----------|
+| **IntelliJ IDEA** | ✅ Full | ✅ Full | ✅ Full |
+| **VS Code** | ✅ Basic | ✅ Basic | ⚠️ Limited |
+| **Eclipse** | ⚠️ Limited | ⚠️ Limited | ❌ None |
+| **Android Studio** | ✅ Full | ✅ Full | ✅ Full |
+
+### Artifact Compatibility
+
+| Module | Group ID | Latest Version | Versioning Strategy |
+|--------|----------|----------------|-------------------|
+| **Core Runtime** | `com.metalastic:core` | `2.1.0` | Semantic versioning |
+| **Annotation Processor** | `com.metalastic:processor` | `2.1.0` | Semantic versioning |
+| **Enhanced DSL** | `com.metalastic:elasticsearch-dsl` | `5.0.12-1.0` | `{spring-data-es}-{dsl-version}` |
+| **Gradle Plugin** | `com.metalastic:gradle-plugin` | `2.1.0` | Semantic versioning |
+
+### elasticsearch-dsl Version Matrix
+
+| elasticsearch-dsl | Spring Data ES | Elasticsearch | DSL Features |
+|-------------------|---------------|---------------|--------------|
+| **5.0.12-1.0** | 5.0.12 | 8.7.x+ | ✅ Full DSL, Range queries, JCV |
+| **5.1.x-1.x** | 5.1.x | 8.11.x | 🔄 Future release |
+| **5.2.x-1.x** | 5.2.x | 8.12.x | 🔄 Future release |
+
+### Feature Matrix by Module
+
+| Feature | Core | elasticsearch-dsl | Notes |
+|---------|------|-------------------|-------|
+| Type-safe field access | ✅ | ✅ | Basic metamodel functionality |
+| Path traversal | ✅ | ✅ | Dotted notation support |
+| Nested field support | ✅ | ✅ | Automatic nested detection |
+| Bool query DSL | ❌ | ✅ | Advanced query building |
+| Range queries | ❌ | ✅ | Google Guava integration |
+| Clause + { } syntax | ❌ | ✅ | Innovative operator overloading |
+| Native query integration | ❌ | ✅ | Spring Data ES NativeQuery |
+| JSON validation | ❌ | ✅ | JCV integration for testing |
+
+### Version Upgrade Path
+
+| From | To | Breaking Changes | Migration Guide |
+|------|----|-----------------|-----------------|
+| 1.x | 2.x | ✅ Package restructure | Update imports, use Gradle plugin |
+| 2.0 | 2.1+ | ❌ None | Drop-in replacement |
+| Core only | + elasticsearch-dsl | ❌ None | Add `elasticsearch-dsl:5.0.12-1.0` dependency |
+| elasticsearch-dsl 5.0.12-1.0 | 5.0.12-1.1 | ❌ None | DSL feature updates only |
+| elasticsearch-dsl 5.0.12-x | 5.1.x-1.0 | ⚠️ Possible | Follow Spring Data ES migration guide |
+
+### elasticsearch-dsl Versioning Strategy
+
+**Format**: `{spring-data-elasticsearch-version}-{dsl-version}`
+
+**Examples**:
+- `5.0.12-1.0` = Compatible with Spring Data ES 5.0.12, DSL features version 1.0
+- `5.1.0-1.0` = Compatible with Spring Data ES 5.1.0, DSL features version 1.0
+- `5.0.12-1.1` = Compatible with Spring Data ES 5.0.12, DSL features version 1.1
+
+**Benefits**:
+- ✅ **Clear compatibility** - Version immediately shows Spring Data ES compatibility
+- ✅ **Independent evolution** - DSL features can evolve independently of Spring Data ES
+- ✅ **Easy selection** - Choose version based on your Spring Data ES version
+- ✅ **Future-proof** - Supports multiple Spring Data ES versions simultaneously
+
 ## Development
 
 ### Project Structure
@@ -700,6 +931,9 @@ Metalastic/
 │   ├── core/                    # DSL runtime library
 │   │   ├── src/main/kotlin/     # Field classes, Index base classes
 │   │   └── src/test/kotlin/     # Unit tests for DSL
+│   ├── elasticsearch-dsl/       # Enhanced query building DSL
+│   │   ├── src/main/kotlin/     # Innovative clause + { } syntax, range queries
+│   │   └── src/test/kotlin/     # DSL integration tests with JCV validation
 │   ├── processor/               # KSP annotation processor
 │   │   ├── src/main/kotlin/     # Code generation logic
 │   │   └── src/test/kotlin/     # Processor unit tests
@@ -781,14 +1015,54 @@ When Spring Data Elasticsearch adds new field types:
 
 ## Publishing
 
-Metalastic is published to GitLab Maven Registry:
+Metalastic uses a **dual publication strategy** to handle different versioning needs:
+
+### 📦 Publication Strategy
+
+**Two separate publication workflows:**
+
+1. **Core Modules** (`core`, `processor`, `gradle-plugin`)
+   - **Tag Format**: `v2.1.0`
+   - **Publishes**:
+     - `com.metalastic:core:2.1.0`
+     - `com.metalastic:processor:2.1.0`
+     - `com.metalastic:gradle-plugin:2.1.0`
+
+2. **elasticsearch-dsl Module**
+   - **Tag Format**: `elasticsearch-dsl-v5.0.12-1.0`
+   - **Publishes**: `com.metalastic:elasticsearch-dsl:5.0.12-1.0`
+
+### 🚀 Release Process
+
+**For Core Modules:**
+```bash
+git tag v2.1.0
+git push origin v2.1.0
+# Triggers CI/CD → publishes core, processor, gradle-plugin
+```
+
+**For elasticsearch-dsl Module:**
+```bash
+git tag elasticsearch-dsl-v5.0.12-1.0
+git push origin elasticsearch-dsl-v5.0.12-1.0
+# Triggers CI/CD → publishes elasticsearch-dsl:5.0.12-1.0
+```
+
+### 📋 Publication Matrix
+
+| Module | Tag Format | Published Version | Repository |
+|--------|------------|-------------------|------------|
+| **core** | `v2.1.0` | `2.1.0` | GitLab Maven Registry |
+| **processor** | `v2.1.0` | `2.1.0` | GitLab Maven Registry |
+| **gradle-plugin** | `v2.1.0` | `2.1.0` | GitLab Maven Registry |
+| **elasticsearch-dsl** | `elasticsearch-dsl-v5.0.12-1.0` | `5.0.12-1.0` | GitLab Maven Registry |
+
+### 🏢 Repository Information
 
 - **Repository**: https://gitlab.ekino.com/iperia/metalastic
 - **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
 - **Group ID**: `com.metalastic`
-- **Artifacts**: `core`, `processor`, `gradle-plugin`, `test`
-
-CI/CD automatically publishes on master branch pushes.
+- **CI/CD**: Automatic publishing on tag pushes
 
 ## Roadmap
 
@@ -805,11 +1079,15 @@ CI/CD automatically publishes on master branch pushes.
 - Version-agnostic Spring Data ES compatibility
 - **Gradle plugin with type-safe DSL configuration**
 - **Smart field name resolution** - Convention-aware `@Field(name)` handling
+- **Enhanced query building DSL** - Complete elasticsearch-dsl module
+- **Innovative `clause + { }` syntax** - Modern operator-overloaded DSL
+- **Google Guava Range integration** - Mathematical notation for range queries
+- **Spring Data NativeQuery integration** - Seamless query execution
+- **JCV JSON validation** - Advanced testing capabilities
 
 ### 🚧 In Progress
-- Enhanced query building DSL
-- Performance optimizations
-- Comprehensive documentation and examples
+- Performance optimizations and benchmarking
+- StartBound mathematical range notation (10.0..100.0)
 
 ### 📋 Future Plans
 - Direct Elasticsearch client integration

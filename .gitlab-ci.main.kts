@@ -242,7 +242,40 @@ printPipeline {
             ".gradle/caches"
         )
     }
-    
+
+    // Manual publish elasticsearch-dsl module only
+    job("publish-elasticsearch-dsl") {
+        stage(Stages.publish)
+
+        script {
+            +"# Get the actual elasticsearch-dsl version that Gradle will use"
+            +"DSL_VERSION=\$($gradlewCmd :modules:elasticsearch-dsl:properties -q | grep '^version:' | cut -d' ' -f2)"
+            +"echo \"📦 Publishing elasticsearch-dsl module version: \$DSL_VERSION\""
+            +"$gradlewCmd :modules:elasticsearch-dsl:publish"
+        }
+
+        whenRun = WhenRunType.MANUAL
+        allowFailure = true
+
+        rules {
+            rule {
+                ifCondition = "\$CI_PIPELINE_SOURCE == \"merge_request_event\""
+                whenRun = WhenRunType.MANUAL
+            }
+            rule {
+                ifCondition = "\$CI_COMMIT_BRANCH != \$CI_DEFAULT_BRANCH && \$CI_COMMIT_TAG == null"
+                whenRun = WhenRunType.MANUAL
+            }
+        }
+
+        environment("feature-snapshot")
+
+        cache(
+            ".gradle/wrapper",
+            ".gradle/caches"
+        )
+    }
+
     // Manual publish for MRs and feature branches
     job("publish-manual ($artifactVersion)") {
         stage(Stages.publish)
