@@ -301,7 +301,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   // MATCH QUERIES FOR COLLECTIONS - Infix operators
 
   @VariantDsl
-  infix fun <T : Any> Metamodel<out Collection<*>>.containsMatch(value: FieldValue?): MatchQuery? =
+  infix fun Metamodel<out Collection<*>>.containsMatch(value: FieldValue?): MatchQuery? =
     matchUnchecked(value) {}
 
   @VariantDsl
@@ -362,7 +362,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   // MATCH QUERIES FOR COLLECTIONS - Full functions with block parameter
 
   @VariantDsl
-  fun <T : Any> Metamodel<out Collection<*>>.containsMatch(
+  fun Metamodel<out Collection<*>>.containsMatch(
     value: FieldValue?,
     block: MatchQuery.Builder.() -> Unit = {},
   ): MatchQuery? = matchUnchecked(value, block)
@@ -741,7 +741,133 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
       +TermQuery.of { it.field(path()).value(fieldValue).apply(block) }
     }
 
-  // TERMS QUERIES
+  // TERMS QUERIES - Vararg overloads
+
+  @VariantDsl
+  fun Metamodel<String>.terms(vararg terms: String): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<String>.terms(
+    vararg terms: String,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<Int>.terms(vararg terms: Int): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<Int>.terms(
+    vararg terms: Int,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<Long>.terms(vararg terms: Long): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<Long>.terms(
+    vararg terms: Long,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<Float>.terms(vararg terms: Float): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<Float>.terms(
+    vararg terms: Float,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<Double>.terms(vararg terms: Double): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<Double>.terms(
+    vararg terms: Double,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<Boolean>.terms(vararg terms: Boolean): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<Boolean>.terms(
+    vararg terms: Boolean,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun <T : Enum<T>> Metamodel<T>.terms(vararg terms: T): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun <T : Enum<T>> Metamodel<T>.terms(
+    vararg terms: T,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<Instant>.terms(vararg terms: Instant): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<Instant>.terms(
+    vararg terms: Instant,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<LocalDate>.terms(vararg terms: LocalDate): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<LocalDate>.terms(
+    vararg terms: LocalDate,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<LocalDateTime>.terms(vararg terms: LocalDateTime): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<LocalDateTime>.terms(
+    vararg terms: LocalDateTime,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<ZonedDateTime>.terms(vararg terms: ZonedDateTime): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<ZonedDateTime>.terms(
+    vararg terms: ZonedDateTime,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<OffsetDateTime>.terms(vararg terms: OffsetDateTime): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<OffsetDateTime>.terms(
+    vararg terms: OffsetDateTime,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<Date>.terms(vararg terms: Date): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<Date>.terms(
+    vararg terms: Date,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  // TERMS QUERIES - Collection overloads (fallback)
 
   @VariantDsl
   infix fun Metamodel<*>.terms(terms: Collection<FieldValue>?): TermsQuery? =
@@ -752,6 +878,143 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
     terms: Collection<FieldValue>?,
     block: TermsQuery.Builder.() -> Unit = {},
   ): TermsQuery? = termsUnchecked(terms, block)
+
+  // CONTAINS TERMS QUERIES - Vararg overloads
+
+  @VariantDsl
+  fun Metamodel<out Collection<String>>.containsTerms(vararg terms: String): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<out Collection<String>>.containsTerms(
+    vararg terms: String,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<out Collection<Int>>.containsTerms(vararg terms: Int): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<out Collection<Int>>.containsTerms(
+    vararg terms: Int,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<out Collection<Long>>.containsTerms(vararg terms: Long): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<out Collection<Long>>.containsTerms(
+    vararg terms: Long,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<out Collection<Float>>.containsTerms(vararg terms: Float): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<out Collection<Float>>.containsTerms(
+    vararg terms: Float,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<out Collection<Double>>.containsTerms(vararg terms: Double): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<out Collection<Double>>.containsTerms(
+    vararg terms: Double,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun Metamodel<out Collection<Boolean>>.containsTerms(vararg terms: Boolean): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun Metamodel<out Collection<Boolean>>.containsTerms(
+    vararg terms: Boolean,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(vararg terms: T): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(
+    vararg terms: T,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<out Collection<Instant>>.containsTerms(vararg terms: Instant): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<out Collection<Instant>>.containsTerms(
+    vararg terms: Instant,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<out Collection<LocalDate>>.containsTerms(vararg terms: LocalDate): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<out Collection<LocalDate>>.containsTerms(
+    vararg terms: LocalDate,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<out Collection<LocalDateTime>>.containsTerms(
+    vararg terms: LocalDateTime
+  ): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<out Collection<LocalDateTime>>.containsTerms(
+    vararg terms: LocalDateTime,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<out Collection<ZonedDateTime>>.containsTerms(
+    vararg terms: ZonedDateTime
+  ): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<out Collection<ZonedDateTime>>.containsTerms(
+    vararg terms: ZonedDateTime,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<out Collection<OffsetDateTime>>.containsTerms(
+    vararg terms: OffsetDateTime
+  ): TermsQuery? = termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<out Collection<OffsetDateTime>>.containsTerms(
+    vararg terms: OffsetDateTime,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  @VariantDsl
+  fun DateField<out Collection<Date>>.containsTerms(vararg terms: Date): TermsQuery? =
+    termsUnchecked(terms.toList()) {}
+
+  @VariantDsl
+  fun DateField<out Collection<Date>>.containsTerms(
+    vararg terms: Date,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ): TermsQuery? = termsUnchecked(terms.toList(), block)
+
+  // CONTAINS TERMS QUERIES - Collection overloads (fallback)
 
   @VariantDsl
   infix fun Metamodel<out Collection<*>>.containsTerms(

@@ -138,7 +138,11 @@ internal fun DateField<*>.formatted(value: Date?): String? {
  * @param value The value to convert, or null
  * @return The converted FieldValue, or null if the input value is null
  */
-fun <T> Metamodel<*>.toFieldValue(value: T?): FieldValue? = value?.toFieldValue()
+fun <T> Metamodel<*>.toFieldValue(value: T?): FieldValue? =
+  when (this) {
+    is DateField<*> -> toFieldValue(value)
+    else -> value?.toFieldValue()
+  }
 
 /**
  * Converts a value to an Elasticsearch FieldValue for DateFields. Automatically applies
