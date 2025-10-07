@@ -953,6 +953,70 @@ ksp {
 | `metalastic.generatePrivateClassMetamodels` | Generate metamodels for private `@Document` classes | `false` |
 | `metalastic.reportingPath` | Path for debug reports (relative to project root) | disabled |
 
+### Configuration Resolution Strategy
+
+Metalastic uses a **hierarchical configuration resolution** for metamodel generation. Source-set specific configurations take precedence over global defaults:
+
+1. **Source-set specific** configuration (highest priority)
+2. **Global defaults** (metamodels.packageName, className, classPrefix)
+3. **Built-in defaults** (lowest priority)
+
+**Example: Understanding Configuration Inheritance**
+
+```kotlin
+metalastic {
+    metamodels {
+        // Global defaults - apply to all source sets unless overridden
+        packageName = "com.example.metamodels"
+        className = "GlobalMetamodels"
+        classPrefix = "Q"  // Use QueryDSL-style prefix globally
+
+        // Main source set - inherits global classPrefix="Q"
+        main {
+            packageName = "com.example.search.metamodels"  // Override package
+            className = "SearchMetamodels"                  // Override class name
+            // classPrefix inherited from global: "Q"
+        }
+
+        // Test source set - inherits all global defaults
+        test {
+            // packageName inherited: "com.example.metamodels"
+            // className inherited: "GlobalMetamodels"
+            // classPrefix inherited: "Q"
+        }
+
+        // Custom source set - inherits global classPrefix
+        sourceSet("integrationTest") {
+            packageName = "com.example.integration.metamodels"
+            className = "IntegrationMetamodels"
+            // classPrefix inherited from global: "Q"
+        }
+    }
+}
+```
+
+**Generated Classes:**
+- Main: `com.example.search.metamodels.QIndexPerson` (uses "Q" prefix from global)
+- Test: `com.example.metamodels.QTestDocument` (uses "Q" prefix from global)
+- IntegrationTest: `com.example.integration.metamodels.QIntegrationDocument` (uses "Q" prefix from global)
+
+**Complete Override Example:**
+
+```kotlin
+metalastic {
+    metamodels {
+        classPrefix = "Q"  // Global default
+
+        main {
+            classPrefix = "Meta"  // Override for main source set only
+        }
+    }
+}
+```
+
+- Main classes: `MetaIndexPerson` (overridden)
+- Test classes: `QTestDocument` (inherited from global)
+
 ### Private Class Handling
 
 By default, Metalastic **excludes private classes** from metamodel generation to keep generated code clean and focused on publicly accessible documents. When other classes reference private classes in their fields, the types are automatically replaced with `UnExposablePrivateClass` for type safety.
