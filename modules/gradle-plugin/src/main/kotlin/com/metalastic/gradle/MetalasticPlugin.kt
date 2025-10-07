@@ -133,11 +133,18 @@ class MetalasticPlugin : Plugin<Project> {
     }
   }
 
+  private data class GlobalDefaults(
+    val packageName: String?,
+    val className: String?,
+    val classPrefix: String?,
+  )
+
   private fun configureCustomSourceSets(
     argMethod: java.lang.reflect.Method,
     kspExtension: Any,
     project: Project,
     customSourceSets: org.gradle.api.NamedDomainObjectContainer<SourceSetConfig>,
+    globalDefaults: GlobalDefaults,
   ) {
     customSourceSets.forEach { sourceSetConfig ->
       val sourceSetName = sourceSetConfig.name
@@ -145,17 +152,17 @@ class MetalasticPlugin : Plugin<Project> {
       val packageName =
         if (sourceSetConfig.packageName.isPresent) {
           sourceSetConfig.packageName.get()
-        } else null
+        } else globalDefaults.packageName
 
       val className =
         if (sourceSetConfig.className.isPresent) {
           sourceSetConfig.className.get()
-        } else null
+        } else globalDefaults.className
 
       val classPrefix =
         if (sourceSetConfig.classPrefix.isPresent) {
           sourceSetConfig.classPrefix.get()
-        } else null
+        } else globalDefaults.classPrefix
 
       if (packageName != null) {
         argMethod.invoke(kspExtension, "metamodels.$sourceSetName.package", packageName)
@@ -204,9 +211,13 @@ class MetalasticPlugin : Plugin<Project> {
       project,
       "main",
       metamodels.main,
-      defaultPackage = "${project.group}.metamodels",
-      defaultClassName = "Metamodels",
-      defaultClassPrefix = "Meta",
+      defaultPackage =
+        if (metamodels.packageName.isPresent) metamodels.packageName.get()
+        else "${project.group}.metamodels",
+      defaultClassName =
+        if (metamodels.className.isPresent) metamodels.className.get() else "Metamodels",
+      defaultClassPrefix =
+        if (metamodels.classPrefix.isPresent) metamodels.classPrefix.get() else "Meta",
     )
 
     configureSourceSet(argMethod, kspExtension, project, "test", metamodels.test)
@@ -229,8 +240,18 @@ class MetalasticPlugin : Plugin<Project> {
     configureSourceSet(argMethod, kspExtension, project, "e2e", metamodels.e2e)
     configureSourceSet(argMethod, kspExtension, project, "e2eTest", metamodels.e2eTest)
 
-    // Configure custom source sets
-    configureCustomSourceSets(argMethod, kspExtension, project, metamodels.customSourceSets)
+    // Configure custom source sets with global defaults
+    configureCustomSourceSets(
+      argMethod,
+      kspExtension,
+      project,
+      metamodels.customSourceSets,
+      GlobalDefaults(
+        packageName = if (metamodels.packageName.isPresent) metamodels.packageName.get() else null,
+        className = if (metamodels.className.isPresent) metamodels.className.get() else null,
+        classPrefix = if (metamodels.classPrefix.isPresent) metamodels.classPrefix.get() else null,
+      ),
+    )
   }
 
   private fun configureKspArgs(project: Project, extension: MetalasticExtension) {
