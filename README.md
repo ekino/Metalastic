@@ -8,6 +8,32 @@ A type-safe metamodel library for Elasticsearch in Kotlin that generates compile
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-purple)](https://kotlinlang.org/)
 [![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.1-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
+## Table of Contents
+
+- [Overview](#overview)
+- [Why Metalastic?](#why-metalastic)
+- [Key Features](#key-features)
+- [Quick Start](#quick-start)
+- [How It Works](#how-it-works)
+- [Enhanced Query Building DSL](#enhanced-query-building-dsl)
+- [Examples](#examples)
+- [Advanced Features](#advanced-features)
+  - [Smart Field Name Resolution](#smart-field-name-resolution)
+  - [Multi-field Support](#multi-field-support)
+  - [Document-to-Document References](#document-to-document-references)
+  - [Complex Type Support](#complex-type-support)
+  - [Self-Referencing Documents](#self-referencing-documents)
+  - [Unmodellable Objects](#unmodellable-objects)
+  - [Generated KDoc with Field Hierarchy](#generated-kdoc-with-field-hierarchy)
+  - [Discovery and Iteration](#discovery-and-iteration)
+- [Configuration](#configuration)
+- [Supported Field Types](#supported-field-types)
+- [Compatibility Matrix](#compatibility-matrix)
+- [Troubleshooting](#troubleshooting)
+- [Development](#development)
+- [Publishing](#publishing)
+- [Roadmap](#roadmap)
+
 ## Overview
 
 Metalastic provides **compile-time code generation** to create type-safe, fluent field definitions for Elasticsearch documents. Inspired by QueryDSL's approach for SQL databases, this library generates Q-classes for Spring Data Elasticsearch `@Document` annotated classes, enabling type-safe field access and path construction.
@@ -34,6 +60,8 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 - ✅ **Centralized registry** - `Metamodels` object for discovering all documents
 - ✅ **Java compatibility** - Works seamlessly with Java projects
 - ✅ **Version agnostic** - Runtime detection of Spring Data ES capabilities
+- ✅ **Enhanced DSL** - Innovative `clause + { }` syntax for fluent query building
+- ✅ **Advanced range queries** - Google Guava Range integration with mathematical notation
 
 ## Quick Start
 
@@ -51,11 +79,13 @@ pluginManagement {
 }
 ```
 
-### 2. Apply the Gradle Plugin
+### 2. Apply Required Plugins
 
 ```kotlin
 // build.gradle.kts
 plugins {
+    kotlin("jvm") version "2.2.20"
+    id("com.google.devtools.ksp") version "2.2.20-2.0.3"  // Required for code generation
     id("com.metalastic") version "2.0.0"
 }
 
@@ -66,8 +96,10 @@ repositories {
     }
 }
 
-// Dependencies are automatically added by the plugin
+// Dependencies are automatically added by the Metalastic plugin
 ```
+
+**Important**: Both KSP and Metalastic plugins are required. The KSP plugin performs the code generation, while the Metalastic plugin simplifies configuration and adds necessary dependencies.
 
 ### 3. Configure Metamodels (Optional)
 
@@ -84,17 +116,12 @@ metalastic {
             className = "TestMetamodels"
         }
         fallbackPackage = "com.example.metamodels"
+        fallbackClassName = "GlobalMetamodels"
     }
 
-    features {
-        generateJavaCompatibility = true // default: true
-        generatePrivateClassMetamodels = false // default: false
-    }
-
-    reporting {
-        enabled = true
-        outputPath = "build/reports/metalastic/processor-report.md"
-    }
+    generateJavaCompatibility = true // default: true
+    generatePrivateClassMetamodels = false // default: false
+    reportingPath = "build/reports/metalastic/processor-report.md"
 }
 ```
 
@@ -136,6 +163,213 @@ SearchSourceBuilder()
             .must(QueryBuilders.termQuery(document.name.path(), "John"))
             .filter(QueryBuilders.rangeQuery(document.age.path()).gte(25))
     )
+```
+
+## Enhanced Query Building DSL
+
+The `elasticsearch-dsl` module provides an innovative query building DSL with type-safe, fluent syntax:
+
+### Installation
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    implementation("com.metalastic:elasticsearch-dsl:5.0.12-1.0")
+}
+```
+
+**Version Format**: `{spring-data-es-version}-{dsl-version}`
+- **5.0.12** = Compatible with Spring Data Elasticsearch 5.0.12
+- **1.0** = elasticsearch-dsl module version 1.0
+
+### Innovative `clause + { }` Syntax
+
+The DSL provides **two equivalent syntaxes** for building queries - choose the one that fits your style:
+
+#### Modern Operator Syntax (`clause + { }`)
+
+Clean, operator-overloaded syntax for intuitive query building:
+
+```kotlin
+// Modern DSL with operator overloading
+builder.boolQueryDsl {
+    must + {
+        document.name match "elasticsearch"
+        document.status term "active"
+    }
+    mustNot + { document.status term "deleted" }
+    should + { document.priority beGreaterThanEqualTo 5 }
+    filter + { document.category term "tutorial" }
+}
+```
+
+**Key Benefits:**
+- ✨ **Operator overloading** - Uses `+` operator for natural clause composition
+- 🎯 **Type-safe** - Full compile-time validation of field types and operations
+- 📖 **Readable** - Closely mirrors Elasticsearch JSON query structure
+- 🔗 **Composable** - Easy to combine multiple clauses and conditions
+
+#### Classical Method Syntax (`mustDsl { }`)
+
+Traditional method-based syntax for those who prefer explicit naming:
+
+```kotlin
+// Classical DSL with explicit method names
+builder.boolQueryDsl {
+    mustDsl {
+        document.name match "elasticsearch"
+        document.status term "active"
+    }
+    mustNotDsl { document.status term "deleted" }
+    shouldDsl { document.priority beGreaterThanEqualTo 5 }
+    filterDsl { document.category term "tutorial" }
+}
+```
+
+**Key Benefits:**
+- 📝 **Explicit naming** - Clear intent with `mustDsl`, `shouldDsl`, etc.
+- 🔍 **Searchable** - Easy to find in code with standard method names
+- 🎓 **Familiar** - Traditional method call syntax
+- 🔄 **Interchangeable** - Use alongside operator syntax in the same query
+
+Both syntaxes produce identical queries and offer the same type safety and features. Choose based on your team's preference!
+
+### Advanced Range Queries with Google Guava
+
+Mathematical notation for range queries using Google Guava Range:
+
+```kotlin
+import com.google.common.collect.Range
+
+builder.boolQueryDsl {
+    must + {
+        // Traditional Google Guava Range syntax
+        document.price range Range.closedOpen(10.0, 100.0)  // [10, 100)
+        document.score range Range.atLeast(0.8)             // [0.8, ∞)
+        document.age range Range.lessThan(65)               // (-∞, 65)
+
+        // Convenient comparison operators
+        document.priority greaterThanEqualTo 5   // >= 5
+        document.priority lowerThanEqualTo 10    // <= 10
+        document.score greaterThan 0.5           // > 0.5
+        document.age lowerThan 65                // < 65
+
+        // Mathematical range notation with StartBound
+        document.price range 10.0.fromInclusive()..100.0    // [10, 100]
+        document.price range 10.0.fromInclusive()..<100.0   // [10, 100)
+        document.price range 10.0.fromExclusive()..100.0    // (10, 100]
+        document.price range 10.0.fromExclusive()..<100.0   // (10, 100)
+
+        // Partial bounds with StartBound
+        document.price range 10.0.fromInclusive()..null     // [10, ∞)
+        document.price range null.fromInclusive()..100.0    // (-∞, 100]
+    }
+}
+```
+
+**StartBound Features:**
+- 📐 **Mathematical notation** - `fromInclusive()` for `[`, `fromExclusive()` for `(`
+- 🎯 **Kotlin operators** - `..` for closed upper bound, `..<` for open upper bound
+- ∞ **Unbounded ranges** - Use `null` for infinity (`null..100` or `10..null`)
+- 🔧 **Type-safe** - Compile-time validation of comparable types
+
+### Complete DSL Features
+
+Both syntaxes support the full range of Elasticsearch query capabilities:
+
+```kotlin
+val builder = BoolQuery.Builder()
+
+// Using modern operator syntax
+builder.boolQueryDsl {
+    // Must clauses (all conditions required)
+    must + {
+        metamodel.name match "John Doe"
+        metamodel.status term "active"
+        metamodel.score beGreaterThanEqualTo 0.8
+    }
+
+    // Should clauses (boost scoring)
+    should + {
+        metamodel.category term "premium"
+        metamodel.tags.termsQuery(listOf("important", "featured"))
+    }
+
+    // Must not clauses (exclusions)
+    mustNot + {
+        metamodel.status term "deleted"
+        metamodel.flags.term("spam")
+    }
+
+    // Filter clauses (no scoring impact)
+    filter + {
+        metamodel.timestamp beInRange Range.atLeast(yesterday)
+        metamodel.region term currentRegion
+    }
+
+    // Nested queries with type safety
+    must + {
+        metamodel.address.nestedQuery {
+            must + {
+                metamodel.address.city term "Paris"
+                metamodel.address.country term "France"
+            }
+        }
+    }
+}
+
+// Or using classical method syntax
+builder.boolQueryDsl {
+    mustDsl {
+        metamodel.name match "John Doe"
+        metamodel.status term "active"
+        metamodel.score beGreaterThanEqualTo 0.8
+    }
+
+    shouldDsl {
+        metamodel.category term "premium"
+        metamodel.tags.termsQuery(listOf("important", "featured"))
+    }
+
+    mustNotDsl {
+        metamodel.status term "deleted"
+        metamodel.flags.term("spam")
+    }
+
+    filterDsl {
+        metamodel.timestamp beInRange Range.atLeast(yesterday)
+        metamodel.region term currentRegion
+    }
+
+    // Mix both syntaxes in the same query
+    must + {
+        metamodel.address.nestedQuery {
+            mustDsl {
+                metamodel.address.city term "Paris"
+                metamodel.address.country term "France"
+            }
+        }
+    }
+}
+
+val query = Query(builder.build())
+```
+
+### Spring Data Integration
+
+Seamless integration with Spring Data Elasticsearch:
+
+```kotlin
+import org.springframework.data.elasticsearch.client.elc.NativeQuery
+
+val nativeQuery = NativeQuery.builder()
+    .withQuery(Query(builder.build()))
+    .withMaxResults(20)
+    .withMinScore(0.5f)
+    .build()
+
+// Use with ElasticsearchOperations
+val results = elasticsearchOperations.search(nativeQuery, Document::class.java)
 ```
 
 ## How It Works
@@ -439,45 +673,189 @@ order.customer.name.path() shouldBe "customer.name"
 
 ### Complex Type Support
 
-For complex generic types that don't warrant their own Q-classes, Metalastic generates terminal ObjectField instances:
+Metalastic intelligently handles edge cases where full Q-class generation isn't possible or necessary, using specialized terminal object classes.
+
+#### Self-Referencing Documents
+
+When a document references itself (circular dependency), Metalastic generates a `SelfReferencingObject` to prevent infinite recursion:
 
 ```java
-@Document(indexName = "document")
-public class ExampleDocument {
-    // Complex types that don't need full Q-classes
-    @Field(type = FieldType.Object)
-    private Map<String, List<String>> metadata;
+@Document(indexName = "category")
+public class Category {
+    @Field(type = FieldType.Keyword)
+    private String id;
 
-    @Field(type = FieldType.Nested)
-    private Map<String, Set<Integer>> complexNested;
+    @Field(type = FieldType.Text)
+    private String name;
+
+    @Field(type = FieldType.Object)
+    private Category parentCategory;  // Self-reference ∞
 }
 ```
 
-Generates terminal ObjectField instances:
+Generates:
 
 ```kotlin
-class QExampleDocument(
-    parent: ObjectField? = null,
-    fieldName: String = "",
+class QCategory<T : Any?>(
+    parent: ObjectField<*>? = null,
+    name: String = "",
     nested: Boolean = false,
-) : Index("document", parent, fieldName, nested) {
+    fieldType: KType
+) : Document<T>(...) {
 
-    // Terminal ObjectField for Object type
     @JvmField
-    val metadata: ObjectField = object : ObjectField(parent = this, name = "metadata", nested = false) {}
+    val id: KeywordField = keywordField("id")
 
-    // Terminal ObjectField for Nested type
     @JvmField
-    val complexNested: ObjectField = object : ObjectField(parent = this, name = "complexNested", nested = true) {}
+    val name: TextField = textField("name")
+
+    // ∞ Self-reference - terminates here to avoid infinite recursion
+    @JvmField
+    val parentCategory: SelfReferencingObject<Category?> =
+        SelfReferencingObject(this, "parentCategory", false, typeOf<Category?>())
 }
 ```
 
-This approach provides:
+**Usage:**
+```kotlin
+val category = Metamodels.category
+category.parentCategory.path() shouldBe "parentCategory"  // ✅ Path construction works
+category.parentCategory.isNestedPath() shouldBe false     // ✅ Nested detection works
+// category.parentCategory.name  // ❌ Cannot traverse further (prevents infinite recursion)
+```
+
+#### Unmodellable Objects
+
+For complex generic types, collections with unknown structure, or external library types, Metalastic generates `UnModellableObject`:
+
+```java
+@Document(indexName = "product")
+public class Product {
+    @Field(type = FieldType.Keyword)
+    private String id;
+
+    // Complex types that cannot be modeled at compile-time
+    @Field(type = FieldType.Object)
+    private Map<String, Any> metadata;  // 🚫 Dynamic structure
+
+    @Field(type = FieldType.Nested)
+    private Map<String, Set<Integer>> tags;  // 🚫 Complex generics
+}
+```
+
+Generates:
+
+```kotlin
+class QProduct<T : Any?>(
+    parent: ObjectField<*>? = null,
+    name: String = "",
+    nested: Boolean = false,
+    fieldType: KType
+) : Document<T>(...) {
+
+    @JvmField
+    val id: KeywordField = keywordField("id")
+
+    // 🚫 Unmodellable - structure unknown at compile-time
+    @JvmField
+    val metadata: UnModellableObject<Map<String, Any>> =
+        UnModellableObject(this, "metadata", false, typeOf<Map<String, Any>>())
+
+    // 🚫 Unmodellable - complex nested generics
+    @JvmField
+    val tags: UnModellableObject<Map<String, Set<Integer>>> =
+        UnModellableObject(this, "tags", true, typeOf<Map<String, Set<Integer>>>())
+}
+```
+
+**Common scenarios for UnModellableObject:**
+- 🚫 Dynamic collections: `Map<String, Any>`, `Map<String, *>`
+- 🚫 Complex generics: `Map<String, List<Set<T>>>`
+- 🚫 External library types without `@Field` annotations
+- 🚫 Collections with unknown element structure
+
+**Benefits of terminal objects:**
 - ✅ **Type-safe field access** - `document.metadata.path() == "metadata"`
-- ✅ **Proper nested detection** - Automatic nested=true for `FieldType.Nested`
+- ✅ **Proper nested detection** - Automatic `nested=true` for `FieldType.Nested`
 - ✅ **Path traversal support** - Full dotted notation compatibility
-- ✅ **No unnecessary classes** - Avoids generating Q-classes for complex generics
-- ✅ **Clean object model** - Simple ObjectField instances with proper inheritance
+- ✅ **Clear indicators** - ∞ for self-referencing, 🚫 for unmodellable
+- ✅ **No compilation errors** - Graceful handling of edge cases
+- ✅ **Runtime type safety** - Preserves type information with `KType`
+
+### Generated KDoc with Field Hierarchy
+
+Metalastic generates comprehensive KDoc documentation for all metamodel classes, including a **visual field hierarchy** that provides an at-a-glance view of your document structure.
+
+#### Visual Tree Representation
+
+Every generated Q-class includes a field hierarchy tree in its KDoc. Here's an example of what the generated documentation looks like:
+
+**Generated Class:**
+```kotlin
+class QPerson<T : Any?>(...) : Document<T>(...) {
+    @JvmField val id: KeywordField
+    @JvmField val firstName: TextField
+    @JvmField val email: KeywordField MultiField
+    // ... other fields
+}
+```
+
+**Generated KDoc:**
+
+The class documentation includes a visual tree showing all fields:
+
+```
+Metamodel for Elasticsearch index `person`.
+
+This class was automatically generated by Metalastic annotation processor
+from the source class [com.example.Person].
+
+## Field Hierarchy
+
+QPerson<T>
+├── id: KeywordField
+├── firstName: TextField
+├── lastName: KeywordField
+├── age: IntegerField
+├── email: KeywordField MultiField
+│   ├── keyword: KeywordField
+│   ├── search: TextField
+│   └── sortable: KeywordField
+├── metadata: UnModellableObject 🚫
+├── parentPerson: SelfReferencingObject ∞
+├── address: Address
+│   └── ...Address structure
+└── activities: Activity (nested)
+    └── ...Activity structure (nested)
+
+**Do not modify this file directly.** Any changes will be overwritten
+during the next compilation. To modify the metamodel structure, update the
+annotations on the source document class.
+
+@see com.example.Person
+```
+
+#### Hierarchy Indicators
+
+The field hierarchy uses clear visual indicators:
+
+| Indicator | Meaning | Example |
+|-----------|---------|---------|
+| `TextField` | Simple field type | `name: TextField` |
+| `KeywordField MultiField` | Multi-field with main type | `email: KeywordField MultiField` |
+| `Address` | Object field (traversable) | `address: Address` |
+| `(nested)` | Nested field marker | `activities: Activity (nested)` |
+| `🚫` | Unmodellable object | `metadata: UnModellableObject 🚫` |
+| `∞` | Self-referencing field | `parent: SelfReferencingObject ∞` |
+| `└── ...Structure` | Indicates nested structure | `└── ...Address structure` |
+
+#### Benefits
+
+- 📖 **Quick overview** - Understand document structure at a glance
+- 🎯 **IDE integration** - Visible in hover tooltips and documentation views
+- 🔍 **Easy navigation** - Click through to nested structures
+- 🚦 **Clear indicators** - Immediately see field types and special cases
+- 📝 **Self-documenting** - Generated docs stay in sync with code
 
 ### Discovery and Iteration
 
@@ -520,15 +898,9 @@ metalastic {
         fallbackClassName = "GlobalMetamodels"
     }
 
-    features {
-        generateJavaCompatibility = true  // default: true
-        generatePrivateClassMetamodels = false  // default: false
-    }
-
-    reporting {
-        enabled = true
-        outputPath = "build/reports/metalastic/processor-report.md"
-    }
+    generateJavaCompatibility = true  // default: true
+    generatePrivateClassMetamodels = false  // default: false
+    reportingPath = "build/reports/metalastic/processor-report.md"
 }
 ```
 
@@ -593,9 +965,7 @@ To **include private classes** in generation (not recommended for most use cases
 **Using Gradle Plugin DSL:**
 ```kotlin
 metalastic {
-    features {
-        generatePrivateClassMetamodels = true
-    }
+    generatePrivateClassMetamodels = true
 }
 ```
 
@@ -613,10 +983,7 @@ Enable detailed processor reporting to understand code generation:
 **Using Gradle Plugin DSL:**
 ```kotlin
 metalastic {
-    reporting {
-        enabled = true
-        outputPath = "build/reports/metalastic/processor-report.md"
-    }
+    reportingPath = "build/reports/metalastic/processor-report.md"
 }
 ```
 
@@ -690,6 +1057,255 @@ The processor uses **runtime field type detection**, automatically supporting:
 - ✅ **Graceful degradation** - Unknown types logged but don't break compilation
 - ✅ **Zero configuration** - Uses your project's Spring Data ES version
 
+## Compatibility Matrix
+
+### Core Dependencies
+
+| Component | Version | Compatibility |
+|-----------|---------|---------------|
+| **Java** | 21+ | ✅ Required |
+| **Kotlin** | 2.2.0+ | ✅ Required |
+| **Gradle** | 8.5+ | ✅ Recommended |
+
+### Spring Data Elasticsearch Compatibility
+
+| Spring Data ES | Elasticsearch | Metalastic Core | elasticsearch-dsl |
+|----------------|---------------|-----------------|-------------------|
+| 5.5.x | 8.15.x | ✅ Full | ✅ Full |
+| 5.4.x | 8.14.x | ✅ Full | ✅ Full |
+| 5.3.x | 8.13.x | ✅ Full | ✅ Full |
+| 5.2.x | 8.12.x | ✅ Full | ✅ Full |
+| 5.1.x | 8.11.x | ✅ Full | ✅ Full |
+| 5.0.x | 8.7.x+ | ✅ Full | ✅ Full |
+
+### Framework Integration
+
+| Framework | Support Level | Notes |
+|-----------|---------------|-------|
+| **Spring Boot** | ✅ Full | Auto-configuration compatible |
+| **Spring Data** | ✅ Full | Native integration |
+| **Elasticsearch Java Client** | ✅ Full | Direct query building |
+| **Jackson** | ✅ Full | JSON serialization support |
+
+### Build Tools
+
+| Tool | Status | Configuration |
+|------|--------|---------------|
+| **Gradle (Kotlin DSL)** | ✅ Recommended | Type-safe plugin DSL |
+| **Gradle (Groovy DSL)** | ✅ Supported | Manual configuration |
+| **Maven** | ⚠️ Manual | KSP configuration required |
+
+### Artifact Compatibility
+
+| Module | Group ID | Latest Version | Versioning Strategy |
+|--------|----------|----------------|-------------------|
+| **Core Runtime** | `com.metalastic:core` | `2.1.0` | Semantic versioning |
+| **Annotation Processor** | `com.metalastic:processor` | `2.1.0` | Semantic versioning |
+| **Enhanced DSL** | `com.metalastic:elasticsearch-dsl` | `5.0.12-1.0` | `{spring-data-es}-{dsl-version}` |
+| **Gradle Plugin** | `com.metalastic:gradle-plugin` | `2.1.0` | Semantic versioning |
+
+### elasticsearch-dsl Version Matrix
+
+| elasticsearch-dsl | Spring Data ES | Elasticsearch | DSL Features |
+|-------------------|---------------|---------------|--------------|
+| **5.0.12-1.0** | 5.0.12 | 8.7.x+ | ✅ Full DSL, Range queries, JCV |
+| **5.1.x-1.x** | 5.1.x | 8.11.x | 🔄 Future release |
+| **5.2.x-1.x** | 5.2.x | 8.12.x | 🔄 Future release |
+
+### Feature Matrix by Module
+
+| Feature | Core | elasticsearch-dsl | Notes |
+|---------|------|-------------------|-------|
+| Type-safe field access | ✅ | ✅ | Basic metamodel functionality |
+| Path traversal | ✅ | ✅ | Dotted notation support |
+| Nested field support | ✅ | ✅ | Automatic nested detection |
+| Bool query DSL | ❌ | ✅ | Advanced query building |
+| Range queries | ❌ | ✅ | Google Guava integration |
+| Clause + { } syntax | ❌ | ✅ | Innovative operator overloading |
+| Native query integration | ❌ | ✅ | Spring Data ES NativeQuery |
+| JSON validation | ❌ | ✅ | JCV integration for testing |
+
+### Version Upgrade Path
+
+| From | To | Breaking Changes | Migration Guide |
+|------|----|-----------------|-----------------|
+| 1.x | 2.x | ✅ Package restructure | Update imports, use Gradle plugin |
+| 2.0 | 2.1+ | ❌ None | Drop-in replacement |
+| Core only | + elasticsearch-dsl | ❌ None | Add `elasticsearch-dsl:5.0.12-1.0` dependency |
+| elasticsearch-dsl 5.0.12-1.0 | 5.0.12-1.1 | ❌ None | DSL feature updates only |
+| elasticsearch-dsl 5.0.12-x | 5.1.x-1.0 | ⚠️ Possible | Follow Spring Data ES migration guide |
+
+### elasticsearch-dsl Versioning Strategy
+
+**Format**: `{spring-data-elasticsearch-version}-{dsl-version}`
+
+**Examples**:
+- `5.0.12-1.0` = Compatible with Spring Data ES 5.0.12, DSL features version 1.0
+- `5.1.0-1.0` = Compatible with Spring Data ES 5.1.0, DSL features version 1.0
+- `5.0.12-1.1` = Compatible with Spring Data ES 5.0.12, DSL features version 1.1
+
+**Benefits**:
+- ✅ **Clear compatibility** - Version immediately shows Spring Data ES compatibility
+- ✅ **Independent evolution** - DSL features can evolve independently of Spring Data ES
+- ✅ **Easy selection** - Choose version based on your Spring Data ES version
+- ✅ **Future-proof** - Supports multiple Spring Data ES versions simultaneously
+
+## Troubleshooting
+
+### Generated Code Not Visible in IDE
+
+**Problem**: Q-classes are generated but not visible in IDE auto-completion.
+
+**Solutions**:
+1. **Sync Gradle project**:
+   ```bash
+   ./gradlew clean build --refresh-dependencies
+   ```
+2. **Invalidate IDE caches** (IntelliJ IDEA):
+   - File → Invalidate Caches / Restart
+3. **Check generated sources directory**:
+   - Look in `build/generated/ksp/main/kotlin/`
+   - Verify files are actually generated
+4. **Ensure KSP plugin is applied**:
+   ```kotlin
+   plugins {
+       id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+   }
+   ```
+
+### KSP Not Running
+
+**Problem**: No files generated in `build/generated/ksp/`.
+
+**Solutions**:
+1. **Verify both plugins are applied**:
+   ```kotlin
+   plugins {
+       id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+       id("com.metalastic") version "2.0.0"
+   }
+   ```
+2. **Check for `@Document` annotations**:
+   - Processor only runs if `@Document` classes exist
+   - Verify import: `org.springframework.data.elasticsearch.annotations.Document`
+3. **Enable KSP debugging**:
+   ```kotlin
+   ksp {
+       arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
+   }
+   ```
+4. **Clean and rebuild**:
+   ```bash
+   ./gradlew clean kspKotlin
+   ```
+
+### Import Conflicts
+
+**Problem**: Ambiguous imports or naming conflicts with generated classes.
+
+**Solutions**:
+1. **Use custom package configuration**:
+   ```kotlin
+   metalastic {
+       metamodels {
+           main {
+               packageName = "com.example.search.metamodels"
+               className = "SearchMetamodels"
+           }
+       }
+   }
+   ```
+2. **Use qualified imports**:
+   ```kotlin
+   import com.example.search.metamodels.Metamodels
+   import com.example.search.metamodels.QPerson
+   ```
+
+### Private Class Not Generating Metamodel
+
+**Problem**: Private `@Document` class doesn't generate Q-class.
+
+**Solution**: This is expected behavior. Private classes are excluded by default. To include them:
+
+```kotlin
+metalastic {
+    generatePrivateClassMetamodels = true
+}
+```
+
+**Note**: Including private class metamodels is generally not recommended.
+
+### Field Not Generating
+
+**Problem**: Specific field missing from generated Q-class.
+
+**Check**:
+1. **Field has `@Field` annotation**:
+   ```java
+   @Field(type = FieldType.Text)
+   private String name;
+   ```
+2. **Field is not static or transient**
+3. **Getter method has `@Field` for interfaces**:
+   ```java
+   @Field(type = FieldType.Text)
+   String getName();
+   ```
+
+### Build Performance Issues
+
+**Problem**: Slow compilation with KSP.
+
+**Solutions**:
+1. **Enable Gradle configuration cache**:
+   ```kotlin
+   // gradle.properties
+   org.gradle.configuration-cache=true
+   ```
+2. **Increase Gradle daemon memory**:
+   ```kotlin
+   // gradle.properties
+   org.gradle.jvmargs=-Xmx2048m
+   ```
+3. **Use incremental compilation** (enabled by default in KSP)
+
+### Metamodels Class Not Found
+
+**Problem**: `Metamodels` object not found at runtime.
+
+**Solutions**:
+1. **Check source set configuration** matches where you're using it:
+   ```kotlin
+   metalastic {
+       metamodels {
+           main {  // For src/main/kotlin
+               packageName = "com.example.metamodels"
+           }
+           test {  // For src/test/kotlin
+               packageName = "com.example.test.metamodels"
+           }
+       }
+   }
+   ```
+2. **Verify import matches configured package**:
+   ```kotlin
+   import com.example.metamodels.Metamodels
+   ```
+
+### Getting Help
+
+If you encounter issues not covered here:
+
+1. **Enable debug reporting**:
+   ```kotlin
+   metalastic {
+       reportingPath = "build/reports/metalastic/processor-report.md"
+   }
+   ```
+2. **Check the generated report** in `build/reports/metalastic/`
+3. **Review KSP logs**: Look for errors in build output
+4. **Report issues**: https://gitlab.ekino.com/iperia/metalastic/issues
+
 ## Development
 
 ### Project Structure
@@ -700,6 +1316,9 @@ Metalastic/
 │   ├── core/                    # DSL runtime library
 │   │   ├── src/main/kotlin/     # Field classes, Index base classes
 │   │   └── src/test/kotlin/     # Unit tests for DSL
+│   ├── elasticsearch-dsl/       # Enhanced query building DSL
+│   │   ├── src/main/kotlin/     # Innovative clause + { } syntax, range queries
+│   │   └── src/test/kotlin/     # DSL integration tests with JCV validation
 │   ├── processor/               # KSP annotation processor
 │   │   ├── src/main/kotlin/     # Code generation logic
 │   │   └── src/test/kotlin/     # Processor unit tests
@@ -781,14 +1400,54 @@ When Spring Data Elasticsearch adds new field types:
 
 ## Publishing
 
-Metalastic is published to GitLab Maven Registry:
+Metalastic uses a **dual publication strategy** to handle different versioning needs:
+
+### 📦 Publication Strategy
+
+**Two separate publication workflows:**
+
+1. **Core Modules** (`core`, `processor`, `gradle-plugin`)
+   - **Tag Format**: `v2.1.0`
+   - **Publishes**:
+     - `com.metalastic:core:2.1.0`
+     - `com.metalastic:processor:2.1.0`
+     - `com.metalastic:gradle-plugin:2.1.0`
+
+2. **elasticsearch-dsl Module**
+   - **Tag Format**: `elasticsearch-dsl-v5.0.12-1.0`
+   - **Publishes**: `com.metalastic:elasticsearch-dsl:5.0.12-1.0`
+
+### 🚀 Release Process
+
+**For Core Modules:**
+```bash
+git tag v2.1.0
+git push origin v2.1.0
+# Triggers CI/CD → publishes core, processor, gradle-plugin
+```
+
+**For elasticsearch-dsl Module:**
+```bash
+git tag elasticsearch-dsl-v5.0.12-1.0
+git push origin elasticsearch-dsl-v5.0.12-1.0
+# Triggers CI/CD → publishes elasticsearch-dsl:5.0.12-1.0
+```
+
+### 📋 Publication Matrix
+
+| Module | Tag Format | Published Version | Repository |
+|--------|------------|-------------------|------------|
+| **core** | `v2.1.0` | `2.1.0` | GitLab Maven Registry |
+| **processor** | `v2.1.0` | `2.1.0` | GitLab Maven Registry |
+| **gradle-plugin** | `v2.1.0` | `2.1.0` | GitLab Maven Registry |
+| **elasticsearch-dsl** | `elasticsearch-dsl-v5.0.12-1.0` | `5.0.12-1.0` | GitLab Maven Registry |
+
+### 🏢 Repository Information
 
 - **Repository**: https://gitlab.ekino.com/iperia/metalastic
 - **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
 - **Group ID**: `com.metalastic`
-- **Artifacts**: `core`, `processor`, `gradle-plugin`, `test`
-
-CI/CD automatically publishes on master branch pushes.
+- **CI/CD**: Automatic publishing on tag pushes
 
 ## Roadmap
 
@@ -805,11 +1464,15 @@ CI/CD automatically publishes on master branch pushes.
 - Version-agnostic Spring Data ES compatibility
 - **Gradle plugin with type-safe DSL configuration**
 - **Smart field name resolution** - Convention-aware `@Field(name)` handling
+- **Enhanced query building DSL** - Complete elasticsearch-dsl module
+- **Innovative `clause + { }` syntax** - Modern operator-overloaded DSL
+- **Google Guava Range integration** - Mathematical notation for range queries
+- **Spring Data NativeQuery integration** - Seamless query execution
+- **JCV JSON validation** - Advanced testing capabilities
 
 ### 🚧 In Progress
-- Enhanced query building DSL
-- Performance optimizations
-- Comprehensive documentation and examples
+- Performance optimizations and benchmarking
+- StartBound mathematical range notation (10.0..100.0)
 
 ### 📋 Future Plans
 - Direct Elasticsearch client integration

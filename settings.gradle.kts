@@ -8,5 +8,6 @@ include(
     ":modules:core",
     ":modules:processor",
     ":modules:gradle-plugin",
+    ":modules:elasticsearch-dsl",
     ":modules:test"
 )

@@ -50,8 +50,11 @@ data class ObjectFieldModel(
   override val elasticsearchFieldName: String,
   override val name: String,
   val targetModel: MetalasticGraph.MetaClassModel?,
-  val nested: Boolean,
-) : FieldModel()
+) : FieldModel() {
+
+  val nested: Boolean
+    get() = fieldType == FieldType.Nested
+}
 
 /** Multi-field model for @MultiField annotated fields with multiple inner fields */
 data class MultiFieldModel(
