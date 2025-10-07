@@ -38,8 +38,10 @@ private fun createMetamodelsConfiguration(
   return MetamodelsConfiguration(
     packageOverride = kspOptions[Metamodels.PACKAGE_OVERRIDE],
     classNameOverride = kspOptions[Metamodels.CLASS_NAME],
+    classPrefixOverride = kspOptions[Metamodels.CLASS_PREFIX],
     sourceSetPackageOverrides = extractSourceSetPackageOverrides(kspOptions),
     sourceSetClassNameOverrides = extractSourceSetClassNameOverrides(kspOptions),
+    sourceSetClassPrefixOverrides = extractSourceSetClassPrefixOverrides(kspOptions),
   )
 }
 
@@ -62,5 +64,17 @@ private fun extractSourceSetClassNameOverrides(
     .mapKeys { (key, _) ->
       // Extract sourceSet from "metamodels.{sourceSet}.className"
       key.removePrefix("metamodels.").removeSuffix(".className")
+    }
+}
+
+/** Extract source set specific classPrefix overrides from KSP options. */
+private fun extractSourceSetClassPrefixOverrides(
+  kspOptions: Map<String, String>
+): Map<String, String> {
+  return kspOptions
+    .filterKeys { it.startsWith("metamodels.") && it.endsWith(".classPrefix") }
+    .mapKeys { (key, _) ->
+      // Extract sourceSet from "metamodels.{sourceSet}.classPrefix"
+      key.removePrefix("metamodels.").removeSuffix(".classPrefix")
     }
 }

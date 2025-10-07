@@ -13,8 +13,8 @@ private val logger = KotlinLogging.logger {}
  */
 class ProcessorIntegrationSpec :
   ShouldSpec({
-    should("generate QTestDocument class when TestDocument is processed") {
-      // The KSP processor should have generated QTestDocument during compilation
+    should("generate MetaTestDocument class when TestDocument is processed") {
+      // The KSP processor should have generated MetaTestDocument during compilation
       // Let's check if we can find the generated file in the build directory
 
       val buildDir = File("build/generated/ksp/main/kotlin/com/qelasticsearch/integration")
@@ -24,20 +24,20 @@ class ProcessorIntegrationSpec :
         val files = buildDir.listFiles()
         logger.info { "Found files: ${files?.map { it.name }}" }
 
-        val qTestDocumentFile = File(buildDir, "QTestDocument.kt")
+        val qTestDocumentFile = File(buildDir, "MetaTestDocument.kt")
         if (qTestDocumentFile.exists()) {
-          logger.info { "QTestDocument.kt content:" }
+          logger.info { "MetaTestDocument.kt content:" }
           logger.info { qTestDocumentFile.readText() }
           qTestDocumentFile.exists() shouldNotBe false
         } else {
-          logger.warn { "QTestDocument.kt not found" }
+          logger.warn { "MetaTestDocument.kt not found" }
         }
       } else {
         logger.warn { "Build directory does not exist" }
       }
 
       // For now, we'll just verify that TestDocument compiles successfully
-      // In a real integration test, we would verify the generated QTestDocument can be used
+      // In a real integration test, we would verify the generated MetaTestDocument can be used
       val testDoc = TestDocument()
       testDoc shouldNotBe null
     }

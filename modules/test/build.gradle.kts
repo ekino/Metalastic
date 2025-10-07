@@ -49,14 +49,13 @@ metalastic {
   }
 
   reporting {
-    enabled = true
     outputPath = "build/reports/metalastic/processor-report.md"
   }
 }
 */
-
 // Manual KSP configuration (equivalent to the plugin DSL above)
 ksp {
+  //  arg("metamodels.classPrefix", "Meta") // Global
   arg("metamodels.main.package", "com.example.search.metamodels")
   arg("metamodels.main.className", "MainMetamodels")
   arg("metamodels.test.package", "com.example.test.metamodels")

@@ -7,38 +7,38 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 
 class SpecificQClassFieldsSpec :
   ShouldSpec({
-    should("generate QTestActivity for interface nested fields") {
-      // Verify that activities field uses specific QTestActivity Q-class
-      val activitiesField = QNestedTestDocument.nestedTestDocument.activities
+    should("generate MetaTestActivity for interface nested fields") {
+      // Verify that activities field uses specific MetaTestActivity Q-class
+      val activitiesField = MetaNestedTestDocument.nestedTestDocument.activities
 
       activitiesField shouldNotBe null
-      activitiesField.shouldBeInstanceOf<QTestActivity<List<TestActivity>>>()
+      activitiesField.shouldBeInstanceOf<MetaTestActivity<List<TestActivity>>>()
     }
 
-    should("generate QTestMetadata for interface object fields") {
-      // Verify that metadata field uses specific QTestMetadata Q-class
-      val metadataField = QNestedTestDocument.nestedTestDocument.metadata
+    should("generate MetaTestMetadata for interface object fields") {
+      // Verify that metadata field uses specific MetaTestMetadata Q-class
+      val metadataField = MetaNestedTestDocument.nestedTestDocument.metadata
 
       metadataField shouldNotBe null
-      metadataField.shouldBeInstanceOf<QTestMetadata<TestMetadata?>>()
+      metadataField.shouldBeInstanceOf<MetaTestMetadata<TestMetadata?>>()
     }
 
     should("still generate proper Q-classes for classes with Field annotations") {
       // Verify that operation field still generates proper Q-class
-      val operationField = QNestedTestDocument.nestedTestDocument.operation
+      val operationField = MetaNestedTestDocument.nestedTestDocument.operation
 
       operationField shouldNotBe null
       operationField.shouldBeInstanceOf<
-        QNestedTestDocument.Operation<NestedTestDocument.Operation>
+        MetaNestedTestDocument.Operation<NestedTestDocument.Operation>
       >()
     }
 
     should("provide correct path structure for document") {
-      QNestedTestDocument.nestedTestDocument.indexName() shouldBe "nested_test_document"
+      MetaNestedTestDocument.nestedTestDocument.indexName() shouldBe "nested_test_document"
 
       // Test nested path construction
-      QNestedTestDocument.nestedTestDocument.operation.active.path() shouldBe "operation.active"
-      QNestedTestDocument.nestedTestDocument.operation.states.id.path() shouldBe
+      MetaNestedTestDocument.nestedTestDocument.operation.active.path() shouldBe "operation.active"
+      MetaNestedTestDocument.nestedTestDocument.operation.states.id.path() shouldBe
         "operation.states.id"
     }
 
@@ -46,14 +46,14 @@ class SpecificQClassFieldsSpec :
       // This test verifies that the generated code compiles with specific Q-classes
       // instead of generic Unknown fields - providing better type safety
 
-      val document = QNestedTestDocument.nestedTestDocument
+      val document = MetaNestedTestDocument.nestedTestDocument
 
       // These should all be accessible without compilation errors
       val id = document.id
       val name = document.name
       val operation = document.operation
-      val activities = document.activities // QTestActivity
-      val metadata = document.metadata // QTestMetadata
+      val activities = document.activities // MetaTestActivity
+      val metadata = document.metadata // MetaTestMetadata
 
       // Verify we can access nested fields through the proper Q-class
       val operationActive = document.operation.active
@@ -68,7 +68,7 @@ class SpecificQClassFieldsSpec :
       stateId shouldNotBe null
 
       // Verify the specific Q-classes provide proper type information
-      activities.shouldBeInstanceOf<QTestActivity<List<TestActivity>>>()
-      metadata.shouldBeInstanceOf<QTestMetadata<TestMetadata?>>()
+      activities.shouldBeInstanceOf<MetaTestActivity<List<TestActivity>>>()
+      metadata.shouldBeInstanceOf<MetaTestMetadata<TestMetadata?>>()
     }
   })

@@ -7,48 +7,48 @@ import io.kotest.matchers.shouldNotBe
 /** Test Java interoperability with QueryDSL style usage patterns */
 class JavaInteroperabilitySpec :
   ShouldSpec({
-    should("generate QJavaTestDocument.javaTestDocument from Java class") {
+    should("generate MetaJavaTestDocument.javaTestDocument from Java class") {
       // Verify that KSP can process plain Java classes
-      QJavaTestDocument.javaTestDocument.indexName() shouldBe "java_test_document"
+      MetaJavaTestDocument.javaTestDocument.indexName() shouldBe "java_test_document"
     }
 
     should("have accessible Java generated fields with correct types") {
       // Test basic field access
-      QJavaTestDocument.javaTestDocument.id shouldNotBe null
-      QJavaTestDocument.javaTestDocument.title shouldNotBe null
-      QJavaTestDocument.javaTestDocument.description shouldNotBe null
-      QJavaTestDocument.javaTestDocument.priority shouldNotBe null
-      QJavaTestDocument.javaTestDocument.isActive shouldNotBe null
-      QJavaTestDocument.javaTestDocument.createdAt shouldNotBe null
-      QJavaTestDocument.javaTestDocument.score shouldNotBe null
-      QJavaTestDocument.javaTestDocument.category shouldNotBe null
-      QJavaTestDocument.javaTestDocument.address shouldNotBe null
-      QJavaTestDocument.javaTestDocument.tags shouldNotBe null
-      QJavaTestDocument.javaTestDocument.multiFieldName shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.id shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.title shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.description shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.priority shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.isActive shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.createdAt shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.score shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.category shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.address shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.tags shouldNotBe null
+      MetaJavaTestDocument.javaTestDocument.multiFieldName shouldNotBe null
     }
 
     should("have correct paths for QueryDSL compatibility") {
       // Verify path generation follows QueryDSL conventions
-      QJavaTestDocument.javaTestDocument.id.path() shouldBe "id"
-      QJavaTestDocument.javaTestDocument.title.path() shouldBe "title"
-      QJavaTestDocument.javaTestDocument.description.path() shouldBe "description"
-      QJavaTestDocument.javaTestDocument.priority.path() shouldBe "priority"
-      QJavaTestDocument.javaTestDocument.isActive.path() shouldBe "isActive"
-      QJavaTestDocument.javaTestDocument.createdAt.path() shouldBe "createdAt"
-      QJavaTestDocument.javaTestDocument.score.path() shouldBe "score"
-      QJavaTestDocument.javaTestDocument.category.path() shouldBe "category"
-      QJavaTestDocument.javaTestDocument.address.city.path() shouldBe "address.city"
-      QJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
-      QJavaTestDocument.javaTestDocument.multiFieldName.path() shouldBe "multiFieldName"
+      MetaJavaTestDocument.javaTestDocument.id.path() shouldBe "id"
+      MetaJavaTestDocument.javaTestDocument.title.path() shouldBe "title"
+      MetaJavaTestDocument.javaTestDocument.description.path() shouldBe "description"
+      MetaJavaTestDocument.javaTestDocument.priority.path() shouldBe "priority"
+      MetaJavaTestDocument.javaTestDocument.isActive.path() shouldBe "isActive"
+      MetaJavaTestDocument.javaTestDocument.createdAt.path() shouldBe "createdAt"
+      MetaJavaTestDocument.javaTestDocument.score.path() shouldBe "score"
+      MetaJavaTestDocument.javaTestDocument.category.path() shouldBe "category"
+      MetaJavaTestDocument.javaTestDocument.address.city.path() shouldBe "address.city"
+      MetaJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
+      MetaJavaTestDocument.javaTestDocument.multiFieldName.path() shouldBe "multiFieldName"
     }
 
     should("follow QueryDSL naming conventions") {
       // Verify Q-class naming follows QueryDSL pattern
-      val className = QJavaTestDocument.javaTestDocument::class.simpleName
-      className shouldBe "QJavaTestDocument"
+      val className = MetaJavaTestDocument.javaTestDocument::class.simpleName
+      className shouldBe "MetaJavaTestDocument"
 
       // Verify package structure
-      val packageName = QJavaTestDocument.javaTestDocument::class.java.packageName
+      val packageName = MetaJavaTestDocument.javaTestDocument::class.java.packageName
       packageName shouldBe "com.metalastictest.integration"
     }
 
@@ -57,14 +57,14 @@ class JavaInteroperabilitySpec :
       // This is tested by the fact that we can access it from Java code
 
       // Verify object is accessible from Java perspective
-      val javaClassName = QJavaTestDocument.javaTestDocument::class.java.simpleName
-      javaClassName shouldBe "QJavaTestDocument"
+      val javaClassName = MetaJavaTestDocument.javaTestDocument::class.java.simpleName
+      javaClassName shouldBe "MetaJavaTestDocument"
     }
 
     should("handle boolean properties with is prefix correctly") {
       // Java convention: boolean isActive -> getIsActive()
       // Verify our processor handles this correctly
-      QJavaTestDocument.javaTestDocument.isActive.path() shouldBe "isActive"
-      QJavaTestDocument.javaTestDocument.isActive.name() shouldBe "isActive"
+      MetaJavaTestDocument.javaTestDocument.isActive.path() shouldBe "isActive"
+      MetaJavaTestDocument.javaTestDocument.isActive.name() shouldBe "isActive"
     }
   })

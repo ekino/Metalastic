@@ -10,11 +10,11 @@ class EnumTypeHandlingSpec :
   ShouldSpec({
     should("have correct parameterized type for enum fields") {
       // Test TestStatus enum field
-      val statusField = QJavaTestDocument.javaTestDocument.status
+      val statusField = MetaJavaTestDocument.javaTestDocument.status
       statusField.shouldBeInstanceOf<KeywordField<*>>()
 
       // Test Priority enum field
-      val priorityField = QJavaTestDocument.javaTestDocument.priorityLevel
+      val priorityField = MetaJavaTestDocument.javaTestDocument.priorityLevel
       priorityField.shouldBeInstanceOf<KeywordField<*>>()
 
       // Test that field names are correct
@@ -23,8 +23,8 @@ class EnumTypeHandlingSpec :
     }
 
     should("have correct paths for enum fields") {
-      val statusField = QJavaTestDocument.javaTestDocument.status
-      val priorityField = QJavaTestDocument.javaTestDocument.priorityLevel
+      val statusField = MetaJavaTestDocument.javaTestDocument.status
+      val priorityField = MetaJavaTestDocument.javaTestDocument.priorityLevel
 
       // Verify field path properties
       statusField.path() shouldBe "status"
@@ -32,7 +32,7 @@ class EnumTypeHandlingSpec :
     }
 
     should("work correctly for enum fields from NestedTestDocument") {
-      val nestedStatusField = QNestedTestDocument.nestedTestDocument.status
+      val nestedStatusField = MetaNestedTestDocument.nestedTestDocument.status
 
       nestedStatusField.shouldBeInstanceOf<KeywordField<*>>()
       nestedStatusField.name() shouldBe "status"
@@ -41,7 +41,7 @@ class EnumTypeHandlingSpec :
 
     should("verify enum types in nested document") {
       // Test nested document enum fields
-      val nestedStatus = QNestedTestDocument.nestedTestDocument.status
+      val nestedStatus = MetaNestedTestDocument.nestedTestDocument.status
       nestedStatus.path() shouldBe "status"
     }
   })

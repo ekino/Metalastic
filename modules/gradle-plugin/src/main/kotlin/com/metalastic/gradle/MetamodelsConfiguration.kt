@@ -12,11 +12,14 @@ import org.gradle.api.provider.Property
  */
 abstract class MetamodelsConfiguration @Inject constructor(private val objects: ObjectFactory) {
 
-  /** Global fallback package for metamodels (default: "com.metalastic") */
-  abstract val fallbackPackage: Property<String>
+  /** Global default package for metamodels (default: "com.metalastic") */
+  abstract val packageName: Property<String>
 
-  /** Global fallback class name for metamodels (default: "Metamodels") */
-  abstract val fallbackClassName: Property<String>
+  /** Global default class name for metamodels (default: "Metamodels") */
+  abstract val className: Property<String>
+
+  /** Global default class prefix for generated Q-classes (default: "Q") */
+  abstract val classPrefix: Property<String>
 
   /** Configuration for main source set */
   val main: SourceSetConfiguration = objects.newInstance(SourceSetConfiguration::class.java)
@@ -52,8 +55,9 @@ abstract class MetamodelsConfiguration @Inject constructor(private val objects: 
 
   init {
     // Set up defaults
-    fallbackPackage.convention("com.metalastic")
-    fallbackClassName.convention("Metamodels")
+    packageName.convention("com.metalastic")
+    className.convention("Metamodels")
+    classPrefix.convention("Meta")
   }
 
   /** Configure main source set metamodels */
@@ -110,4 +114,7 @@ abstract class SourceSetConfiguration {
 
   /** Class name for this source set's metamodels */
   abstract val className: Property<String>
+
+  /** Class prefix for this source set's generated Q-classes */
+  abstract val classPrefix: Property<String>
 }

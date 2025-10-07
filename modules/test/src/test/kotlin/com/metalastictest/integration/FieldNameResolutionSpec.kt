@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldNotBe
 class FieldNameResolutionSpec :
   ShouldSpec({
     should("use annotation name when it's a valid identifier") {
-      val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
+      val document = MetaFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
       // Case 1: Valid identifier - @Field(name = "valid") on isValid should use "valid" as property
       // name
@@ -16,7 +16,7 @@ class FieldNameResolutionSpec :
     }
 
     should("keep original property name when annotation name doesn't follow conventions") {
-      val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
+      val document = MetaFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
       // Case 2: Valid identifier but non-conventional (underscore) - @Field(name =
       // "search_content")
@@ -27,7 +27,7 @@ class FieldNameResolutionSpec :
     }
 
     should("handle invalid identifiers by keeping original property name") {
-      val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
+      val document = MetaFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
       // Case 3: Invalid identifier - @Field(name = "987987_oi") should keep original "userName"
       document.userName shouldNotBe null
@@ -35,7 +35,7 @@ class FieldNameResolutionSpec :
     }
 
     should("support MultiField with name attribute") {
-      val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
+      val document = MetaFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
       // Case 4: MultiField with valid conventional name - @MultiField(mainField = @Field(name =
       // "fulltext"))
@@ -50,7 +50,7 @@ class FieldNameResolutionSpec :
     }
 
     should("support object and nested fields with name attribute") {
-      val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
+      val document = MetaFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
       // Case 6: Object field with non-conventional name (underscore) - should keep original
       // property name
@@ -71,7 +71,7 @@ class FieldNameResolutionSpec :
     }
 
     should("use default behavior when no name attribute is provided") {
-      val document = QFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
+      val document = MetaFieldNameResolutionTestDocument.fieldNameResolutionTestDocument
 
       // Case 8: No name attribute - should use property name
       document.age shouldNotBe null
@@ -81,14 +81,15 @@ class FieldNameResolutionSpec :
 
     should("maintain proper Java compatibility") {
       // Since we use @JvmField, properties should be accessible as static fields from Java
-      val validField = QFieldNameResolutionTestDocument::class.java.getDeclaredField("valid")
+      val validField = MetaFieldNameResolutionTestDocument::class.java.getDeclaredField("valid")
       validField shouldNotBe null
 
       val searchableTextField =
-        QFieldNameResolutionTestDocument::class.java.getDeclaredField("searchableText")
+        MetaFieldNameResolutionTestDocument::class.java.getDeclaredField("searchableText")
       searchableTextField shouldNotBe null
 
-      val userNameField = QFieldNameResolutionTestDocument::class.java.getDeclaredField("userName")
+      val userNameField =
+        MetaFieldNameResolutionTestDocument::class.java.getDeclaredField("userName")
       userNameField shouldNotBe null
     }
   })

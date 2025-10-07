@@ -11,7 +11,7 @@ import com.metalastic.core.UnModellableObject
 object CoreConstants {
   const val PRODUCT_NAME = "Metalastic"
   const val CORE_PACKAGE = "com.metalastic.core"
-  const val Q_PREFIX = "Q"
+  const val META_PREFIX = "Meta"
   const val MULTIFIELD_POSTFIX = "MultiField"
 
   object MetaModelClass {
@@ -69,6 +69,7 @@ object CoreConstants {
       const val FALLBACK_METAMODELS_PACKAGE = "com.metalastic"
       const val PACKAGE_OVERRIDE = "metamodels.package"
       const val CLASS_NAME = "metamodels.className"
+      const val CLASS_PREFIX = "metamodels.classPrefix"
     }
   }
 }

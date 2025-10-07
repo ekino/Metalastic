@@ -16,4 +16,7 @@ abstract class SourceSetConfig {
 
   /** Class name for this source set's metamodels */
   abstract val className: Property<String>
+
+  /** Class prefix for this source set's generated Q-classes */
+  abstract val classPrefix: Property<String>
 }

@@ -345,7 +345,7 @@ All generation constants are centralized in `CoreConstants`:
 object CoreConstants {
     const val CORE_PACKAGE = "com.metalastic.core"
     const val METAMODELS_PACKAGE = "com.metalastic"
-    const val Q_PREFIX = "Q"
+    const val META_PREFIX = "Meta"
     const val INDEX_CLASS = "Index"
     const val OBJECT_FIELDS_CLASS = "ObjectField"
     const val DOCUMENT_ANNOTATION = "org.springframework.data.elasticsearch.annotations.Document"
