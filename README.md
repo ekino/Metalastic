@@ -886,16 +886,22 @@ The Gradle plugin provides a **type-safe, discoverable DSL** for configuration:
 // build.gradle.kts
 metalastic {
     metamodels {
+        // Source-set specific configuration
         main {
             packageName = "com.example.search.metamodels"
             className = "SearchMetamodels"
+            classPrefix = "Meta"  // default: "Meta"
         }
         test {
             packageName = "com.example.test.metamodels"
             className = "TestMetamodels"
+            classPrefix = "Test"  // Custom prefix for test classes
         }
-        fallbackPackage = "com.example.metamodels"
-        fallbackClassName = "GlobalMetamodels"
+
+        // Global defaults (applied when source-set specific config is not set)
+        packageName = "com.example.metamodels"
+        className = "GlobalMetamodels"
+        classPrefix = "Meta"  // default: "Meta"
     }
 
     generateJavaCompatibility = true  // default: true
@@ -910,15 +916,19 @@ For projects that prefer direct KSP configuration:
 
 ```kotlin
 ksp {
-    // Package and class name customization
+    // Source-set specific configuration
     arg("metamodels.main.package", "com.example.search.metamodels")
     arg("metamodels.main.className", "SearchMetamodels")
+    arg("metamodels.main.classPrefix", "Meta")  // default: "Meta"
+
     arg("metamodels.test.package", "com.example.test.metamodels")
     arg("metamodels.test.className", "TestMetamodels")
+    arg("metamodels.test.classPrefix", "Test")  // Custom prefix for test classes
 
-    // Global fallbacks
+    // Global defaults (applied when source-set specific config is not set)
     arg("metamodels.package", "com.example.metamodels")
     arg("metamodels.className", "GlobalMetamodels")
+    arg("metamodels.classPrefix", "Meta")  // default: "Meta"
 
     // Feature toggles
     arg("metalastic.generateJavaCompatibility", "true")  // default: true
@@ -935,8 +945,10 @@ ksp {
 |--------|-------------|---------|
 | `metamodels.{sourceSet}.package` | Custom package for specific source set | `com.metalastic.metamodels.{sourceSet}` |
 | `metamodels.{sourceSet}.className` | Custom class name for specific source set | `Metamodels` |
-| `metamodels.package` | Global fallback package | `com.metalastic` |
-| `metamodels.className` | Global fallback class name | `Metamodels` |
+| `metamodels.{sourceSet}.classPrefix` | Custom class prefix for specific source set | `Meta` |
+| `metamodels.package` | Global default package | `com.metalastic` |
+| `metamodels.className` | Global default class name | `Metamodels` |
+| `metamodels.classPrefix` | Global default class prefix | `Meta` |
 | `metalastic.generateJavaCompatibility` | Add `@JvmField` for Java interop | `true` |
 | `metalastic.generatePrivateClassMetamodels` | Generate metamodels for private `@Document` classes | `false` |
 | `metalastic.reportingPath` | Path for debug reports (relative to project root) | disabled |
