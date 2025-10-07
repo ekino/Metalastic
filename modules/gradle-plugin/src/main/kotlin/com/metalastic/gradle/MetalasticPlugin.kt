@@ -88,6 +88,7 @@ class MetalasticPlugin : Plugin<Project> {
     config: SourceSetConfiguration,
     defaultPackage: String? = null,
     defaultClassName: String? = null,
+    defaultClassPrefix: String? = null,
   ) {
     val packageName =
       if (config.packageName.isPresent) {
@@ -103,6 +104,13 @@ class MetalasticPlugin : Plugin<Project> {
         defaultClassName
       }
 
+    val classPrefix =
+      if (config.classPrefix.isPresent) {
+        config.classPrefix.get()
+      } else {
+        defaultClassPrefix
+      }
+
     if (packageName != null) {
       argMethod.invoke(kspExtension, "metamodels.$sourceSetName.package", packageName)
       project.logger.info(
@@ -114,6 +122,13 @@ class MetalasticPlugin : Plugin<Project> {
       argMethod.invoke(kspExtension, "metamodels.$sourceSetName.className", className)
       project.logger.info(
         "Metalastic: Set KSP arg metamodels.$sourceSetName.className = $className"
+      )
+    }
+
+    if (classPrefix != null) {
+      argMethod.invoke(kspExtension, "metamodels.$sourceSetName.classPrefix", classPrefix)
+      project.logger.info(
+        "Metalastic: Set KSP arg metamodels.$sourceSetName.classPrefix = $classPrefix"
       )
     }
   }
@@ -137,6 +152,11 @@ class MetalasticPlugin : Plugin<Project> {
           sourceSetConfig.className.get()
         } else null
 
+      val classPrefix =
+        if (sourceSetConfig.classPrefix.isPresent) {
+          sourceSetConfig.classPrefix.get()
+        } else null
+
       if (packageName != null) {
         argMethod.invoke(kspExtension, "metamodels.$sourceSetName.package", packageName)
         project.logger.info(
@@ -150,7 +170,67 @@ class MetalasticPlugin : Plugin<Project> {
           "Metalastic: Set KSP arg metamodels.$sourceSetName.className = $className"
         )
       }
+
+      if (classPrefix != null) {
+        argMethod.invoke(kspExtension, "metamodels.$sourceSetName.classPrefix", classPrefix)
+        project.logger.info(
+          "Metalastic: Set KSP arg metamodels.$sourceSetName.classPrefix = $classPrefix"
+        )
+      }
     }
+  }
+
+  private fun configureMetamodels(
+    argMethod: java.lang.reflect.Method,
+    kspExtension: Any,
+    project: Project,
+    metamodels: MetamodelsConfiguration,
+  ) {
+    // Global defaults
+    if (metamodels.packageName.isPresent) {
+      argMethod.invoke(kspExtension, "metamodels.package", metamodels.packageName.get())
+    }
+    if (metamodels.className.isPresent) {
+      argMethod.invoke(kspExtension, "metamodels.className", metamodels.className.get())
+    }
+    if (metamodels.classPrefix.isPresent) {
+      argMethod.invoke(kspExtension, "metamodels.classPrefix", metamodels.classPrefix.get())
+    }
+
+    // Source set specific configurations - use defaults if not configured
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      "main",
+      metamodels.main,
+      defaultPackage = "${project.group}.metamodels",
+      defaultClassName = "Metamodels",
+      defaultClassPrefix = "Meta",
+    )
+
+    configureSourceSet(argMethod, kspExtension, project, "test", metamodels.test)
+    configureSourceSet(argMethod, kspExtension, project, "integration", metamodels.integration)
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      "integrationTest",
+      metamodels.integrationTest,
+    )
+    configureSourceSet(argMethod, kspExtension, project, "functional", metamodels.functional)
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      "functionalTest",
+      metamodels.functionalTest,
+    )
+    configureSourceSet(argMethod, kspExtension, project, "e2e", metamodels.e2e)
+    configureSourceSet(argMethod, kspExtension, project, "e2eTest", metamodels.e2eTest)
+
+    // Configure custom source sets
+    configureCustomSourceSets(argMethod, kspExtension, project, metamodels.customSourceSets)
   }
 
   private fun configureKspArgs(project: Project, extension: MetalasticExtension) {
@@ -169,49 +249,7 @@ class MetalasticPlugin : Plugin<Project> {
           kspExtension::class.java.getMethod("arg", String::class.java, String::class.java)
 
         // Metamodels configuration
-        val metamodels = extension.metamodels
-
-        // Global fallbacks
-        if (metamodels.fallbackPackage.isPresent) {
-          argMethod.invoke(kspExtension, "metamodels.package", metamodels.fallbackPackage.get())
-        }
-        if (metamodels.fallbackClassName.isPresent) {
-          argMethod.invoke(kspExtension, "metamodels.className", metamodels.fallbackClassName.get())
-        }
-
-        // Source set specific configurations - use defaults if not configured
-        configureSourceSet(
-          argMethod,
-          kspExtension,
-          project,
-          "main",
-          metamodels.main,
-          defaultPackage = "${project.group}.metamodels",
-          defaultClassName = "Metamodels",
-        )
-
-        configureSourceSet(argMethod, kspExtension, project, "test", metamodels.test)
-        configureSourceSet(argMethod, kspExtension, project, "integration", metamodels.integration)
-        configureSourceSet(
-          argMethod,
-          kspExtension,
-          project,
-          "integrationTest",
-          metamodels.integrationTest,
-        )
-        configureSourceSet(argMethod, kspExtension, project, "functional", metamodels.functional)
-        configureSourceSet(
-          argMethod,
-          kspExtension,
-          project,
-          "functionalTest",
-          metamodels.functionalTest,
-        )
-        configureSourceSet(argMethod, kspExtension, project, "e2e", metamodels.e2e)
-        configureSourceSet(argMethod, kspExtension, project, "e2eTest", metamodels.e2eTest)
-
-        // Configure custom source sets
-        configureCustomSourceSets(argMethod, kspExtension, project, metamodels.customSourceSets)
+        configureMetamodels(argMethod, kspExtension, project, extension.metamodels)
 
         // Features configuration
         val features = extension.features

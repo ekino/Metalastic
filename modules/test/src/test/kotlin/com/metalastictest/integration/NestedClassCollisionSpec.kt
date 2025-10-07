@@ -11,8 +11,8 @@ import io.kotest.matchers.shouldNotBe
 class NestedClassCollisionSpec :
   ShouldSpec({
     should("generate separate Q-classes for external and nested classes with same name") {
-      // External JavaTag class should generate QJavaTag
-      val externalTagField = QJavaTestDocument.javaTestDocument.tags
+      // External JavaTag class should generate MetaJavaTag
+      val externalTagField = MetaJavaTestDocument.javaTestDocument.tags
       externalTagField shouldNotBe null
 
       // Should have fields from external JavaTag class
@@ -21,8 +21,8 @@ class NestedClassCollisionSpec :
       externalTagField.description.path() shouldBe "tags.description"
 
       // Nested JavaTag class should generate nested object within
-      // QJavaTestDocument.javaTestDocument
-      val nestedTagField = QJavaTestDocument.javaTestDocument.tags2
+      // MetaJavaTestDocument.javaTestDocument
+      val nestedTagField = MetaJavaTestDocument.javaTestDocument.tags2
       nestedTagField shouldNotBe null
 
       // Nested class has different field names: tagName and size (not name, weight, description)
@@ -30,19 +30,19 @@ class NestedClassCollisionSpec :
       nestedTagField.size.path() shouldBe "tags2.size"
 
       // Verify they are different Q-class types
-      externalTagField::class.simpleName shouldBe "QJavaTag"
+      externalTagField::class.simpleName shouldBe "MetaJavaTag"
       nestedTagField::class.simpleName shouldBe "JavaTag" // Q prefix removed for nested classes
     }
 
     should("correctly resolve field paths for both external and nested classes") {
       // External class field paths
-      QJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
-      QJavaTestDocument.javaTestDocument.tags.weight.path() shouldBe "tags.weight"
-      QJavaTestDocument.javaTestDocument.tags.description.path() shouldBe "tags.description"
+      MetaJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
+      MetaJavaTestDocument.javaTestDocument.tags.weight.path() shouldBe "tags.weight"
+      MetaJavaTestDocument.javaTestDocument.tags.description.path() shouldBe "tags.description"
 
       // Nested class field paths (different field names)
-      QJavaTestDocument.javaTestDocument.tags2.tagName.path() shouldBe "tags2.tagName"
-      QJavaTestDocument.javaTestDocument.tags2.size.path() shouldBe "tags2.size"
+      MetaJavaTestDocument.javaTestDocument.tags2.tagName.path() shouldBe "tags2.tagName"
+      MetaJavaTestDocument.javaTestDocument.tags2.size.path() shouldBe "tags2.size"
 
       // Field paths verified above
     }

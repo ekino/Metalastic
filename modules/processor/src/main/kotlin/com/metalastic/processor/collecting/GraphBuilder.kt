@@ -13,8 +13,47 @@ import org.springframework.data.elasticsearch.annotations.Document
 
 class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
 
-  fun build(): MetalasticGraph =
-    collectQClasses().toGraphWithoutFields().linkModelsAndPopulateFields()
+  fun build(): MetalasticGraph {
+    val qClasses = collectQClasses()
+
+    // Resolve class prefix early using the first document class
+    val classPrefix =
+      qClasses
+        .firstOrNull { it.isAnnotationPresent(Document::class) }
+        ?.let { resolveClassPrefix(it) } ?: CoreConstants.META_PREFIX
+
+    return qClasses.toGraphWithoutFields(classPrefix).linkModelsAndPopulateFields()
+  }
+
+  /**
+   * Resolves the class prefix to use for Q-class generation. This method performs early resolution
+   * of the classPrefix configuration by detecting the source set from the first document class and
+   * applying configuration overrides if available.
+   */
+  private fun resolveClassPrefix(firstDocumentClass: KSClassDeclaration): String {
+    val sourceSet =
+      firstDocumentClass.containingFile?.filePath?.let { extractSourceSetFromPath(it) } ?: "main"
+
+    // Check for source-set specific configuration first, then global, then default
+    return options.metamodelsConfiguration.sourceSetClassPrefixOverrides[sourceSet]
+      ?: options.metamodelsConfiguration.classPrefixOverride
+      ?: CoreConstants.META_PREFIX
+  }
+
+  /**
+   * Extract source set name from file path by finding the directory before 'java' or 'kotlin'.
+   * Example: /path/to/src/test/java/com/example/Class.java → "test"
+   */
+  private fun extractSourceSetFromPath(filePath: String): String? {
+    val pathSegments = filePath.split('/')
+
+    // Find the index of 'java' or 'kotlin' directory
+    val languageDirIndex = pathSegments.indexOfFirst { it == "java" || it == "kotlin" }
+    if (languageDirIndex <= 0) return null // No language dir found or it's the first segment
+
+    // The source set is the directory immediately before the language directory
+    return pathSegments[languageDirIndex - 1].takeIf { it.isNotEmpty() }
+  }
 
   /** First pass: Collect all classes that are to become QClasses. */
   private fun collectQClasses(): Collection<KSClassDeclaration> {
@@ -49,7 +88,7 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
       val classList = foundQClasses.values.map { it.fullyQualifiedName() }.sorted()
 
       """
-      Found ${foundQClasses.values.count()} ${CoreConstants.Q_PREFIX} classes:
+      Found ${foundQClasses.values.count()} ${CoreConstants.META_PREFIX} classes:
         ${classList.joinToString(separator = "\n\t")}
       """
         .trim()
@@ -58,7 +97,9 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
   }
 
   /** Second pass: Build QClass models with parent-child relationships, but without fields. */
-  private fun Collection<KSClassDeclaration>.toGraphWithoutFields(): MetalasticGraph {
+  private fun Collection<KSClassDeclaration>.toGraphWithoutFields(
+    classPrefix: String
+  ): MetalasticGraph {
     val graphWithoutFields = MetalasticGraph()
 
     val modelsByNestingOrder = filter { it.parentDeclaration == null }.toMutableList()
@@ -81,7 +122,7 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
                   graphWithoutFields.getModel(it)
                 },
               sourceClassDeclaration = qClass,
-              qClassName = "${CoreConstants.Q_PREFIX}${qClass.simpleName.asString()}",
+              qClassName = "$classPrefix${qClass.simpleName.asString()}",
               fields = listOf(),
             )
           }
@@ -92,7 +133,7 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
               if (isNested) {
                 qClass.simpleName.asString()
               } else {
-                "${CoreConstants.Q_PREFIX}${qClass.simpleName.asString()}"
+                "$classPrefix${qClass.simpleName.asString()}"
               }
 
             graphWithoutFields.ObjectClass(

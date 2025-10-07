@@ -36,7 +36,7 @@ A type-safe metamodel library for Elasticsearch in Kotlin that generates compile
 
 ## Overview
 
-Metalastic provides **compile-time code generation** to create type-safe, fluent field definitions for Elasticsearch documents. Inspired by QueryDSL's approach for SQL databases, this library generates Q-classes for Spring Data Elasticsearch `@Document` annotated classes, enabling type-safe field access and path construction.
+Metalastic provides **compile-time code generation** to create type-safe, fluent field definitions for Elasticsearch documents. Inspired by QueryDSL's approach for SQL databases, this library generates Meta-classes for Spring Data Elasticsearch `@Document` annotated classes, enabling type-safe field access and path construction.
 
 ### Why Metalastic?
 
@@ -377,14 +377,14 @@ val results = elasticsearchOperations.search(nativeQuery, Document::class.java)
 ```mermaid
 graph LR
     A[Spring Data ES<br>@Document Classes] --> B[Metalastic<br>Annotation Processor]
-    B --> C[Generated<br>Q-Classes]
+    B --> C[Generated<br>Meta-Classes]
     C --> D[Type-safe<br>Query Building]
 
     A1[@Document Person] --> B
     A2[@Field annotations] --> B
     A3[Nested objects] --> B
 
-    B --> C1[QPerson.kt]
+    B --> C1[MetaPerson.kt]
     B --> C2[Metamodels.kt]
     B --> C3[Object fields]
 ```
@@ -392,7 +392,7 @@ graph LR
 **Compilation Process:**
 1. **Scan** for `@Document` annotated classes
 2. **Parse** `@Field` annotations and nested structures
-3. **Generate** type-safe Q-classes with field definitions
+3. **Generate** type-safe Meta-classes with field definitions
 4. **Create** centralized `Metamodels` registry
 5. **Compile** everything together for immediate use
 
@@ -441,7 +441,7 @@ public class Activity {
 
 #### Document Class
 ```kotlin
-class QPerson(
+class MetaPerson(
     parent: ObjectField? = null,
     fieldName: String = "",
     nested: Boolean = false,
@@ -457,16 +457,16 @@ class QPerson(
     val age: IntegerField<Int> = integerField<Int>("age")
 
     @JvmField
-    val address: QAddress = QAddress(this, "address", false)
+    val address: MetaAddress = MetaAddress(this, "address", false)
 
     @JvmField
-    val activities: QActivity = QActivity(this, "activities", true) // nested = true
+    val activities: MetaActivity = MetaActivity(this, "activities", true) // nested = true
 }
 ```
 
 #### Object Field Classes
 ```kotlin
-class QAddress(
+class MetaAddress(
     parent: ObjectField?,
     path: String,
     nested: Boolean,
@@ -479,7 +479,7 @@ class QAddress(
     val country: KeywordField<String> = keywordField<String>("country")
 }
 
-class QActivity(
+class MetaActivity(
     parent: ObjectField?,
     path: String,
     nested: Boolean,
@@ -501,7 +501,7 @@ data object Metamodels {
      * Metamodel for @Document class [com.example.Person]
      */
     @JvmField
-    val person: QPerson = QPerson()
+    val person: MetaPerson = MetaPerson()
 
     /**
      * Returns all available metamodels for discovery and iteration.
@@ -588,7 +588,7 @@ public class ExampleDocument {
 
 Generates:
 ```kotlin
-class QExampleDocument(/* ... */) : Document<ExampleDocument>(/* ... */) {
+class MetaExampleDocument(/* ... */) : Document<ExampleDocument>(/* ... */) {
     // ✅ Uses "active" - follows camelCase convention
     @JvmField
     val active: BooleanField<Boolean> = boolean("active")
@@ -627,7 +627,7 @@ private String title;
 Generates:
 
 ```kotlin
-class QTitleMultiField(
+class MetaTitleMultiField(
     parent: ObjectField?,
     path: String,
 ) : MultiField<TextField<String>>(parent, TextField(parent, path)) {
@@ -673,7 +673,7 @@ order.customer.name.path() shouldBe "customer.name"
 
 ### Complex Type Support
 
-Metalastic intelligently handles edge cases where full Q-class generation isn't possible or necessary, using specialized terminal object classes.
+Metalastic intelligently handles edge cases where full Meta-class generation isn't possible or necessary, using specialized terminal object classes.
 
 #### Self-Referencing Documents
 
@@ -696,7 +696,7 @@ public class Category {
 Generates:
 
 ```kotlin
-class QCategory<T : Any?>(
+class MetaCategory<T : Any?>(
     parent: ObjectField<*>? = null,
     name: String = "",
     nested: Boolean = false,
@@ -746,7 +746,7 @@ public class Product {
 Generates:
 
 ```kotlin
-class QProduct<T : Any?>(
+class MetaProduct<T : Any?>(
     parent: ObjectField<*>? = null,
     name: String = "",
     nested: Boolean = false,
@@ -788,11 +788,11 @@ Metalastic generates comprehensive KDoc documentation for all metamodel classes,
 
 #### Visual Tree Representation
 
-Every generated Q-class includes a field hierarchy tree in its KDoc. Here's an example of what the generated documentation looks like:
+Every generated Meta-class includes a field hierarchy tree in its KDoc. Here's an example of what the generated documentation looks like:
 
 **Generated Class:**
 ```kotlin
-class QPerson<T : Any?>(...) : Document<T>(...) {
+class MetaPerson<T : Any?>(...) : Document<T>(...) {
     @JvmField val id: KeywordField
     @JvmField val firstName: TextField
     @JvmField val email: KeywordField MultiField
@@ -812,7 +812,7 @@ from the source class [com.example.Person].
 
 ## Field Hierarchy
 
-QPerson<T>
+MetaPerson<T>
 ├── id: KeywordField
 ├── firstName: TextField
 ├── lastName: KeywordField
@@ -949,7 +949,7 @@ By default, Metalastic **excludes private classes** from metamodel generation to
 // Private classes are excluded by default (recommended)
 @Document(indexName = "internal_audit")
 private class InternalAuditDocument { /* ... */ }
-// → No QInternalAuditDocument generated
+// → No MetaInternalAuditDocument generated
 
 // But references to private classes are handled safely
 @Document(indexName = "public_report")
@@ -1020,7 +1020,7 @@ Example report sections:
 ## Detailed Log
 [15:06:17.138] 🔍 DEBUG: Processing property 'name' with @Field(type = Text)
 [15:06:17.379] 🔍 DEBUG: Discovered 12 models to process
-[15:06:17.438] 🔍 DEBUG: Generated Metamodels with 12 Q-class entries
+[15:06:17.438] 🔍 DEBUG: Generated Metamodels with 12 Meta-class entries
 ```
 
 ## Supported Field Types
@@ -1039,15 +1039,15 @@ Metalastic supports all Spring Data Elasticsearch field types through **runtime 
 | `float` | `FloatField<Float>` | `Float` |
 | `date` | `DateField<Date>` | `Date`, `LocalDate`, `LocalDateTime` |
 | `boolean` | `BooleanField<Boolean>` | `Boolean` |
-| `object` | Generated Q-class or Terminal ObjectField | Custom objects |
-| `nested` | Generated Q-class (nested=true) or Terminal ObjectField | Collections |
+| `object` | Generated Meta-class or Terminal ObjectField | Custom objects |
+| `nested` | Generated Meta-class (nested=true) or Terminal ObjectField | Collections |
 | `geo_point` | `GeoPointField` | `GeoPoint` |
 | `ip` | `IpField<String>` | `String` |
 | *...and many more* | *Auto-detected* | *Type-safe* |
 
 **Object and Nested Field Generation**:
-- **Q-class generation**: Used for simple objects, custom classes, and @Document references
-- **Terminal ObjectField**: Used for complex generic types (e.g., `Map<String, List<String>>`) that don't warrant their own Q-classes
+- **Meta-class generation**: Used for simple objects, custom classes, and @Document references
+- **Terminal ObjectField**: Used for complex generic types (e.g., `Map<String, List<String>>`) that don't warrant their own Meta-classes
 
 ### Version Compatibility
 
@@ -1154,7 +1154,7 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 ### Generated Code Not Visible in IDE
 
-**Problem**: Q-classes are generated but not visible in IDE auto-completion.
+**Problem**: Meta-classes are generated but not visible in IDE auto-completion.
 
 **Solutions**:
 1. **Sync Gradle project**:
@@ -1218,12 +1218,12 @@ The processor uses **runtime field type detection**, automatically supporting:
 2. **Use qualified imports**:
    ```kotlin
    import com.example.search.metamodels.Metamodels
-   import com.example.search.metamodels.QPerson
+   import com.example.search.metamodels.MetaPerson
    ```
 
 ### Private Class Not Generating Metamodel
 
-**Problem**: Private `@Document` class doesn't generate Q-class.
+**Problem**: Private `@Document` class doesn't generate Meta-class.
 
 **Solution**: This is expected behavior. Private classes are excluded by default. To include them:
 
@@ -1237,7 +1237,7 @@ metalastic {
 
 ### Field Not Generating
 
-**Problem**: Specific field missing from generated Q-class.
+**Problem**: Specific field missing from generated Meta-class.
 
 **Check**:
 1. **Field has `@Field` annotation**:

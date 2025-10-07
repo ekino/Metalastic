@@ -41,8 +41,8 @@ class CollectingPhaseTestSpec :
 
       val documentModel = graph.documentModels().first()
       documentModel.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
-        it.qClassName shouldBe "QSimpleDocument"
-        it.fullyQualifiedName shouldBe "com.example.test.QSimpleDocument"
+        it.qClassName shouldBe "MetaSimpleDocument"
+        it.fullyQualifiedName shouldBe "com.example.test.MetaSimpleDocument"
       }
 
       documentModel.fields shouldHaveSize
@@ -69,7 +69,7 @@ class CollectingPhaseTestSpec :
 
       val documentModel = graph.documentModels().first()
 
-      documentModel.qClassName shouldBe "QComplexDocument"
+      documentModel.qClassName shouldBe "MetaComplexDocument"
       documentModel.fields shouldHaveSize 3 // id, person, orders
 
       // Verify deep nested class structure is discovered
@@ -116,7 +116,7 @@ class CollectingPhaseTestSpec :
       graph.documentModels() shouldHaveSize 1
       val documentModel = graph.documentModels().first()
 
-      documentModel.qClassName shouldBe "QMultiFieldDocument"
+      documentModel.qClassName shouldBe "MetaMultiFieldDocument"
       documentModel.fields shouldHaveSize 3 // id, multiName, multiCode
 
       // Find MultiField
@@ -135,22 +135,22 @@ class CollectingPhaseTestSpec :
 
       val outerDocumentModel =
         graph.documentModels().find {
-          it.fullyQualifiedName == "com.example.dataset.QOuterDocument"
+          it.fullyQualifiedName == "com.example.dataset.MetaOuterDocument"
         }
       val innerDocumentModel =
         graph.documentModels().find {
-          it.fullyQualifiedName == "com.example.dataset.QOuterDocument.QInnerDocument"
+          it.fullyQualifiedName == "com.example.dataset.MetaOuterDocument.MetaInnerDocument"
         }
 
       outerDocumentModel.shouldNotBeNull {
         this.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
-          it.qClassName shouldBe "QOuterDocument"
+          it.qClassName shouldBe "MetaOuterDocument"
           it.fields shouldHaveSize 1 //
         }
       }
       innerDocumentModel.shouldNotBeNull {
         this.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
-          it.qClassName shouldBe "QInnerDocument" // Nested classes use simple names
+          it.qClassName shouldBe "MetaInnerDocument" // Nested classes use simple names
           it.fields shouldHaveSize 2
           // Test that the inner document has a parent class (is nested)
           it.sourceParentClass.shouldNotBeNull().qualifiedName?.asString() shouldBe
@@ -214,7 +214,7 @@ class CollectingPhaseTestSpec :
       graph.documentModels() shouldHaveSize 1
 
       val javaTestDocument = graph.documentModels().first()
-      javaTestDocument.qClassName shouldBe "QJavaTestDocument"
+      javaTestDocument.qClassName shouldBe "MetaJavaTestDocument"
       // JavaTestDocument should have only 1 inner class: JavaTag
       val trueInnerClasses =
         javaTestDocument.nestedClasses().filter {
@@ -235,7 +235,7 @@ class CollectingPhaseTestSpec :
       someInnerClassModel.shouldNotBeNull()
 
       // JavaAddress should also be in objectFields
-      val javaAddressModel = graph.objectModels().find { it.qClassName == "QJavaAddress" }
+      val javaAddressModel = graph.objectModels().find { it.qClassName == "MetaJavaAddress" }
       javaAddressModel.shouldNotBeNull()
     }
 
@@ -267,10 +267,10 @@ class CollectingPhaseTestSpec :
 
       // Should only have the public document, private document should be excluded
       graph.documentModels() shouldHaveSize 1
-      graph.documentModels().first().qClassName shouldBe "QPublicDocument"
+      graph.documentModels().first().qClassName shouldBe "MetaPublicDocument"
 
       // Verify private document is not present
-      graph.models().find { it.qClassName == "QPrivateDocument" } shouldBe null
+      graph.models().find { it.qClassName == "MetaPrivateDocument" } shouldBe null
     }
 
     should("include private classes when option is enabled") {
@@ -303,10 +303,10 @@ class CollectingPhaseTestSpec :
       // Should have both documents when option is enabled
       graph.documentModels() shouldHaveSize 2
 
-      val publicDoc = graph.documentModels().find { it.qClassName == "QPublicDocument" }
+      val publicDoc = graph.documentModels().find { it.qClassName == "MetaPublicDocument" }
       publicDoc.shouldNotBeNull()
 
-      val privateDoc = graph.documentModels().find { it.qClassName == "QPrivateDocument" }
+      val privateDoc = graph.documentModels().find { it.qClassName == "MetaPrivateDocument" }
       privateDoc.shouldNotBeNull()
     }
   })

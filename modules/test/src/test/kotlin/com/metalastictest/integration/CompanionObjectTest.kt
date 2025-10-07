@@ -1,6 +1,6 @@
 package com.metalastictest.integration
 
-import com.metalastic.integration.QIndexPerson
+import com.metalastic.integration.MetaIndexPerson
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -10,8 +10,8 @@ class CompanionObjectTest :
   ShouldSpec({
     should("provide static access via companion object") {
       // Test that companion object provides static access
-      val staticInstance = QIndexPerson.indexPerson
-      val manualInstance = QIndexPerson<Any>(fieldType = typeOf<Any>())
+      val staticInstance = MetaIndexPerson.indexPerson
+      val manualInstance = MetaIndexPerson<Any>(fieldType = typeOf<Any>())
 
       // Both should be valid instances
       staticInstance shouldNotBe null
@@ -25,7 +25,7 @@ class CompanionObjectTest :
 
     should("work with nested object access") {
       // Test nested object access via static instance
-      val staticPerson = QIndexPerson.indexPerson
+      val staticPerson = MetaIndexPerson.indexPerson
 
       staticPerson.address.city.path() shouldBe "address.city"
       staticPerson.address.street.path() shouldBe "address.street"
@@ -34,7 +34,7 @@ class CompanionObjectTest :
 
     should("work with different document types") {
       // Test with another document type
-      val staticTestDoc = QTestDocument.testDocument
+      val staticTestDoc = MetaTestDocument.testDocument
 
       staticTestDoc.name.path() shouldBe "name"
       staticTestDoc.address.city.path() shouldBe "address.city"
@@ -44,10 +44,10 @@ class CompanionObjectTest :
     should("maintain proper Java compatibility") {
       // Since we use @JvmField, this should work from Java as well
       // The companion object property should be accessible as a static field
-      val companionField = QIndexPerson::class.java.getField("indexPerson")
+      val companionField = MetaIndexPerson::class.java.getField("indexPerson")
       companionField shouldNotBe null
 
-      val staticValue = companionField.get(null) as QIndexPerson<*>
+      val staticValue = companionField.get(null) as MetaIndexPerson<*>
       staticValue shouldNotBe null
       staticValue.firstName.path() shouldBe "firstName"
     }

@@ -13,8 +13,10 @@ import com.metalastic.processor.report.reporter
 class MetamodelsConfiguration(
   val packageOverride: String? = null,
   val classNameOverride: String? = null,
+  val classPrefixOverride: String? = null,
   val sourceSetPackageOverrides: Map<String, String> = emptyMap(),
   val sourceSetClassNameOverrides: Map<String, String> = emptyMap(),
+  val sourceSetClassPrefixOverrides: Map<String, String> = emptyMap(),
 ) {
 
   /**
@@ -29,13 +31,15 @@ class MetamodelsConfiguration(
     // Check for configuration overrides
     val configuredPackage = getConfiguredPackage(sourceSet)
     val configuredClassName = getConfiguredClassName(sourceSet)
+    val configuredClassPrefix = getConfiguredClassPrefix(sourceSet)
 
     // Use common ancestor package as default
     val finalPackage = configuredPackage ?: generateDefaultPackage(graph)
     val finalClassName = configuredClassName ?: CoreConstants.Metamodels.SIMPLE_NAME
+    val finalClassPrefix = configuredClassPrefix ?: CoreConstants.META_PREFIX
 
     // Log configuration resolution summary
-    if (configuredPackage != null || configuredClassName != null) {
+    if (configuredPackage != null || configuredClassName != null || configuredClassPrefix != null) {
       reporter.debug { "Applied configuration overrides for source set '$sourceSet'" }
     } else {
       reporter.debug {
@@ -43,9 +47,15 @@ class MetamodelsConfiguration(
       }
     }
 
-    reporter.debug { "Final Metamodels configuration: $finalPackage.$finalClassName" }
+    reporter.debug {
+      "Final Metamodels configuration: $finalPackage.$finalClassName (prefix: $finalClassPrefix)"
+    }
 
-    return MetamodelsInfo(packageName = finalPackage, className = finalClassName)
+    return MetamodelsInfo(
+      packageName = finalPackage,
+      className = finalClassName,
+      classPrefix = finalClassPrefix,
+    )
   }
 
   /** Detect source set from document class file paths. */
@@ -170,6 +180,24 @@ class MetamodelsConfiguration(
   }
 
   /**
+   * Get configured class prefix for source set. Supports both source set specific and global
+   * fallback options.
+   */
+  private fun getConfiguredClassPrefix(sourceSet: String): String? {
+    // Try source set specific configuration first
+    val sourceSetSpecific = sourceSetClassPrefixOverrides[sourceSet]
+    if (sourceSetSpecific != null) {
+      return validateAndLogClassPrefix(
+        sourceSetSpecific,
+        "sourceSet-specific classPrefix for '$sourceSet'",
+      )
+    }
+
+    // Fall back to global configuration
+    return classPrefixOverride?.let { validateAndLogClassPrefix(it, "global classPrefix override") }
+  }
+
+  /**
    * Validates a package name and logs the configuration resolution. Returns the validated package
    * name or null if invalid.
    */
@@ -234,6 +262,43 @@ class MetamodelsConfiguration(
   }
 
   /**
+   * Validates a class prefix and logs the configuration resolution. Returns the validated prefix or
+   * null if invalid.
+   */
+  private fun validateAndLogClassPrefix(classPrefix: String, optionKey: String): String? {
+    val trimmed = classPrefix.trim()
+    return when {
+      trimmed.isEmpty() -> {
+        reporter.debug { "Invalid empty class prefix for option '$optionKey', ignoring" }
+        null
+      }
+      !isValidClassPrefix(trimmed) -> {
+        reporter.debug { "Invalid class prefix '$trimmed' for option '$optionKey', ignoring" }
+        null
+      }
+      !trimmed[0].isUpperCase() -> {
+        reporter.debug {
+          "Class prefix '$trimmed' for option '$optionKey' should start with uppercase letter (convention)"
+        }
+        reporter.debug { "Using class prefix '$trimmed' from option '$optionKey'" }
+        trimmed
+      }
+      else -> {
+        reporter.debug { "Using class prefix '$trimmed' from option '$optionKey'" }
+        trimmed
+      }
+    }
+  }
+
+  /**
+   * Validates if a string is a valid class prefix. Must be a valid Java identifier (can be used as
+   * part of a class name).
+   */
+  private fun isValidClassPrefix(classPrefix: String): Boolean {
+    return classPrefix.isNotEmpty() && isValidIdentifier(classPrefix)
+  }
+
+  /**
    * Validates if a string is a valid Java/Kotlin identifier. Must start with letter or underscore,
    * followed by letters, digits, or underscores.
    */
@@ -245,4 +310,4 @@ class MetamodelsConfiguration(
 }
 
 /** Information about where to generate the Metamodels class. */
-data class MetamodelsInfo(val packageName: String, val className: String)
+data class MetamodelsInfo(val packageName: String, val className: String, val classPrefix: String)
