@@ -23,9 +23,13 @@ The headline feature of v2.0.3 is the **elasticsearch-dsl module** - a complete 
 
 ```kotlin
 dependencies {
-    implementation("com.metalastic:elasticsearch-dsl:2.0.3")
+    implementation("com.metalastic:elasticsearch-dsl:5.5.1-1.0")
 }
 ```
+
+**Version Format**: `{spring-data-es-version}-{dsl-version}`
+- **5.5.1** = Compatible with Spring Data Elasticsearch 5.5.1
+- **1.0** = elasticsearch-dsl module version 1.0 (first stable release)
 
 #### Query Types Supported
 
@@ -236,7 +240,7 @@ If you want to use the new query building DSL:
 1. **Add the dependency**:
 ```kotlin
 dependencies {
-    implementation("com.metalastic:elasticsearch-dsl:2.0.3")
+    implementation("com.metalastic:elasticsearch-dsl:5.5.1-1.0")
 }
 ```
 
@@ -277,23 +281,45 @@ metalastic {
 
 ## 📦 Artifacts
 
-All artifacts are published to GitLab Maven Registry:
+All artifacts are published to GitLab Maven Registry.
+
+### Core Modules (v2.0.3)
 
 - `com.metalastic:core:2.0.3`
 - `com.metalastic:processor:2.0.3`
 - `com.metalastic:gradle-plugin:2.0.3`
-- `com.metalastic:elasticsearch-dsl:2.0.3` ⭐ **NEW**
+
+### elasticsearch-dsl Module (v5.5.1-1.0) ⭐ **NEW**
+
+- `com.metalastic:elasticsearch-dsl:5.5.1-1.0`
+  - Spring Data Elasticsearch: 5.5.1
+  - DSL Version: 1.0 (first stable release)
+  - Git Tag: `elasticsearch-dsl-v5.5.1-1.0`
 
 ## 🎯 Version Matrix
 
+### Dual Versioning Strategy
+
+Metalastic uses **two versioning strategies**:
+
+1. **Core modules** (core, processor, gradle-plugin): Semantic versioning aligned with project releases (2.0.3)
+2. **elasticsearch-dsl module**: `{spring-data-es-version}-{dsl-version}` format (5.5.1-1.0)
+
+This ensures the elasticsearch-dsl version clearly indicates Spring Data Elasticsearch compatibility.
+
 ### Core Modules
 
-| Module | Version | Description |
-|--------|---------|-------------|
-| core | 2.0.3 | DSL runtime library |
-| processor | 2.0.3 | KSP annotation processor |
-| gradle-plugin | 2.0.3 | Gradle plugin |
-| **elasticsearch-dsl** | **2.0.3** | **Query building DSL** ⭐ |
+| Module | Version | Tag | Description |
+|--------|---------|-----|-------------|
+| core | 2.0.3 | v2.0.3 | DSL runtime library |
+| processor | 2.0.3 | v2.0.3 | KSP annotation processor |
+| gradle-plugin | 2.0.3 | v2.0.3 | Gradle plugin |
+
+### elasticsearch-dsl Module
+
+| Module | Version | Tag | Spring Data ES | DSL Version |
+|--------|---------|-----|----------------|-------------|
+| **elasticsearch-dsl** | **5.5.1-1.0** | **elasticsearch-dsl-v5.5.1-1.0** | 5.5.1 | 1.0 ⭐ |
 
 ### Compatibility
 
