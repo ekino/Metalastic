@@ -174,7 +174,8 @@ printPipeline {
         
         artifacts {
             paths(
-                "*/build/libs/"
+                "modules/*/build/libs/*.jar",
+                "modules/*/build/libs/*.pom"
             )
             expireIn = Duration(hours = 1)
         }
@@ -232,7 +233,8 @@ printPipeline {
         
         artifacts {
             paths(
-                "*/build/libs/"
+                "modules/*/build/libs/*.jar",
+                "modules/*/build/libs/*.pom"
             )
             expireIn = Duration(days = 7)
         }
