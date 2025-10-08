@@ -29,8 +29,8 @@ internal fun <T> T?.toFieldValue(): FieldValue? =
     is Double -> FieldValue.of(this)
     is Boolean -> FieldValue.of(this)
     is Enum<*> -> FieldValue.of(this.toString())
-    is Date -> FieldValue.of(this.time)
-    is Temporal -> FieldValue.of(this.toEpochMilli())
+    is Date -> FieldValue.of(formatTemporal(emptyList(), toInstant()) { toString() })
+    is Temporal -> FieldValue.of(formatTemporal(emptyList(), this) { toString() })
     is FieldValue -> this
     else -> FieldValue.of(this.toString())
   }
@@ -45,22 +45,6 @@ internal fun <T : Temporal> T.toEpochMilli() =
     else -> error("Unsupported temporal type: ${this::class.simpleName}")
   }
 
-/**
- * Elasticsearch dates are internally converted to UTC (if the time-zone is specified) and stored as
- * a long number representing milliseconds-since-the-epoch.
- *
- * We could also use date formatters, but it might cause issues if it does not match the one (if
- * any) defined in the [org.springframework.data.elasticsearch.annotations.Field] field for the
- * [org.springframework.data.elasticsearch.annotations.Document]
- *
- * [reference](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/date)
- */
-internal fun <T : Temporal> T?.toJsonDataDate(): JsonData? =
-  when (this) {
-    null -> null
-    else -> JsonData.of(toEpochMilli())
-  }
-
 private const val MILLIS_TO_SECONDS = 1000L
 
 /**
@@ -70,19 +54,18 @@ private const val MILLIS_TO_SECONDS = 1000L
  * - Tries each configured format in order until one successfully formats the value
  * - If no formats are configured, uses Elasticsearch's default: `date_optional_time||epoch_millis`
  * - Handles epoch formats (epoch_millis, epoch_second) as special cases
- * - Falls back to `fallback.toString()` if all format attempts fail
+ * - Falls back to `fallback()` if all format attempts fail
  */
 private fun formatTemporal(
   formats: List<DateFormat>,
   value: Temporal,
-  epochMillis: Long,
-  fallback: Any,
+  fallback: () -> String,
 ): String {
   // When no formats are configured, use Elasticsearch's default format chain:
   // strict_date_optional_time||epoch_millis (mapped to date_optional_time in Spring Data)
   val formatsToTry =
     formats.ifEmpty { listOf(DateFormat.date_optional_time, DateFormat.epoch_millis) }
-
+  val epochMillis = value.toEpochMilli()
   return formatsToTry
     .asSequence()
     .mapNotNull { format ->
@@ -95,8 +78,25 @@ private fun formatTemporal(
           runCatching { DateTimeFormatter.ofPattern(format.pattern).format(value) }.getOrNull()
       }
     }
-    .firstOrNull() ?: fallback.toString()
+    .firstOrNull() ?: fallback()
 }
+
+/**
+ * Elasticsearch dates are internally converted to UTC (if the time-zone is specified) and stored as
+ * a long number representing milliseconds-since-the-epoch.
+ *
+ * We could also use date formatters, but it might cause issues if it does not match the one (if
+ * any) defined in the [org.springframework.data.elasticsearch.annotations.Field] field for the
+ * [org.springframework.data.elasticsearch.annotations.Document]
+ *
+ * [reference](https://www.elastic.co/docs/reference/elasticsearch/mapping-reference/date)
+ */
+internal fun <T> toJsonData(value: Comparable<T>): Pair<JsonData, DateFormat?>? =
+  when (value) {
+    is Temporal -> JsonData.of(value.toEpochMilli()) to DateFormat.epoch_millis
+    is Date -> JsonData.of(value.time) to DateFormat.epoch_millis
+    else -> JsonData.of(value) to null
+  }
 
 /**
  * Converts a temporal value to a string representation using the configured date formats.
@@ -114,7 +114,7 @@ private fun formatTemporal(
  */
 internal fun <T : Temporal> DateField<*>.formatted(value: T?): String? {
   if (value == null) return null
-  return formatTemporal(formats, value, value.toEpochMilli(), value)
+  return formatTemporal(formats, value) { value.toString() }
 }
 
 /**
@@ -128,7 +128,7 @@ internal fun <T : Temporal> DateField<*>.formatted(value: T?): String? {
  */
 internal fun DateField<*>.formatted(value: Date?): String? {
   if (value == null) return null
-  return formatTemporal(formats, value.toInstant(), value.time, value)
+  return formatTemporal(formats, value.toInstant()) { value.toString() }
 }
 
 /**
@@ -152,7 +152,7 @@ fun <T> Metamodel<*>.toFieldValue(value: T?): FieldValue? =
  * @param value The value to convert, or null
  * @return The converted FieldValue, or null if the input value is null
  */
-fun <T> DateField<*>.toFieldValue(value: T?): FieldValue? {
+private fun <T> DateField<*>.toFieldValue(value: T?): FieldValue? {
   return when (value) {
     null -> null
     is Temporal -> formatted(value)?.let(FieldValue::of)
