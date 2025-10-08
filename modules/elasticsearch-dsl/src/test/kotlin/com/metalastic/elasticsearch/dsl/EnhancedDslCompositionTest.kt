@@ -7,7 +7,6 @@ import com.metalastic.core.KeywordField
 import com.metalastic.core.ObjectField
 import com.metalastic.core.TextField
 import io.kotest.core.spec.style.ShouldSpec
-import io.kotest.matchers.shouldNotBe
 import kotlin.reflect.typeOf
 
 object EnhancedTestMetamodel : ObjectField<Any>(null, "", false, typeOf<Any>()) {
@@ -30,19 +29,11 @@ class EnhancedDslCompositionTest :
     should("demonstrate QueryVariant return types for composition") {
       val builder = BoolQuery.Builder()
 
-      // Build queries and store them as variables
-      val nameQuery = QueryVariantDsl {}.run { metamodel.name.match("test") }
-      val statusQuery = QueryVariantDsl {}.run { metamodel.status.term("active") }
-
-      nameQuery shouldNotBe null
-      statusQuery shouldNotBe null
-
-      // Use the stored queries in a bool query
       builder.boolQueryDsl {
         must +
           {
-            nameQuery?.let { +it }
-            statusQuery?.let { +it }
+            metamodel.name.match("test")
+            metamodel.status.term("active")
           }
       }
 
@@ -280,20 +271,14 @@ class EnhancedDslCompositionTest :
     }
 
     should("demonstrate query reuse and composition") {
-      // Create reusable query components
-      val activeStatusQuery = QueryVariantDsl {}.run { metamodel.status.term("active") }
-      val nameTestQuery = QueryVariantDsl {}.run { metamodel.name.match("test") }
-      val highPriorityQuery = QueryVariantDsl {}.run { metamodel.priority range Range.atLeast(5) }
-
-      // Use them in different combinations
       val query1 =
         BoolQuery.Builder()
           .apply {
             boolQueryDsl {
               must +
                 {
-                  activeStatusQuery?.let { +it }
-                  nameTestQuery?.let { +it }
+                  metamodel.status.term("active")
+                  metamodel.name.match("test")
                 }
             }
           }
@@ -305,8 +290,8 @@ class EnhancedDslCompositionTest :
             boolQueryDsl {
               must +
                 {
-                  activeStatusQuery?.let { +it }
-                  highPriorityQuery?.let { +it }
+                  metamodel.status.term("active")
+                  metamodel.priority range Range.atLeast(5)
                 }
             }
           }
