@@ -5,15 +5,15 @@ import org.gradle.api.provider.Property
 /** Configuration for Metalastic debug reporting. */
 abstract class ReportingConfiguration {
 
-  /** Enable debug reporting (default: false) */
+  /** Enable debug reporting (default: [PluginConstants.Reporting.DEFAULT_ENABLED]) */
   abstract val enabled: Property<Boolean>
 
-  /** Output path for debug reports (default: "build/reports/metalastic/processor-report.md") */
+  /** Output path for debug reports (default: [PluginConstants.Reporting.DEFAULT_OUTPUT_PATH]) */
   abstract val outputPath: Property<String>
 
   init {
     // Set up defaults
-    enabled.convention(false)
-    outputPath.convention("build/reports/metalastic/processor-report.md")
+    enabled.convention(PluginConstants.Reporting.DEFAULT_ENABLED)
+    outputPath.convention(PluginConstants.Reporting.DEFAULT_OUTPUT_PATH)
   }
 }

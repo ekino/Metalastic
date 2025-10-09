@@ -43,16 +43,18 @@ class MetalasticPlugin : Plugin<Project> {
     val version = getMetalasticVersion()
 
     // Only add dependencies if not in a Metalastic project itself
-    if (project.group.toString() != "com.metalastic") {
+    if (project.group.toString() != PluginConstants.PLUGIN_GROUP) {
       project.dependencies {
         // Add core implementation dependency
-        add("implementation", "com.metalastic:core:$version")
-        project.logger.info("Metalastic: Added core dependency: com.metalastic:core:$version")
+        add("implementation", "${PluginConstants.Dependencies.CORE_ARTIFACT}:$version")
+        project.logger.info(
+          "Metalastic: Added core dependency: ${PluginConstants.Dependencies.CORE_ARTIFACT}:$version"
+        )
 
         // Add processor KSP dependency (now safe without version conflicts)
-        add("ksp", "com.metalastic:processor:$version")
+        add("ksp", "${PluginConstants.Dependencies.PROCESSOR_ARTIFACT}:$version")
         project.logger.info(
-          "Metalastic: Added processor dependency: ksp(\"com.metalastic:processor:$version\")"
+          "Metalastic: Added processor dependency: ksp(\"${PluginConstants.Dependencies.PROCESSOR_ARTIFACT}:$version\")"
         )
       }
     } else {
@@ -112,24 +114,21 @@ class MetalasticPlugin : Plugin<Project> {
       }
 
     if (packageName != null) {
-      argMethod.invoke(kspExtension, "metamodels.$sourceSetName.package", packageName)
-      project.logger.info(
-        "Metalastic: Set KSP arg metamodels.$sourceSetName.package = $packageName"
-      )
+      val argKey = PluginConstants.Metamodels.kspArgPackage(sourceSetName)
+      argMethod.invoke(kspExtension, argKey, packageName)
+      project.logger.info("Metalastic: Set KSP arg $argKey = $packageName")
     }
 
     if (className != null) {
-      argMethod.invoke(kspExtension, "metamodels.$sourceSetName.className", className)
-      project.logger.info(
-        "Metalastic: Set KSP arg metamodels.$sourceSetName.className = $className"
-      )
+      val argKey = PluginConstants.Metamodels.kspArgClassName(sourceSetName)
+      argMethod.invoke(kspExtension, argKey, className)
+      project.logger.info("Metalastic: Set KSP arg $argKey = $className")
     }
 
     if (classPrefix != null) {
-      argMethod.invoke(kspExtension, "metamodels.$sourceSetName.classPrefix", classPrefix)
-      project.logger.info(
-        "Metalastic: Set KSP arg metamodels.$sourceSetName.classPrefix = $classPrefix"
-      )
+      val argKey = PluginConstants.Metamodels.kspArgClassPrefix(sourceSetName)
+      argMethod.invoke(kspExtension, argKey, classPrefix)
+      project.logger.info("Metalastic: Set KSP arg $argKey = $classPrefix")
     }
   }
 
@@ -165,28 +164,26 @@ class MetalasticPlugin : Plugin<Project> {
         } else globalDefaults.classPrefix
 
       if (packageName != null) {
-        argMethod.invoke(kspExtension, "metamodels.$sourceSetName.package", packageName)
-        project.logger.info(
-          "Metalastic: Set KSP arg metamodels.$sourceSetName.package = $packageName"
-        )
+        val argKey = PluginConstants.Metamodels.kspArgPackage(sourceSetName)
+        argMethod.invoke(kspExtension, argKey, packageName)
+        project.logger.info("Metalastic: Set KSP arg $argKey = $packageName")
       }
 
       if (className != null) {
-        argMethod.invoke(kspExtension, "metamodels.$sourceSetName.className", className)
-        project.logger.info(
-          "Metalastic: Set KSP arg metamodels.$sourceSetName.className = $className"
-        )
+        val argKey = PluginConstants.Metamodels.kspArgClassName(sourceSetName)
+        argMethod.invoke(kspExtension, argKey, className)
+        project.logger.info("Metalastic: Set KSP arg $argKey = $className")
       }
 
       if (classPrefix != null) {
-        argMethod.invoke(kspExtension, "metamodels.$sourceSetName.classPrefix", classPrefix)
-        project.logger.info(
-          "Metalastic: Set KSP arg metamodels.$sourceSetName.classPrefix = $classPrefix"
-        )
+        val argKey = PluginConstants.Metamodels.kspArgClassPrefix(sourceSetName)
+        argMethod.invoke(kspExtension, argKey, classPrefix)
+        project.logger.info("Metalastic: Set KSP arg $argKey = $classPrefix")
       }
     }
   }
 
+  @Suppress("LongMethod")
   private fun configureMetamodels(
     argMethod: java.lang.reflect.Method,
     kspExtension: Any,
@@ -195,13 +192,25 @@ class MetalasticPlugin : Plugin<Project> {
   ) {
     // Global defaults
     if (metamodels.packageName.isPresent) {
-      argMethod.invoke(kspExtension, "metamodels.package", metamodels.packageName.get())
+      argMethod.invoke(
+        kspExtension,
+        PluginConstants.Metamodels.KSP_ARG_PACKAGE,
+        metamodels.packageName.get(),
+      )
     }
     if (metamodels.className.isPresent) {
-      argMethod.invoke(kspExtension, "metamodels.className", metamodels.className.get())
+      argMethod.invoke(
+        kspExtension,
+        PluginConstants.Metamodels.KSP_ARG_CLASS_NAME,
+        metamodels.className.get(),
+      )
     }
     if (metamodels.classPrefix.isPresent) {
-      argMethod.invoke(kspExtension, "metamodels.classPrefix", metamodels.classPrefix.get())
+      argMethod.invoke(
+        kspExtension,
+        PluginConstants.Metamodels.KSP_ARG_CLASS_PREFIX,
+        metamodels.classPrefix.get(),
+      )
     }
 
     // Source set specific configurations - use defaults if not configured
@@ -209,36 +218,68 @@ class MetalasticPlugin : Plugin<Project> {
       argMethod,
       kspExtension,
       project,
-      "main",
+      PluginConstants.SourceSets.MAIN,
       metamodels.main,
       defaultPackage =
         if (metamodels.packageName.isPresent) metamodels.packageName.get()
         else "${project.group}.metamodels",
       defaultClassName =
-        if (metamodels.className.isPresent) metamodels.className.get() else "Metamodels",
+        if (metamodels.className.isPresent) metamodels.className.get()
+        else PluginConstants.Metamodels.DEFAULT_CLASS_NAME,
       defaultClassPrefix =
-        if (metamodels.classPrefix.isPresent) metamodels.classPrefix.get() else "Meta",
+        if (metamodels.classPrefix.isPresent) metamodels.classPrefix.get()
+        else PluginConstants.Metamodels.DEFAULT_CLASS_PREFIX,
     )
 
-    configureSourceSet(argMethod, kspExtension, project, "test", metamodels.test)
-    configureSourceSet(argMethod, kspExtension, project, "integration", metamodels.integration)
     configureSourceSet(
       argMethod,
       kspExtension,
       project,
-      "integrationTest",
+      PluginConstants.SourceSets.TEST,
+      metamodels.test,
+    )
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      PluginConstants.SourceSets.INTEGRATION,
+      metamodels.integration,
+    )
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      PluginConstants.SourceSets.INTEGRATION_TEST,
       metamodels.integrationTest,
     )
-    configureSourceSet(argMethod, kspExtension, project, "functional", metamodels.functional)
     configureSourceSet(
       argMethod,
       kspExtension,
       project,
-      "functionalTest",
+      PluginConstants.SourceSets.FUNCTIONAL,
+      metamodels.functional,
+    )
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      PluginConstants.SourceSets.FUNCTIONAL_TEST,
       metamodels.functionalTest,
     )
-    configureSourceSet(argMethod, kspExtension, project, "e2e", metamodels.e2e)
-    configureSourceSet(argMethod, kspExtension, project, "e2eTest", metamodels.e2eTest)
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      PluginConstants.SourceSets.E2E,
+      metamodels.e2e,
+    )
+    configureSourceSet(
+      argMethod,
+      kspExtension,
+      project,
+      PluginConstants.SourceSets.E2E_TEST,
+      metamodels.e2eTest,
+    )
 
     // Configure custom source sets with global defaults
     configureCustomSourceSets(
@@ -277,27 +318,31 @@ class MetalasticPlugin : Plugin<Project> {
         if (features.generateJavaCompatibility.isPresent) {
           argMethod.invoke(
             kspExtension,
-            "metalastic.generateJavaCompatibility",
+            PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY,
             features.generateJavaCompatibility.get().toString(),
           )
           project.logger.info(
-            "Metalastic: Set KSP arg metalastic.generateJavaCompatibility = ${features.generateJavaCompatibility.get()}"
+            "Metalastic: Set KSP arg ${PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY} = ${features.generateJavaCompatibility.get()}"
           )
         }
         if (features.generatePrivateClassMetamodels.isPresent) {
           argMethod.invoke(
             kspExtension,
-            "metalastic.generatePrivateClassMetamodels",
+            PluginConstants.Features.KSP_ARG_PRIVATE_CLASS_METAMODELS,
             features.generatePrivateClassMetamodels.get().toString(),
           )
         }
 
         // Reporting configuration
         val reporting = extension.reporting
-        if (reporting.enabled.get() && reporting.outputPath.isPresent) {
-          argMethod.invoke(kspExtension, "metalastic.reportingPath", reporting.outputPath.get())
+        if (reporting.enabled.get()) {
+          argMethod.invoke(
+            kspExtension,
+            PluginConstants.Reporting.KSP_ARG_REPORTING_PATH,
+            reporting.outputPath.get(),
+          )
           project.logger.info(
-            "Metalastic: Set KSP arg metalastic.reportingPath = ${reporting.outputPath.get()}"
+            "Metalastic: Set KSP arg ${PluginConstants.Reporting.KSP_ARG_REPORTING_PATH} = ${reporting.outputPath.get()}"
           )
         }
 
