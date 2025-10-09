@@ -1052,14 +1052,36 @@ ksp {
 }
 ```
 
-### Debug Reporting
+### Processor Reporting
 
-Enable detailed processor reporting to understand code generation:
+Metalastic provides comprehensive reporting to help you understand the code generation process, troubleshoot issues, and optimize build performance.
 
-**Using Gradle Plugin DSL:**
+#### When to Use Reporting
+
+- 🐛 **Debugging generation issues** - Understand why specific fields or classes aren't generating
+- ⚡ **Performance optimization** - Identify slow processing phases
+- 📊 **Build analysis** - Track what's being generated and when
+- 🔍 **Documentation** - Keep a record of metamodel generation for your project
+- 🚀 **CI/CD insights** - Monitor processor performance in pipelines
+
+#### Enabling Reporting
+
+**Using Gradle Plugin DSL (Recommended):**
 ```kotlin
 metalastic {
-    reportingPath = "build/reports/metalastic/processor-report.md"
+    reporting {
+        enabled = true  // Uses default path: build/reports/metalastic/processor-report.md
+    }
+}
+```
+
+**With Custom Path:**
+```kotlin
+metalastic {
+    reporting {
+        enabled = true
+        outputPath = "docs/metalastic/generation-report.md"
+    }
 }
 ```
 
@@ -1070,34 +1092,148 @@ ksp {
 }
 ```
 
-This generates a comprehensive markdown report with:
-- **Performance metrics** for each processing phase
-- **Detailed logs** of document and field processing
-- **Generation statistics** (number of classes, files written)
-- **Error diagnostics** for troubleshooting
-- **Table of contents** for easy navigation between compilation runs
+**Note**: With the Gradle plugin, you only need to set `enabled = true` - the default output path is automatically configured to `build/reports/metalastic/processor-report.md`.
 
-Example report sections:
+#### Report Contents
+
+The generated markdown report includes:
+
+1. **📋 Table of Contents** - Quick navigation across multiple compilation runs
+2. **⏱️ Performance Metrics** - Detailed timing for each processing phase:
+   - `COLLECTING` - Scanning and discovering @Document classes
+   - `BUILDING` - Creating metamodel representations
+   - `WRITING` - Generating Kotlin source files
+   - `COMPLETE` - Final validation and cleanup
+3. **📊 Generation Statistics**:
+   - Number of @Document classes discovered
+   - Number of Meta-classes generated
+   - Total fields processed
+   - Files written to disk
+4. **🔍 Detailed Processing Log**:
+   - Per-property field type detection
+   - Nested object resolution
+   - Import conflict resolution
+   - Path construction details
+5. **❌ Error Diagnostics** - Clear error messages with context
+6. **📈 Historical Tracking** - Multiple compilation runs in the same report
+
+#### Example Report
+
 ```markdown
 # Metalastic Processor Reports
 
 ## 📋 Table of Contents
-- [Report 1 - 2025-09-18 15:06:17](#report-1---2025-09-18-150617) - Duration: 254ms
-- [Report 2 - 2025-09-18 15:06:18](#report-2---2025-09-18-150618) - Duration: 58ms
+- [Report 1 - 2025-01-18 15:06:17](#report-1---2025-01-18-150617) - ✅ Success - Duration: 254ms - 12 Meta-classes
+- [Report 2 - 2025-01-18 15:12:33](#report-2---2025-01-18-151233) - ✅ Success - Duration: 58ms - 12 Meta-classes
 
-## Performance Metrics
-| Phase | Duration (ms) |
-|-------|---------------|
-| COLLECTING | 196 |
-| BUILDING | 25 |
-| WRITING | 32 |
-| **TOTAL** | **253** |
+---
 
-## Detailed Log
-[15:06:17.138] 🔍 DEBUG: Processing property 'name' with @Field(type = Text)
-[15:06:17.379] 🔍 DEBUG: Discovered 12 models to process
-[15:06:17.438] 🔍 DEBUG: Generated Metamodels with 12 Meta-class entries
+## Report 1 - 2025-01-18 15:06:17
+
+### ⏱️ Performance Metrics
+| Phase | Duration (ms) | Percentage |
+|-------|---------------|------------|
+| COLLECTING | 196 | 77% |
+| BUILDING | 25 | 10% |
+| WRITING | 32 | 13% |
+| **TOTAL** | **253** | **100%** |
+
+### 📊 Generation Statistics
+- **Documents Discovered**: 12
+- **Meta-classes Generated**: 12
+- **Object Fields Generated**: 34
+- **Total Fields Processed**: 156
+- **Files Written**: 13
+
+### 🔍 Detailed Processing Log
+
+#### Phase: COLLECTING (196ms)
+[15:06:17.138] 🔍 DEBUG: Starting document discovery
+[15:06:17.142] 🔍 DEBUG: Found @Document class: com.example.Person
+[15:06:17.145] 🔍 DEBUG: Found @Document class: com.example.Address
+[15:06:17.148] 🔍 DEBUG: Processing property 'name' with @Field(type = Text)
+[15:06:17.151] 🔍 DEBUG: Processing property 'email' with @MultiField
+[15:06:17.154] 🔍 DEBUG: Detected inner field: email.keyword (Keyword)
+[15:06:17.157] 🔍 DEBUG: Processing nested object: activities (FieldType.Nested)
+[15:06:17.379] ✅ SUCCESS: Discovered 12 models to process
+
+#### Phase: BUILDING (25ms)
+[15:06:17.380] 🔍 DEBUG: Building metamodel for Person
+[15:06:17.383] 🔍 DEBUG: Generating field: id (KeywordField)
+[15:06:17.386] 🔍 DEBUG: Generating field: name (TextField)
+[15:06:17.389] 🔍 DEBUG: Generating multi-field: email
+[15:06:17.392] 🔍 DEBUG: Generating nested object: activities
+[15:06:17.404] ✅ SUCCESS: Built 12 metamodel representations
+
+#### Phase: WRITING (32ms)
+[15:06:17.405] 🔍 DEBUG: Writing MetaPerson.kt
+[15:06:17.408] 🔍 DEBUG: Writing MetaAddress.kt
+[15:06:17.411] 🔍 DEBUG: Writing MetaActivity.kt
+[15:06:17.414] 🔍 DEBUG: Writing Metamodels.kt with 12 entries
+[15:06:17.437] ✅ SUCCESS: Wrote 13 Kotlin files
+
+#### Phase: COMPLETE (0ms)
+[15:06:17.438] ✅ SUCCESS: Code generation complete
+
+### 📝 Generated Files
+1. `com.example.metamodels.MetaPerson`
+2. `com.example.metamodels.MetaAddress`
+3. `com.example.metamodels.MetaActivity`
+4. `com.example.metamodels.MetaOrder`
+   ... (8 more)
+12. `com.example.metamodels.Metamodels`
+
+---
+
+## Report 2 - 2025-01-18 15:12:33
+
+### ⏱️ Performance Metrics
+| Phase | Duration (ms) | Percentage |
+|-------|---------------|------------|
+| COLLECTING | 45 | 78% |
+| BUILDING | 8 | 14% |
+| WRITING | 5 | 8% |
+| **TOTAL** | **58** | **100%** |
+
+*(Incremental compilation - much faster!)*
 ```
+
+#### Interpreting Performance Metrics
+
+**COLLECTING Phase (typically 60-80% of time)**:
+- Scans source files for @Document classes
+- Parses @Field annotations
+- Resolves type hierarchies
+- **Optimization tip**: Minimize unnecessary Spring Data ES annotations
+
+**BUILDING Phase (typically 10-20% of time)**:
+- Creates internal metamodel representations
+- Resolves field types and relationships
+- Handles complex generics and nested structures
+- **Optimization tip**: Flatten deeply nested structures if possible
+
+**WRITING Phase (typically 10-20% of time)**:
+- Generates Kotlin source code
+- Optimizes imports
+- Writes files to disk
+- **Fast with incremental compilation**
+
+#### Using Reports for Troubleshooting
+
+**Missing Field?**
+- Search report for the property name
+- Check if it was discovered during COLLECTING
+- Look for error messages about type resolution
+
+**Slow Build?**
+- Check COLLECTING phase duration
+- Review number of documents discovered
+- Consider splitting large document classes
+
+**Generation Error?**
+- Look for ❌ ERROR messages in detailed log
+- Check error diagnostics section
+- Verify @Field annotations are correct
 
 ## Supported Field Types
 

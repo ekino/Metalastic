@@ -12,13 +12,21 @@ import org.gradle.api.provider.Property
  */
 abstract class MetamodelsConfiguration @Inject constructor(private val objects: ObjectFactory) {
 
-  /** Global default package for metamodels (default: "com.metalastic") */
+  /**
+   * Global default package for metamodels (default: [PluginConstants.Metamodels.DEFAULT_PACKAGE])
+   */
   abstract val packageName: Property<String>
 
-  /** Global default class name for metamodels (default: "Metamodels") */
+  /**
+   * Global default class name for metamodels (default:
+   * [PluginConstants.Metamodels.DEFAULT_CLASS_NAME])
+   */
   abstract val className: Property<String>
 
-  /** Global default class prefix for generated Q-classes (default: "Q") */
+  /**
+   * Global default class prefix for generated Q-classes (default:
+   * [PluginConstants.Metamodels.DEFAULT_CLASS_PREFIX])
+   */
   abstract val classPrefix: Property<String>
 
   /** Configuration for main source set */
@@ -55,9 +63,9 @@ abstract class MetamodelsConfiguration @Inject constructor(private val objects: 
 
   init {
     // Set up defaults
-    packageName.convention("com.metalastic")
-    className.convention("Metamodels")
-    classPrefix.convention("Meta")
+    packageName.convention(PluginConstants.Metamodels.DEFAULT_PACKAGE)
+    className.convention(PluginConstants.Metamodels.DEFAULT_CLASS_NAME)
+    classPrefix.convention(PluginConstants.Metamodels.DEFAULT_CLASS_PREFIX)
   }
 
   /** Configure main source set metamodels */
