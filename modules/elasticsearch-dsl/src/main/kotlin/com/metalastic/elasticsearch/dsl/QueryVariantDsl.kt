@@ -30,6 +30,7 @@ import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery
 import co.elastic.clients.json.JsonData
 import com.google.common.collect.BoundType
 import com.google.common.collect.Range
+import com.metalastic.core.Container
 import com.metalastic.core.DateField
 import com.metalastic.core.Metamodel
 import java.time.Instant
@@ -776,7 +777,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * [Nested query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-nested-query)
    */
   @VariantDsl
-  fun Metamodel<*>.nested(
+  fun Container<*>.nested(
     setupBlock: NestedQuery.Builder.() -> Unit = {},
     block: BoolQueryDsl.() -> Unit,
   ) {
