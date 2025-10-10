@@ -137,6 +137,98 @@ logging:
 
 To suppress nested query warnings in specific contexts, you can adjust the log level to ERROR or disable the logger entirely.
 
+### Strict Mode
+
+For stricter validation, you can enable **strict mode** which throws an `IllegalStateException` instead of logging a warning when `.nested()` is used on a non-nested field.
+
+**Enable via Gradle plugin (recommended for development and tests):**
+
+```kotlin
+metalastic {
+  dsl {
+    strictMode = true  // Applies to test tasks and JavaExec tasks (bootRun, run)
+  }
+}
+```
+
+**Note:** The Gradle plugin automatically configures:
+
+- ✅ Test tasks (`./gradlew test`)
+- ✅ JavaExec tasks (`./gradlew bootRun`, `./gradlew run`)
+- ❌ Production JARs (requires manual configuration below)
+
+**Enable for Spring Boot production deployments:**
+
+```bash
+# When running the JAR
+java -Dmetalastic.dsl.strict=true -jar application.jar
+
+# Or via environment variable in application.yml
+# (Spring Boot will convert METALASTIC_DSL_STRICT to metalastic.dsl.strict)
+METALASTIC_DSL_STRICT=true java -jar application.jar
+
+# Docker/Kubernetes environment variable
+METALASTIC_DSL_STRICT: "true"
+```
+
+**Enable via system property (manual):**
+
+```bash
+# Command line for Gradle tasks
+./gradlew test -Dmetalastic.dsl.strict=true
+
+# Or in build.gradle.kts
+tasks.test {
+  systemProperty("metalastic.dsl.strict", "true")
+}
+```
+
+**Enable via Gradle test configuration:**
+
+```kotlin
+tasks.withType<Test> {
+  systemProperty("metalastic.dsl.strict", System.getProperty("metalastic.dsl.strict", "false"))
+}
+```
+
+**Behavior in strict mode:**
+
+```kotlin
+// If 'address' is NOT marked with @Field(type = FieldType.Nested)
+document.address.nested {
+  must { /* ... */ }
+}
+// Error: IllegalStateException: Nested query used on non-nested field 'address'.
+//        The field should be marked with @Field(type = FieldType.Nested) in the
+//        Elasticsearch mapping.
+```
+
+**Use cases for strict mode:**
+
+- **CI/CD pipelines**: Catch mapping configuration errors in tests
+- **Development**: Enforce correct nested field usage across the team
+- **Migration**: Validate that all nested queries use properly configured fields
+
+**Recommendation:**
+
+| Environment     | Strict Mode | Reason                                                         |
+| --------------- | ----------- | -------------------------------------------------------------- |
+| **Development** | ❌ Disabled | Faster iteration, warnings are sufficient                      |
+| **CI/CD Tests** | ✅ Enabled  | Catch mapping errors before merge                              |
+| **Staging/QA**  | ✅ Enabled  | Validate queries in test environment                           |
+| **Production**  | ⚠️ Optional | Depends on risk tolerance - fail fast vs. graceful degradation |
+
+**Typical CI/CD Setup:**
+
+```kotlin
+metalastic {
+  dsl {
+    // Enable in CI/CD, disable locally
+    strictMode = System.getenv("CI") != null
+  }
+}
+```
+
 ## Version Compatibility
 
 This DSL module targets **Spring Data Elasticsearch 5.0.12** for compatibility with Spring Boot 2.7.x projects.

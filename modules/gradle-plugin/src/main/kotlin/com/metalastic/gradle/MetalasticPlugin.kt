@@ -36,6 +36,9 @@ class MetalasticPlugin : Plugin<Project> {
           "Metalastic: KSP plugin not found. Please add it to your plugins block: id(\"com.google.devtools.ksp\") version \"<version>\""
         )
       }
+
+      // Configure strict mode for test tasks
+      configureStrictMode(project, extension)
     }
   }
 
@@ -351,5 +354,21 @@ class MetalasticPlugin : Plugin<Project> {
       .onFailure { error ->
         project.logger.error("Metalastic: Failed to configure KSP args: ${error.message}")
       }
+  }
+
+  private fun configureStrictMode(project: Project, extension: MetalasticExtension) {
+    if (extension.dsl.strictMode.get()) {
+      // Configure test tasks
+      project.tasks.withType(org.gradle.api.tasks.testing.Test::class.java).configureEach {
+        systemProperty("metalastic.dsl.strict", "true")
+        project.logger.info("Metalastic: Configured test task '$name' with strict mode enabled")
+      }
+
+      // Configure JavaExec tasks (for application run tasks)
+      project.tasks.withType(org.gradle.api.tasks.JavaExec::class.java).configureEach {
+        systemProperty("metalastic.dsl.strict", "true")
+        project.logger.info("Metalastic: Configured JavaExec task '$name' with strict mode enabled")
+      }
+    }
   }
 }

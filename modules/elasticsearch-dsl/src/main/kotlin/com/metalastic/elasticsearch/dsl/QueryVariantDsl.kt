@@ -74,6 +74,16 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
 
   companion object {
     private val logger = KotlinLogging.logger {}
+
+    /**
+     * Strict mode for nested queries. When enabled, throws an exception if `.nested()` is used on a
+     * non-nested field instead of just logging a warning.
+     *
+     * Can be enabled via system property: `-Dmetalastic.dsl.strict=true`
+     */
+    val strictMode: Boolean by lazy {
+      System.getProperty("metalastic.dsl.strict", "false").toBoolean()
+    }
   }
 
   operator fun <T : QueryVariant> T.unaryPlus(): T {
@@ -791,12 +801,15 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
       if (isNested()) {
         +NestedQuery.of { it.path(path()).query(Query(boolQuery)).apply(setupBlock) }
       } else {
-        logger.warn {
+        val message =
           "Nested query used on non-nested field '${path()}'. " +
-            "The field should be marked with @Field(type = FieldType.Nested) in the Elasticsearch mapping. " +
-            "The query will be applied as a regular bool query instead."
+            "The field should be marked with @Field(type = FieldType.Nested) in the Elasticsearch mapping."
+        if (strictMode) {
+          error(message)
+        } else {
+          logger.warn { "$message The query will be applied as a regular bool query instead." }
+          +boolQuery
         }
-        +boolQuery
       }
     }
   }
