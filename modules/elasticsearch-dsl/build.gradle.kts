@@ -5,7 +5,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // Example: 5.0.12-1.0 means compatible with Spring Data ES 5.0.12, DSL version 1.0
 
 val springDataEsVersion = "5.0.12"
-val dslVersion = "1.0"
+val dslVersion = "1.1"
 
 // Override project version for this module only
 version =
