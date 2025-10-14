@@ -226,9 +226,9 @@ else
 fi
 
 # Add release notes file link
-ASSETS_LINKS=$(echo "$ASSETS_LINKS" | jq --arg url "${GITLAB_URL}/iperia/metalastic/-/blob/${TAG_NAME}/$(basename "$NOTES_FILE")" \
+ASSETS_LINKS=$(echo "$ASSETS_LINKS" | jq --arg url "${GITLAB_URL}/iperia/metalastic/-/blob/${TAG_NAME}/realease-notes/$(basename "$NOTES_FILE")" \
                                          --arg name "📄 Release Notes (Markdown)" \
-                                         '. + [{"url": $url, "name": $name, "link_type": "other"}]')
+                                         '. + [{"url": $url, "name": $name, "link_type": "runbook"}]')
 
 # Build JSON payload
 PAYLOAD=$(jq -n \
