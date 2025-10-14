@@ -27,10 +27,6 @@ import org.gradle.api.model.ObjectFactory
  *         generatePrivateClassMetamodels = false
  *     }
  *
- *     dsl {
- *         strictMode = true
- *     }
- *
  *     reporting {
  *         enabled = true
  *         outputPath = "build/reports/metalastic/processor-report.md"
@@ -46,9 +42,6 @@ abstract class MetalasticExtension @Inject constructor(objects: ObjectFactory) {
   /** Configuration for feature toggles */
   val features: FeaturesConfiguration = objects.newInstance(FeaturesConfiguration::class.java)
 
-  /** Configuration for elasticsearch-dsl module */
-  val dsl: DslConfiguration = objects.newInstance(DslConfiguration::class.java)
-
   /** Configuration for debug reporting */
   val reporting: ReportingConfiguration = objects.newInstance(ReportingConfiguration::class.java)
 
@@ -60,11 +53,6 @@ abstract class MetalasticExtension @Inject constructor(objects: ObjectFactory) {
   /** Configure feature toggles */
   fun features(action: Action<FeaturesConfiguration>) {
     action.execute(features)
-  }
-
-  /** Configure elasticsearch-dsl module */
-  fun dsl(action: Action<DslConfiguration>) {
-    action.execute(dsl)
   }
 
   /** Configure debug reporting */
