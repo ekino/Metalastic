@@ -65,6 +65,9 @@ dependencies {
   // Kotlin reflection for type checking
   implementation("org.jetbrains.kotlin:kotlin-reflect")
 
+  // Logging
+  implementation(libs.kotlin.logging)
+
   // Additional testing for DSL module
   testImplementation(libs.mockk)
 

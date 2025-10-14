@@ -30,8 +30,10 @@ import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery
 import co.elastic.clients.json.JsonData
 import com.google.common.collect.BoundType
 import com.google.common.collect.Range
+import com.metalastic.core.Container
 import com.metalastic.core.DateField
 import com.metalastic.core.Metamodel
+import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -69,6 +71,20 @@ import java.util.Date
 @Suppress("TooManyFunctions")
 @ElasticsearchDsl
 class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
+
+  companion object {
+    private val logger = KotlinLogging.logger {}
+
+    /**
+     * Strict mode for nested queries. When enabled, throws an exception if `.nested()` is used on a
+     * non-nested field instead of just logging a warning.
+     *
+     * Can be enabled via system property: `-Dmetalastic.dsl.strict=true`
+     */
+    val strictMode: Boolean by lazy {
+      System.getProperty("metalastic.dsl.strict", "false").toBoolean()
+    }
+  }
 
   operator fun <T : QueryVariant> T.unaryPlus(): T {
     add(this)
@@ -121,7 +137,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
         bool {
           should +
             {
-              nonEmptyValues.forEach { value -> QueryVariantDsl({ query -> +query }).block(value) }
+              nonEmptyValues.forEach { value -> QueryVariantDsl { query -> +query }.block(value) }
             }
         }
       }
@@ -776,13 +792,25 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * [Nested query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-nested-query)
    */
   @VariantDsl
-  fun Metamodel<*>.nested(
+  fun Container<*>.nested(
     setupBlock: NestedQuery.Builder.() -> Unit = {},
     block: BoolQueryDsl.() -> Unit,
   ) {
     val boolQuery = BoolQuery.Builder().apply { BoolQueryDsl(this).apply(block) }.build()
     if (!boolQuery.isEmpty()) {
-      +NestedQuery.of { it.path(path()).query(Query(boolQuery)).apply(setupBlock) }
+      if (isNested()) {
+        +NestedQuery.of { it.path(path()).query(Query(boolQuery)).apply(setupBlock) }
+      } else {
+        val message =
+          "Nested query used on non-nested field '${path()}'. " +
+            "The field should be marked with @Field(type = FieldType.Nested) in the Elasticsearch mapping."
+        if (strictMode) {
+          error(message)
+        } else {
+          logger.warn { "$message The query will be applied as a regular bool query instead." }
+          +boolQuery
+        }
+      }
     }
   }
 
@@ -1126,7 +1154,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
   @VariantDsl
-  fun <T : Any> Metamodel<out Collection<*>>.containsTerm(
+  fun Metamodel<out Collection<*>>.containsTerm(
     value: FieldValue?,
     block: TermQuery.Builder.() -> Unit = {},
   ) = termUnchecked(value, block)
@@ -1819,7 +1847,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   @VariantDsl
   infix fun <T : Any> Metamodel<T>.range(range: Range<out Comparable<T>>?) {
     when (range) {
-      null -> {}
+      null -> Unit
       range if (!range.hasLowerBound() && !range.hasUpperBound()) -> +MatchNoneQuery.of { it }
       else -> +toRangeQuery(range)
     }
