@@ -8,9 +8,12 @@ plugins {
 allprojects {
     group = "com.metalastic"
     version = when {
-        // CI environment - use git describe for consistent versioning with CI pipeline
-        System.getenv("CI") != null -> {
+        // CI environment - works with both GitLab CI and GitHub Actions
+        System.getenv("CI") != null || System.getenv("GITHUB_ACTIONS") != null -> {
+            // Support both GitLab CI_COMMIT_TAG and GitHub GITHUB_REF_NAME
             val tag = System.getenv("CI_COMMIT_TAG")
+                ?: System.getenv("GITHUB_REF_NAME")?.takeIf { it.startsWith("v") || it.startsWith("elasticsearch-dsl-v") }
+
             tag?.removePrefix("v") // v1.2.3 -> 1.2.3
                 ?: // Use git describe to match CI pipeline versioning exactly
                 runCatching {
@@ -23,9 +26,11 @@ allprojects {
                     } else {
                         "$version-SNAPSHOT"
                     }
-                } .getOrElse { 
-                    // Fallback to CI_COMMIT_SHA if git describe fails
-                    val sha = System.getenv("CI_COMMIT_SHA") ?: "unknown"
+                } .getOrElse {
+                    // Fallback to commit SHA (works with both GitLab and GitHub)
+                    val sha = System.getenv("CI_COMMIT_SHA")
+                        ?: System.getenv("GITHUB_SHA")
+                        ?: "unknown"
                     "${sha.take(7)}-SNAPSHOT"
                 }
         }
@@ -122,7 +127,7 @@ subprojects {
                     pom {
                         name.set("Metalastic ${project.name}")
                         description.set("A type-safe metamodel library for Elasticsearch in Kotlin")
-                        url.set("https://gitlab.ekino.com/iperia/metalastic")
+                        url.set("https://github.com/ekino/Metalastic")
 
                         licenses {
                             license {
@@ -131,16 +136,37 @@ subprojects {
                             }
                         }
 
+                        developers {
+                            developer {
+                                organization.set("ekino")
+                                organizationUrl.set("https://github.com/ekino")
+                            }
+                        }
+
                         scm {
-                            connection.set("scm:git:git://gitlab.ekino.com/iperia/metalastic.git")
-                            developerConnection.set("scm:git:ssh://gitlab.ekino.com/iperia/metalastic.git")
-                            url.set("https://gitlab.ekino.com/iperia/metalastic")
+                            connection.set("scm:git:git://github.com/ekino/Metalastic.git")
+                            developerConnection.set("scm:git:ssh://github.com/ekino/Metalastic.git")
+                            url.set("https://github.com/ekino/Metalastic")
                         }
                     }
                 }
             }
 
             repositories {
+                // GitHub Packages - Primary target
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/ekino/Metalastic")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR")
+                            ?: project.findProperty("gpr.user") as String?
+                        password = System.getenv("GITHUB_TOKEN")
+                            ?: project.findProperty("gpr.token") as String?
+                    }
+                }
+
+                // GitLab Maven Registry - Kept during migration for backward compatibility
+                // TODO: Remove after migration is complete
                 maven {
                     name = "GitLab"
                     url = uri("https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
