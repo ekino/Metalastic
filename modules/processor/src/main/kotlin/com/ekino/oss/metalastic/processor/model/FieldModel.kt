@@ -1,11 +1,11 @@
-package com.metalastic.processor.model
+package com.ekino.oss.metalastic.processor.model
 
+import com.ekino.oss.metalastic.processor.CoreConstants
 import com.google.devtools.ksp.symbol.KSAnnotation
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSType
-import com.metalastic.processor.CoreConstants
 import org.springframework.data.elasticsearch.annotations.FieldType
 
 /**

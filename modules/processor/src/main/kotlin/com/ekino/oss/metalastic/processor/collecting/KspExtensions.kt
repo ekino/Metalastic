@@ -1,14 +1,14 @@
 @file:Suppress("TooManyFunctions")
 
-package com.metalastic.processor.collecting
+package com.ekino.oss.metalastic.processor.collecting
 
+import com.ekino.oss.metalastic.processor.CoreConstants.MethodPrefixes
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import com.metalastic.processor.CoreConstants.MethodPrefixes
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField

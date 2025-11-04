@@ -1,4 +1,4 @@
-package com.metalastic;
+package com.ekino.oss.metalastic;
 
 
 import org.springframework.data.elasticsearch.annotations.Field;

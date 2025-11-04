@@ -1,7 +1,7 @@
-package com.metalastic.processor
+package com.ekino.oss.metalastic.processor
 
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.options.MetamodelsConfiguration
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.options.MetamodelsConfiguration
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every

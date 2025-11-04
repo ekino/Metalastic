@@ -1,4 +1,4 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import com.ekino.oss.jcv.assertion.hamcrest.JsonMatcherBuilder
 import com.ekino.oss.jcv.assertion.hamcrest.JsonMatchers

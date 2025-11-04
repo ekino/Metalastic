@@ -1,5 +1,6 @@
-package com.metalastic.other.integration
+package com.ekino.oss.metalastic.other.integration
 
+import com.ekino.oss.metalastic.integration.MetaJavaTestDocument
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -49,7 +50,7 @@ class JavaInteroperabilitySpec :
 
       // Verify package structure
       val packageName = MetaJavaTestDocument.javaTestDocument::class.java.packageName
-      packageName shouldBe "com.metalastictest.integration"
+      packageName shouldBe "com.ekino.oss.metalastic.integration"
     }
 
     should("generate Java-friendly code with proper annotations") {

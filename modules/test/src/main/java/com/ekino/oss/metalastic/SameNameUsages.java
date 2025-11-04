@@ -1,4 +1,6 @@
-package com.metalastic;
+package com.ekino.oss.metalastic;
+
+import com.ekino.oss.metalastic.integration.SameName;
 
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -10,19 +12,19 @@ public class SameNameUsages {
     public com.SameName fromSamePackage;
 
     @Field(type = FieldType.Auto)
-    public com.metalastic.SameName fromQelasticsearch;
+    public com.ekino.oss.metalastic.SameName fromQelasticsearch;
 
     @Field(type = FieldType.Auto)
-    public com.metalastic.integration.SameName fromQelasticsearchIntegration;
+    public SameName fromQelasticsearchIntegration;
 
 
     @Field(type = FieldType.Object)
     public com.SameName fromSamePackageObject;
 
     @Field(type = FieldType.Object)
-    public com.metalastic.SameName fromQelasticsearchObject;
+    public com.ekino.oss.metalastic.SameName fromQelasticsearchObject;
 
     @Field(type = FieldType.Object)
-    public com.metalastic.integration.SameName fromQelasticsearchIntegrationObject;
+    public SameName fromQelasticsearchIntegrationObject;
 
 }

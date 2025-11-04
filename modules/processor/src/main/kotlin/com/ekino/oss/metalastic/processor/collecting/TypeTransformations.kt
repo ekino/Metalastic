@@ -1,10 +1,10 @@
-package com.metalastic.processor.collecting
+package com.ekino.oss.metalastic.processor.collecting
 
+import com.ekino.oss.metalastic.core.UnExposablePrivateClass
 import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.symbol.KSType
 import com.google.devtools.ksp.symbol.KSTypeParameter
 import com.google.devtools.ksp.symbol.Visibility
-import com.metalastic.core.UnExposablePrivateClass
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.TypeName

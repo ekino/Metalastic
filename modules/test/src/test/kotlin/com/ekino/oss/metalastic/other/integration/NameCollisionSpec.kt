@@ -1,7 +1,9 @@
-package com.metalastic.other.integration
+package com.ekino.oss.metalastic.other.integration
 
-import com.metalastic.integration.ExampleDocument
-import com.metalastic.integration.NameCollision
+import com.ekino.oss.metalastic.integration.ExampleDocument
+import com.ekino.oss.metalastic.integration.MetaExampleDocument
+import com.ekino.oss.metalastic.integration.MetaNameCollision
+import com.ekino.oss.metalastic.integration.NameCollision
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe

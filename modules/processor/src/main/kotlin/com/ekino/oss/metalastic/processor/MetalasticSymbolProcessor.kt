@@ -1,16 +1,16 @@
-package com.metalastic.processor
+package com.ekino.oss.metalastic.processor
 
+import com.ekino.oss.metalastic.processor.CoreConstants.PRODUCT_NAME
+import com.ekino.oss.metalastic.processor.building.BuildingOrchestrator
+import com.ekino.oss.metalastic.processor.collecting.GraphBuilder
+import com.ekino.oss.metalastic.processor.options.ProcessorOptions
+import com.ekino.oss.metalastic.processor.report.reporter
+import com.ekino.oss.metalastic.processor.writing.writeGeneratedFiles
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
-import com.metalastic.processor.CoreConstants.PRODUCT_NAME
-import com.metalastic.processor.building.BuildingOrchestrator
-import com.metalastic.processor.collecting.GraphBuilder
-import com.metalastic.processor.options.ProcessorOptions
-import com.metalastic.processor.report.reporter
-import com.metalastic.processor.writing.writeGeneratedFiles
 import kotlin.time.measureTime
 import kotlin.time.measureTimedValue
 

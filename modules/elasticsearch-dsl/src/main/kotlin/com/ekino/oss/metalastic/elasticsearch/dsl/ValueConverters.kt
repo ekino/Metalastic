@@ -1,9 +1,9 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.FieldValue
 import co.elastic.clients.json.JsonData
-import com.metalastic.core.DateField
-import com.metalastic.core.Metamodel
+import com.ekino.oss.metalastic.core.DateField
+import com.ekino.oss.metalastic.core.Metamodel
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime

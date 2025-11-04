@@ -1,4 +1,4 @@
-package com.metalastic.core
+package com.ekino.oss.metalastic.core
 
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
@@ -215,7 +215,7 @@ class IndexAndObjectFieldsSpec :
         val count = LongField<Long>(this, "count", typeOf<Long>())
         val average = DoubleField<Double>(this, "average", typeOf<Double>())
         val isValid = BooleanField<Boolean>(this, "isValid", typeOf<Boolean>())
-        val lastUpdated = DateField<java.util.Date>(this, "lastUpdated", typeOf<java.util.Date>())
+        val lastUpdated = DateField<Date>(this, "lastUpdated", typeOf<Date>())
         val tags = KeywordField<List<String>>(this, "tags", typeOf<List<String>>())
       }
 
@@ -230,7 +230,7 @@ class IndexAndObjectFieldsSpec :
         object : ObjectField<Any>(name = "", fieldType = typeOf<Any>()) {
           val query = TextField<String>(this, "query", typeOf<String>())
           val documents = DocumentFields(this, "documents", true)
-          val timestamp = DateField<java.util.Date>(this, "timestamp", typeOf<java.util.Date>())
+          val timestamp = DateField<Date>(this, "timestamp", typeOf<Date>())
         }
 
       // Verify all field types work in nested context

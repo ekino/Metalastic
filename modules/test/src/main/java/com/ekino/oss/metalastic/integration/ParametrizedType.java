@@ -1,4 +1,4 @@
-package com.metalastic.integration;
+package com.ekino.oss.metalastic.integration;
 
 /**
  * A simple parametrized type for testing purposes.

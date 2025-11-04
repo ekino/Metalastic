@@ -1,4 +1,4 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.query_dsl.Query
 import co.elastic.clients.elasticsearch.core.SearchRequest

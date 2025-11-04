@@ -1,8 +1,8 @@
-package com.metalastic.processor.report
+package com.ekino.oss.metalastic.processor.report
 
+import com.ekino.oss.metalastic.processor.CoreConstants
+import com.ekino.oss.metalastic.processor.options.ProcessorOptions
 import com.google.devtools.ksp.processing.KSPLogger
-import com.metalastic.processor.CoreConstants
-import com.metalastic.processor.options.ProcessorOptions
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -441,8 +441,7 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
 
         timestamp?.let {
           val endIndex = lines.findSectionEndIndex(startIndex)
-          val (duration, phaseTimings, loggedMessages) =
-            extractSectionContent(lines, startIndex, endIndex, timestamp)
+          val (_, _, loggedMessages) = extractSectionContent(lines, startIndex, endIndex, timestamp)
 
           val reportSection = ReportSection(timestamp = timestamp, loggedMessages = loggedMessages)
 

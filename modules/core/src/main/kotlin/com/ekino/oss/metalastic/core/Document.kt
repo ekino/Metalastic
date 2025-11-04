@@ -1,4 +1,4 @@
-package com.metalastic.core
+package com.ekino.oss.metalastic.core
 
 import kotlin.reflect.KType
 

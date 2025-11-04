@@ -1,10 +1,10 @@
-package com.metalastic.processor
+package com.ekino.oss.metalastic.processor
 
+import com.ekino.oss.metalastic.processor.options.ProcessorOptions
+import com.ekino.oss.metalastic.processor.report.ReporterFactory
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
-import com.metalastic.processor.options.ProcessorOptions
-import com.metalastic.processor.report.ReporterFactory
 
 class MetalasticSymbolProcessorProvider : SymbolProcessorProvider {
   override fun create(environment: SymbolProcessorEnvironment): SymbolProcessor {

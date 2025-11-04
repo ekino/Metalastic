@@ -1,4 +1,4 @@
-package com.metalastictest;
+package com;
 
 
 import org.springframework.data.elasticsearch.annotations.Field;

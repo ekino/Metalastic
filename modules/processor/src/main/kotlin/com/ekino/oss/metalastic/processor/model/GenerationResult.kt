@@ -1,4 +1,4 @@
-package com.metalastic.processor.model
+package com.ekino.oss.metalastic.processor.model
 
 import com.squareup.kotlinpoet.FileSpec
 

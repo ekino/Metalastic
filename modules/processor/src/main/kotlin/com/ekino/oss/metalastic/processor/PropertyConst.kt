@@ -1,4 +1,4 @@
-package com.metalastic.processor
+package com.ekino.oss.metalastic.processor
 
 import com.squareup.kotlinpoet.CodeBlock
 

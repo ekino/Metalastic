@@ -1,4 +1,4 @@
-package com.metalastic.core
+package com.ekino.oss.metalastic.core
 
 /**
  * Marker object representing a private class that cannot be exposed in generated metamodel code.
@@ -19,7 +19,7 @@ package com.metalastic.core
  * - Helps developers understand why certain types appear in metamodels
  * - Type-safe marker that's easily recognizable
  *
- * @see com.metalastic.processor.collecting.toSafeTypeName
- * @see com.metalastic.processor.collecting.withSafeGenericArguments
+ * @see com.ekino.oss.metalastic.processor.collecting.toSafeTypeName
+ * @see com.ekino.oss.metalastic.processor.collecting.withSafeGenericArguments
  */
 object UnExposablePrivateClass

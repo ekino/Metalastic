@@ -472,10 +472,10 @@ private fun addImportsToFileBuilder(fileBuilder: FileSpec.Builder, importContext
 **Simple Document:**
 ```kotlin
 // Generated imports for basic document  
-import com.metalastic.core.Index
-import com.metalastic.core.KeywordField
-import com.metalastic.core.ObjectField
-import com.metalastic.core.TextField
+import com.ekino.oss.metalastic.coreIndex
+import com.ekino.oss.metalastic.coreKeywordField
+import com.ekino.oss.metalastic.coreObjectField
+import com.ekino.oss.metalastic.coreTextField
 import jakarta.annotation.Generated
 import kotlin.String
 import kotlin.jvm.JvmField
@@ -485,10 +485,10 @@ import kotlin.jvm.JvmName
 **Complex Document with Nested Objects:**
 ```kotlin
 // Generated imports for complex document with conflict resolution
-import com.metalastic.core.Index
-import com.metalastic.core.MultiField
-import com.metalastic.core.ObjectField
-import com.metalastic.core.TextField
+import com.ekino.oss.metalastic.coreIndex
+import com.ekino.oss.metalastic.coreMultiField
+import com.ekino.oss.metalastic.coreObjectField
+import com.ekino.oss.metalastic.coreTextField
 import com.example.domain.Category  // Automatic via KotlinPoet
 import com.example.domain.Review     // Automatic via KotlinPoet
 import jakarta.annotation.Generated
@@ -547,7 +547,7 @@ graph TD
 ### Document Q-Class Example
 
 ```kotlin
-@Generated("com.metalastic.processor.MetalasticSymbolProcessor")
+@Generated("com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor")
 data object QUser : Index("users") {
     /**
      * Elasticsearch field for property [com.example.User.id].

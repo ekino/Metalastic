@@ -1,4 +1,4 @@
-package com.metalastic.core
+package com.ekino.oss.metalastic.core
 
 import kotlin.reflect.KType
 
@@ -83,8 +83,8 @@ import kotlin.reflect.KType
  * @param name The Elasticsearch field name
  * @param nested Whether this field is marked as nested in Elasticsearch
  * @param fieldType The Kotlin type information for runtime type safety
- * @see ObjectField
- * @see SelfReferencingObject
+ * @see com.ekino.oss.metalastic.core.ObjectField
+ * @see com.ekino.oss.metalastic.core.SelfReferencingObject
  */
 class UnModellableObject<T : Any?>(
   parent: ObjectField<*>?,

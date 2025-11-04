@@ -1,4 +1,4 @@
-package com.metalastic.processor
+package com.ekino.oss.metalastic.processor
 
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider

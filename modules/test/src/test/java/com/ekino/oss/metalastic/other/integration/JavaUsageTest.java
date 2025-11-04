@@ -1,10 +1,11 @@
-package com.metalastic.other.integration;
+package com.ekino.oss.metalastic.other.integration;
 
 
 
 
 
-import com.metalastic.integration.JavaTestDocument;
+import com.ekino.oss.metalastic.integration.JavaTestDocument;
+import com.ekino.oss.metalastic.integration.MetaJavaTestDocument;
 
 import org.junit.jupiter.api.Test;
 

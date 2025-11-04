@@ -1,14 +1,14 @@
-package com.metalastic.processor.collecting
+package com.ekino.oss.metalastic.processor.collecting
 
+import com.ekino.oss.metalastic.processor.CoreConstants
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.options.ProcessorOptions
+import com.ekino.oss.metalastic.processor.report.reporter
 import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.Visibility
-import com.metalastic.processor.CoreConstants
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.options.ProcessorOptions
-import com.metalastic.processor.report.reporter
 import org.springframework.data.elasticsearch.annotations.Document
 
 class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {

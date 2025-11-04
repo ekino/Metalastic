@@ -1,16 +1,16 @@
-package com.metalastic.processor.collecting
+package com.ekino.oss.metalastic.processor.collecting
 
+import com.ekino.oss.metalastic.processor.model.FieldModel
+import com.ekino.oss.metalastic.processor.model.InnerFieldModel
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.model.MultiFieldModel
+import com.ekino.oss.metalastic.processor.model.ObjectFieldModel
+import com.ekino.oss.metalastic.processor.model.SimpleFieldModel
+import com.ekino.oss.metalastic.processor.report.reporter
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
-import com.metalastic.processor.model.FieldModel
-import com.metalastic.processor.model.InnerFieldModel
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.model.MultiFieldModel
-import com.metalastic.processor.model.ObjectFieldModel
-import com.metalastic.processor.model.SimpleFieldModel
-import com.metalastic.processor.report.reporter
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField

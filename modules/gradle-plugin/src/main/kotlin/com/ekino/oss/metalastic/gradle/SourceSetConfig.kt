@@ -1,4 +1,4 @@
-package com.metalastic.gradle
+package com.ekino.oss.metalastic.gradle
 
 import org.gradle.api.provider.Property
 

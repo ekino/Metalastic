@@ -1,4 +1,6 @@
-package com.metalastic.integration;
+package com.ekino.oss.metalastic.integration;
+
+import com.ekino.oss.metalastic.other.integration.TestStatus;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -86,7 +88,7 @@ public class JavaTestDocument {
     private JavaAddress address;
 
     @Field(type = FieldType.Nested)
-    private List<com.metalastic.integration.JavaTag> tags;
+    private List<com.ekino.oss.metalastic.integration.JavaTag> tags;
 
     @Field(type = FieldType.Nested)
     private List<JavaTag> tags2;
@@ -122,7 +124,7 @@ public class JavaTestDocument {
                             String description, Integer priority, Boolean isActive, Date createdAt, Date date,
                             LocalDate localDate, LocalDateTime localDateTime, Instant instant, Double score,
                             String category, TestStatus status, Priority priorityLevel, JavaAddress address,
-                            List<com.metalastic.integration.JavaTag> tags, List<JavaTag> tags2,
+                            List<com.ekino.oss.metalastic.integration.JavaTag> tags, List<JavaTag> tags2,
                             String multiFieldName, String description2) {
         this.id = id;
         this.aList = aList;
@@ -320,11 +322,11 @@ public class JavaTestDocument {
         this.address = address;
     }
 
-    public List<com.metalastic.integration.JavaTag> getTags() {
+    public List<com.ekino.oss.metalastic.integration.JavaTag> getTags() {
         return tags;
     }
 
-    public void setTags(List<com.metalastic.integration.JavaTag> tags) {
+    public void setTags(List<com.ekino.oss.metalastic.integration.JavaTag> tags) {
         this.tags = tags;
     }
 

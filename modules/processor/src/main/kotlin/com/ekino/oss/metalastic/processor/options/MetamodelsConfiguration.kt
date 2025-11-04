@@ -1,10 +1,10 @@
-package com.metalastic.processor.options
+package com.ekino.oss.metalastic.processor.options
 
+import com.ekino.oss.metalastic.processor.CoreConstants
+import com.ekino.oss.metalastic.processor.CoreConstants.ProcessorOptions.Metamodels
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.report.reporter
 import com.google.devtools.ksp.symbol.KSClassDeclaration
-import com.metalastic.processor.CoreConstants
-import com.metalastic.processor.CoreConstants.ProcessorOptions.Metamodels
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.report.reporter
 
 /**
  * Configuration for Metamodels generation, supporting both automatic detection and manual

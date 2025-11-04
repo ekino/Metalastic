@@ -1,7 +1,7 @@
-package com.metalastic.processor.options
+package com.ekino.oss.metalastic.processor.options
 
-import com.metalastic.processor.CoreConstants
-import com.metalastic.processor.CoreConstants.ProcessorOptions.Metamodels
+import com.ekino.oss.metalastic.processor.CoreConstants
+import com.ekino.oss.metalastic.processor.CoreConstants.ProcessorOptions.Metamodels
 
 data class ProcessorOptions(
   val generateJavaCompatibility: Boolean = true,

@@ -1,9 +1,9 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
-import com.metalastic.core.KeywordField
-import com.metalastic.core.ObjectField
-import com.metalastic.core.TextField
+import com.ekino.oss.metalastic.core.KeywordField
+import com.ekino.oss.metalastic.core.ObjectField
+import com.ekino.oss.metalastic.core.TextField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import kotlin.reflect.typeOf
@@ -64,7 +64,6 @@ class FieldQueryVariantDslTest :
 
     should("handle null values gracefully") {
       val builder = BoolQuery.Builder()
-      val nullString: String? = null
       builder.boolQueryDsl {
         must +
           {

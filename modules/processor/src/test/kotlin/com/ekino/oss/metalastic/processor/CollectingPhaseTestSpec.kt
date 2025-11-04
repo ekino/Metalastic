@@ -1,11 +1,11 @@
 @file:OptIn(ExperimentalCompilerApi::class)
 
-package com.metalastic.processor
+package com.ekino.oss.metalastic.processor
 
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.model.MultiFieldModel
-import com.metalastic.processor.testing.ProcessorTestBuilder
-import com.metalastic.processor.testing.TestDataSources
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.model.MultiFieldModel
+import com.ekino.oss.metalastic.processor.testing.ProcessorTestBuilder
+import com.ekino.oss.metalastic.processor.testing.TestDataSources
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainInOrder

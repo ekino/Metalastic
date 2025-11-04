@@ -1,6 +1,6 @@
-package com.metalastic;
+package com.ekino.oss.metalastic;
 
-import com.metalastic.integration.JavaTag;
+import com.ekino.oss.metalastic.integration.JavaTag;
 
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -16,7 +16,7 @@ public class Collisions {
     public AClass fromNested;
 
     @Field(type = FieldType.Object)
-    public com.metalastic.AClass samePackage;
+    public com.ekino.oss.metalastic.AClass samePackage;
 
     @Field(type = FieldType.Object)
     public JavaTag javaTag;

@@ -1,9 +1,9 @@
-package com.metalastic.processor.building
+package com.ekino.oss.metalastic.processor.building
 
-import com.metalastic.processor.model.GenerationResult
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.options.ProcessorOptions
-import com.metalastic.processor.report.reporter
+import com.ekino.oss.metalastic.processor.model.GenerationResult
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.options.ProcessorOptions
+import com.ekino.oss.metalastic.processor.report.reporter
 import com.squareup.kotlinpoet.FileSpec
 
 /**

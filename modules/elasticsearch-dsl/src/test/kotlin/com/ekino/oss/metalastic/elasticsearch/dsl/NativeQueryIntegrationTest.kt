@@ -1,10 +1,10 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
 import co.elastic.clients.elasticsearch._types.query_dsl.Query
-import com.metalastic.core.KeywordField
-import com.metalastic.core.ObjectField
-import com.metalastic.core.TextField
+import com.ekino.oss.metalastic.core.KeywordField
+import com.ekino.oss.metalastic.core.ObjectField
+import com.ekino.oss.metalastic.core.TextField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.string.shouldContain
 import kotlin.reflect.typeOf

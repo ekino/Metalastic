@@ -1,4 +1,6 @@
-package com.metalastic.integration;
+package com.ekino.oss.metalastic.integration;
+
+import com.ekino.oss.metalastic.other.integration.TestDocument;
 
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
@@ -23,7 +25,7 @@ public class ExampleDocument {
     public NestedObject nestedObject2;
 
     @Field(type = FieldType.Object)
-    public com.metalastic.integration.NameCollision fromSeparateClass;
+    public com.ekino.oss.metalastic.integration.NameCollision fromSeparateClass;
 
     public static class NameCollision {
         @Field(type = FieldType.Text)

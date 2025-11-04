@@ -1,10 +1,10 @@
-package com.metalastic.processor.writing
+package com.ekino.oss.metalastic.processor.writing
 
+import com.ekino.oss.metalastic.processor.model.GenerationResult
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.report.reporter
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.Dependencies
-import com.metalastic.processor.model.GenerationResult
-import com.metalastic.processor.model.MetalasticGraph
-import com.metalastic.processor.report.reporter
 import com.squareup.kotlinpoet.FileSpec
 import kotlin.time.measureTime
 

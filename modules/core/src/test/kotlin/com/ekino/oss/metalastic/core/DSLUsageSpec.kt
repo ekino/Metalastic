@@ -1,4 +1,4 @@
-package com.metalastic.core
+package com.ekino.oss.metalastic.core
 
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe

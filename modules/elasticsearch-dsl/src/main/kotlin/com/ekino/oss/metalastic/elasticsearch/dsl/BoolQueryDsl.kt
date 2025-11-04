@@ -1,4 +1,4 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
 import co.elastic.clients.elasticsearch._types.query_dsl.Query
@@ -72,7 +72,7 @@ fun BoolQuery.Builder.boolQueryDsl(block: BoolQueryDsl.() -> Unit) = apply {
  * }
  * ```
  *
- * @see QueryVariantDsl for available query types
+ * @see com.ekino.oss.metalastic.elasticsearch.dsl.QueryVariantDsl for available query types
  * @see
  *   [Boolean query documentation](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-bool-query)
  */

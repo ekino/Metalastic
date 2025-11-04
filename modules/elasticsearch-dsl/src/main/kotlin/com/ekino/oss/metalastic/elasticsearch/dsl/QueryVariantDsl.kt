@@ -1,4 +1,4 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.DistanceUnit
 import co.elastic.clients.elasticsearch._types.FieldValue
@@ -28,11 +28,11 @@ import co.elastic.clients.elasticsearch._types.query_dsl.TermsQuery
 import co.elastic.clients.elasticsearch._types.query_dsl.TermsSetQuery
 import co.elastic.clients.elasticsearch._types.query_dsl.WildcardQuery
 import co.elastic.clients.json.JsonData
+import com.ekino.oss.metalastic.core.Container
+import com.ekino.oss.metalastic.core.DateField
+import com.ekino.oss.metalastic.core.Metamodel
 import com.google.common.collect.BoundType
 import com.google.common.collect.Range
-import com.metalastic.core.Container
-import com.metalastic.core.DateField
-import com.metalastic.core.Metamodel
 import io.github.oshai.kotlinlogging.KotlinLogging
 import java.time.Instant
 import java.time.LocalDate

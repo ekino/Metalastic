@@ -1,4 +1,4 @@
-package com.metalastic.integration;
+package com.ekino.oss.metalastic.integration;
 
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;

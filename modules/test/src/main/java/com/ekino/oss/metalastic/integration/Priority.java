@@ -1,4 +1,4 @@
-package com.metalastic.integration;
+package com.ekino.oss.metalastic.integration;
 
 /**
  * Simple enum for testing enum type handling in the DSL generator.

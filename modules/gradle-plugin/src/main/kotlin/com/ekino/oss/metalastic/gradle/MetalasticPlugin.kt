@@ -1,5 +1,8 @@
-package com.metalastic.gradle
+package com.ekino.oss.metalastic.gradle
 
+import java.lang.reflect.Method
+import java.util.Properties
+import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.kotlin.dsl.create
@@ -70,7 +73,7 @@ class MetalasticPlugin : Plugin<Project> {
 
     // Try embedded properties file (for development)
     this::class.java.classLoader.getResourceAsStream("metalastic-plugin.properties")?.use {
-      val properties = java.util.Properties()
+      val properties = Properties()
       properties.load(it)
       properties.getProperty("version")?.let { version ->
         return version
@@ -83,7 +86,7 @@ class MetalasticPlugin : Plugin<Project> {
 
   @Suppress("LongParameterList")
   private fun configureSourceSet(
-    argMethod: java.lang.reflect.Method,
+    argMethod: Method,
     kspExtension: Any,
     project: Project,
     sourceSetName: String,
@@ -139,10 +142,10 @@ class MetalasticPlugin : Plugin<Project> {
   )
 
   private fun configureCustomSourceSets(
-    argMethod: java.lang.reflect.Method,
+    argMethod: Method,
     kspExtension: Any,
     project: Project,
-    customSourceSets: org.gradle.api.NamedDomainObjectContainer<SourceSetConfig>,
+    customSourceSets: NamedDomainObjectContainer<SourceSetConfig>,
     globalDefaults: GlobalDefaults,
   ) {
     customSourceSets.forEach { sourceSetConfig ->
@@ -185,7 +188,7 @@ class MetalasticPlugin : Plugin<Project> {
 
   @Suppress("LongMethod")
   private fun configureMetamodels(
-    argMethod: java.lang.reflect.Method,
+    argMethod: Method,
     kspExtension: Any,
     project: Project,
     metamodels: MetamodelsConfiguration,

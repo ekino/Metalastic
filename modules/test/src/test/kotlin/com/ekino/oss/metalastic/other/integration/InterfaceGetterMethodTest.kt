@@ -1,9 +1,9 @@
-package com.metalastic.other.integration
+package com.ekino.oss.metalastic.other.integration
 
-import com.metalastic.core.BooleanField
-import com.metalastic.core.IntegerField
-import com.metalastic.core.KeywordField
-import com.metalastic.core.TextField
+import com.ekino.oss.metalastic.core.BooleanField
+import com.ekino.oss.metalastic.core.IntegerField
+import com.ekino.oss.metalastic.core.KeywordField
+import com.ekino.oss.metalastic.core.TextField
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf

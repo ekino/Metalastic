@@ -1,4 +1,4 @@
-package com.metalastic.processor.testing
+package com.ekino.oss.metalastic.processor.testing
 
 import com.tschuchort.compiletesting.SourceFile
 import java.io.File
@@ -49,11 +49,11 @@ object TestDataSources {
       """
       package com.example.test
 
-      import org . springframework . data . elasticsearch . annotations . Document
-              import org . springframework . data . elasticsearch . annotations . Field
-              import org . springframework . data . elasticsearch . annotations . FieldType
-              import org . springframework . data . elasticsearch . annotations . MultiField
-              import org . springframework . data . elasticsearch . annotations . InnerField
+      import org.springframework.data.elasticsearch.annotations.Document
+              import org.springframework.data.elasticsearch.annotations.Field
+              import org.springframework.data.elasticsearch.annotations.FieldType
+              import org.springframework.data.elasticsearch.annotations.MultiField
+              import org.springframework.data.elasticsearch.annotations.InnerField
 
               @Document(indexName = "multifield")
               data class MultiFieldDocument(
@@ -120,11 +120,11 @@ object TestDataSources {
       """
       package com.example.test
 
-      import org . springframework . data . elasticsearch . annotations . Document
-              import org . springframework . data . elasticsearch . annotations . Field
-              import org . springframework . data . elasticsearch . annotations . FieldType
-              import java . util . Date
-              import java . util . List
+      import org.springframework.data.elasticsearch.annotations.Document
+              import org.springframework.dat.elasticsearch.annotations.Field
+              import org.springframework.dat.elasticsearch.annotations.FieldType
+              import java.util.Dat
+              import java.util.Lis
 
               @Document(indexName = "java-compat")
               data class JavaCompatDocument(

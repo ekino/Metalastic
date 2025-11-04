@@ -1,4 +1,4 @@
-package com.metalastic.processor.building
+package com.ekino.oss.metalastic.processor.building
 
 import com.squareup.kotlinpoet.AnnotationSpec
 import com.squareup.kotlinpoet.TypeSpec

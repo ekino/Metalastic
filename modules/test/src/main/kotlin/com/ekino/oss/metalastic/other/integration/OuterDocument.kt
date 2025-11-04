@@ -1,4 +1,4 @@
-package com.metalastic.other.integration
+package com.ekino.oss.metalastic.other.integration
 
 import java.time.LocalDate
 import java.time.temporal.Temporal

@@ -1,7 +1,8 @@
 @file:OptIn(ExperimentalCompilerApi::class)
 
-package com.metalastic.processor.testing
+package com.ekino.oss.metalastic.processor.testing
 
+import com.ekino.oss.metalastic.processor.options.ProcessorOptions
 import com.google.devtools.ksp.processing.CodeGenerator
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.processing.Resolver
@@ -9,7 +10,6 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
-import com.metalastic.processor.options.ProcessorOptions
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.kspArgs

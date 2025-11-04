@@ -1,4 +1,4 @@
-package com.metalastic.elasticsearch.dsl
+package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import com.google.common.collect.BoundType
 import com.google.common.collect.Range

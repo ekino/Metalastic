@@ -1,4 +1,4 @@
-package com.metalastic.integration;
+package com.ekino.oss.metalastic.integration;
 
 public class MultiArgType<T, U, V> {
     private T first;

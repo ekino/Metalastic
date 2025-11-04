@@ -1,11 +1,11 @@
 @file:OptIn(ExperimentalCompilerApi::class)
 
-package com.metalastic.processor.testing
+package com.ekino.oss.metalastic.processor.testing
 
-import com.metalastic.processor.building.BuildingOrchestrator
-import com.metalastic.processor.collecting.GraphBuilder
-import com.metalastic.processor.model.GenerationResult
-import com.metalastic.processor.model.MetalasticGraph
+import com.ekino.oss.metalastic.processor.building.BuildingOrchestrator
+import com.ekino.oss.metalastic.processor.collecting.GraphBuilder
+import com.ekino.oss.metalastic.processor.model.GenerationResult
+import com.ekino.oss.metalastic.processor.model.MetalasticGraph
 import com.tschuchort.compiletesting.SourceFile
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 

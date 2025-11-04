@@ -1,7 +1,7 @@
-package com.metalastic.other.integration
+package com.ekino.oss.metalastic.other.integration
 
-import com.metalastic.core.BooleanField
-import com.metalastic.integration.MetaIndexPerson
+import com.ekino.oss.metalastic.core.BooleanField
+import com.ekino.oss.metalastic.integration.MetaIndexPerson
 import io.kotest.core.spec.style.ShouldSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
