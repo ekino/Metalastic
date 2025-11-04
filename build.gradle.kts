@@ -3,10 +3,11 @@ plugins {
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.detekt) apply false
+    alias(libs.plugins.gradle.maven.publish.plugin) apply false
 }
 
 allprojects {
-    group = "com.metalastic"
+    group = "com.ekino.oss"
     version = when {
         // CI environment - works with both GitLab CI and GitHub Actions
         System.getenv("CI") != null || System.getenv("GITHUB_ACTIONS") != null -> {
@@ -60,7 +61,7 @@ subprojects {
     apply(plugin = "io.gitlab.arturbosch.detekt")
 
     if (shouldPublish) {
-        apply(plugin = "maven-publish")
+        apply(plugin = "com.vanniktech.maven.publish")
     }
 
     configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
@@ -116,71 +117,40 @@ subprojects {
     }
 
     if (shouldPublish) {
-        configure<PublishingExtension> {
-            publications {
-                create<MavenPublication>("maven") {
-                    from(components["java"])
+        configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+            // Publish to Maven Central via Central Portal
+            publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
 
-                    // Enable sources jar for better IDE support
-                    artifact(tasks.named("kotlinSourcesJar"))
+            // Automatically sign all publications
+            signAllPublications()
 
-                    pom {
-                        name.set("Metalastic ${project.name}")
-                        description.set("A type-safe metamodel library for Elasticsearch in Kotlin")
-                        url.set("https://github.com/ekino/Metalastic")
+            // Configure POM metadata
+            pom {
+                name.set("Metalastic ${project.name}")
+                description.set("A type-safe metamodel library for Elasticsearch in Kotlin")
+                url.set("https://github.com/ekino/Metalastic")
 
-                        licenses {
-                            license {
-                                name.set("Apache License, Version 2.0")
-                                url.set("https://www.apache.org/licenses/LICENSE-2.0")
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                organization.set("ekino")
-                                organizationUrl.set("https://github.com/ekino")
-                            }
-                        }
-
-                        scm {
-                            connection.set("scm:git:git://github.com/ekino/Metalastic.git")
-                            developerConnection.set("scm:git:ssh://github.com/ekino/Metalastic.git")
-                            url.set("https://github.com/ekino/Metalastic")
-                        }
-                    }
-                }
-            }
-
-            repositories {
-                // GitHub Packages - Primary target
-                maven {
-                    name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/ekino/Metalastic")
-                    credentials {
-                        username = System.getenv("GITHUB_ACTOR")
-                            ?: project.findProperty("gpr.user") as String?
-                        password = System.getenv("GITHUB_TOKEN")
-                            ?: project.findProperty("gpr.token") as String?
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
                     }
                 }
 
-                // GitLab Maven Registry - Only when running in GitLab CI
-                // Conditional: only added if CI_PROJECT_ID and CI_JOB_TOKEN are available
-                val gitlabProjectId = System.getenv("CI_PROJECT_ID")
-                val gitlabJobToken = System.getenv("CI_JOB_TOKEN")
-                if (gitlabProjectId != null && gitlabJobToken != null) {
-                    maven {
-                        name = "GitLab"
-                        url = uri("https://gitlab.ekino.com/api/v4/projects/${gitlabProjectId}/packages/maven")
-                        credentials(HttpHeaderCredentials::class) {
-                            name = "Job-Token"
-                            value = gitlabJobToken
-                        }
-                        authentication {
-                            create("header", HttpHeaderAuthentication::class)
-                        }
+                developers {
+                    developer {
+                        id.set("ekino")
+                        name.set("ekino")
+                        email.set("opensource@ekino.com")
+                        organization.set("ekino")
+                        organizationUrl.set("https://github.com/ekino")
                     }
+                }
+
+                scm {
+                    connection.set("scm:git:git://github.com/ekino/Metalastic.git")
+                    developerConnection.set("scm:git:ssh://github.com/ekino/Metalastic.git")
+                    url.set("https://github.com/ekino/Metalastic")
                 }
             }
         }
