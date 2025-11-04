@@ -165,17 +165,21 @@ subprojects {
                     }
                 }
 
-                // GitLab Maven Registry - Kept during migration for backward compatibility
-                // TODO: Remove after migration is complete
-                maven {
-                    name = "GitLab"
-                    url = uri("https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven")
-                    credentials(HttpHeaderCredentials::class) {
-                        name = "Job-Token"
-                        value = System.getenv("CI_JOB_TOKEN")
-                    }
-                    authentication {
-                        create("header", HttpHeaderAuthentication::class)
+                // GitLab Maven Registry - Only when running in GitLab CI
+                // Conditional: only added if CI_PROJECT_ID and CI_JOB_TOKEN are available
+                val gitlabProjectId = System.getenv("CI_PROJECT_ID")
+                val gitlabJobToken = System.getenv("CI_JOB_TOKEN")
+                if (gitlabProjectId != null && gitlabJobToken != null) {
+                    maven {
+                        name = "GitLab"
+                        url = uri("https://gitlab.ekino.com/api/v4/projects/${gitlabProjectId}/packages/maven")
+                        credentials(HttpHeaderCredentials::class) {
+                            name = "Job-Token"
+                            value = gitlabJobToken
+                        }
+                        authentication {
+                            create("header", HttpHeaderAuthentication::class)
+                        }
                     }
                 }
             }
