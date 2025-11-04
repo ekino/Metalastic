@@ -21,8 +21,8 @@ dependencies {
 }
 
 gradlePlugin {
-  website = "https://gitlab.ekino.com/iperia/metalastic"
-  vcsUrl = "https://gitlab.ekino.com/iperia/metalastic.git"
+  website = "https://github.com/ekino/Metalastic"
+  vcsUrl = "https://github.com/ekino/Metalastic.git"
 
   plugins {
     create("metalastic") {
@@ -71,17 +71,31 @@ tasks.withType<GenerateModuleMetadata> { enabled = false }
 // Publishing configuration for the plugin
 publishing {
   repositories {
+    // GitHub Packages - Primary target
     maven {
-      name = "GitLab"
-      url =
-        uri(
-          "https://gitlab.ekino.com/api/v4/projects/${System.getenv("CI_PROJECT_ID")}/packages/maven"
-        )
-      credentials(HttpHeaderCredentials::class) {
-        name = "Job-Token"
-        value = System.getenv("CI_JOB_TOKEN")
+      name = "GitHubPackages"
+      url = uri("https://maven.pkg.github.com/ekino/Metalastic")
+      credentials {
+        username = System.getenv("GITHUB_ACTOR")
+          ?: project.findProperty("gpr.user") as String?
+        password = System.getenv("GITHUB_TOKEN")
+          ?: project.findProperty("gpr.token") as String?
       }
-      authentication { create("header", HttpHeaderAuthentication::class) }
+    }
+
+    // GitLab Maven Registry - Only when running in GitLab CI
+    val gitlabProjectId = System.getenv("CI_PROJECT_ID")
+    val gitlabJobToken = System.getenv("CI_JOB_TOKEN")
+    if (gitlabProjectId != null && gitlabJobToken != null) {
+      maven {
+        name = "GitLab"
+        url = uri("https://gitlab.ekino.com/api/v4/projects/${gitlabProjectId}/packages/maven")
+        credentials(HttpHeaderCredentials::class) {
+          name = "Job-Token"
+          value = gitlabJobToken
+        }
+        authentication { create("header", HttpHeaderAuthentication::class) }
+      }
     }
   }
 }
