@@ -74,13 +74,15 @@ jobs:
       - name: Run tests
         run: ./gradlew test
 
-      - name: Publish to GitHub Packages
+      - name: Publish to Maven Central
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
         run: |
-          echo "🚀 Publishing to GitHub Packages..."
-          ./gradlew publish
+          echo "🚀 Publishing to Maven Central..."
+          ./gradlew publish --no-daemon --stacktrace
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
