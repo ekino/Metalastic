@@ -121,7 +121,7 @@ The annotation processor generates two main types of artifacts with a modern gen
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
 
-@Generated("com.metalastic.processor.MetalasticSymbolProcessor")
+@Generated("com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor")
 class MetaTestDocument<T : Any?>(
     parent: ObjectField<*>? = null,
     name: String = "",
@@ -177,7 +177,7 @@ class MetaAddress<T : Any?>(
 ### 2. Centralized Metamodels Registry
 
 ```kotlin
-import com.metalastic.core.Document
+import com.ekino.oss.metalastic.coreDocument
 import com.metalastictest.integration.MetaTestDocument.Companion.testDocument
 import com.metalastictest.integration.MetaExampleDocument.Companion.exampleDocument
 import jakarta.annotation.Generated
@@ -185,7 +185,7 @@ import kotlin.jvm.JvmStatic
 import kotlin.sequences.Sequence
 
 @Generated(
-    value = ["com.metalastic.processor.MetalasticSymbolProcessor"],
+    value = ["com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor"],
     date = "2025-10-10T10:00:00Z"
 )
 data object Metamodels {
@@ -476,7 +476,7 @@ The DSL module includes type-safe value converters for:
 ```kotlin
 plugins {
     id("com.google.devtools.ksp") version "2.2.20-2.0.3"
-    id("com.metalastic") version "2.0.5"
+    id("com.ekino.oss.metalastic") version "3.0.0"
 }
 
 repositories {
@@ -532,7 +532,7 @@ dependencies {
 
 1. **Source set specific** (highest priority) - `metalastic.metamodels.main { ... }`
 2. **Global defaults** - `metalastic.metamodels { packageName = "..." }`
-3. **Hard-coded defaults** - `Meta` prefix, `com.metalastic` package
+3. **Hard-coded defaults** - `Meta` prefix, `com.ekino.oss.metalastic` package
 4. **Auto-detection** - From source file paths (src/main/kotlin → "main")
 
 ### Manual Configuration (without plugin)
@@ -550,8 +550,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.metalastic:core:2.0.5")
-    ksp("com.metalastic:processor:2.0.5")
+    implementation("com.ekino.oss:metalastic-core:3.0.0")
+    ksp("com.ekino.oss:metalastic-processor:3.0.0")
 }
 
 ksp {
@@ -575,22 +575,27 @@ ksp {
 
 ## Publishing
 
-### GitLab Maven Registry
+### Maven Central
 
-- **Repository**: https://gitlab.ekino.com/iperia/metalastic
-- **CI/CD**: Automatic publishing on master branch pushes
-- **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
-- **Group ID**: `com.metalastic`
+- **Repository**: https://github.com/ekino/Metalastic
+- **CI/CD**: GitHub Actions with automatic publishing on tag pushes
+- **Package Registry**: https://central.sonatype.com/namespace/com.ekino.oss
+- **Group ID**: `com.ekino.oss`
+- **License**: MIT License
 
 ### Published Artifacts
 
 ```kotlin
+repositories {
+    mavenCentral()  // No authentication required!
+}
+
 dependencies {
-    implementation("com.metalastic:core:2.0.5")
-    ksp("com.metalastic:processor:2.0.5")
+    implementation("com.ekino.oss:metalastic-core:3.0.0")
+    ksp("com.ekino.oss:metalastic-processor:3.0.0")
 
     // Optional: Query DSL module (separate versioning)
-    implementation("com.metalastic:elasticsearch-dsl:5.0.12-1.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
 }
 ```
 
@@ -654,8 +659,8 @@ See [TAG_MANAGEMENT.md](TAG_MANAGEMENT.md) for detailed publishing workflows.
 **CoreConstants** (Processor):
 ```kotlin
 object CoreConstants {
-    const val CORE_PACKAGE = "com.metalastic.core"
-    const val FALLBACK_METAMODELS_PACKAGE = "com.metalastic"
+    const val CORE_PACKAGE = "com.ekino.oss.metalastic.core"
+    const val FALLBACK_METAMODELS_PACKAGE = "com.ekino.oss.metalastic"
     const val META_PREFIX = "Meta"
     const val MULTIFIELD_POSTFIX = "MultiField"
     const val DOCUMENT_CLASS = "Document"
@@ -669,7 +674,7 @@ object CoreConstants {
 ```kotlin
 object PluginConstants {
     object Metamodels {
-        const val DEFAULT_PACKAGE = "com.metalastic"
+        const val DEFAULT_PACKAGE = "com.ekino.oss.metalastic"
         const val DEFAULT_CLASS_NAME = "Metamodels"
         const val DEFAULT_CLASS_PREFIX = "Meta"
     }
