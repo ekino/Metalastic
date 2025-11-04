@@ -2,11 +2,12 @@
 
 A type-safe metamodel library for Elasticsearch in Kotlin that generates compile-time field definitions from Spring Data Elasticsearch document classes.
 
-[![GitLab CI/CD](https://gitlab.ekino.com/iperia/metalastic/badges/master/pipeline.svg)](https://gitlab.ekino.com/iperia/metalastic/pipelines)
-[![Maven Repository](https://img.shields.io/badge/maven-GitLab%20Registry-blue)](https://gitlab.ekino.com/iperia/metalastic/-/packages)
+[![GitHub Actions](https://github.com/ekino/Metalastic/workflows/Build%20and%20Test/badge.svg)](https://github.com/ekino/Metalastic/actions)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ekino.oss/metalastic-core)](https://central.sonatype.com/namespace/com.ekino.oss)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.0-purple)](https://kotlinlang.org/)
-[![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.1-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.20-purple)](https://kotlinlang.org/)
+[![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.4-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
 ## Table of Contents
 
@@ -33,6 +34,7 @@ A type-safe metamodel library for Elasticsearch in Kotlin that generates compile
 - [Development](#development)
 - [Publishing](#publishing)
 - [Roadmap](#roadmap)
+- [License](#license)
 
 ## Overview
 
@@ -65,35 +67,18 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 
 ## Quick Start
 
-### 1. Configure Plugin Repository
-
-```kotlin
-// settings.gradle.kts
-pluginManagement {
-    repositories {
-        gradlePluginPortal()
-        maven {
-            url = uri("https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven")
-        }
-    }
-}
-```
-
-### 2. Apply Required Plugins
+### 1. Apply Required Plugins
 
 ```kotlin
 // build.gradle.kts
 plugins {
     kotlin("jvm") version "2.2.20"
     id("com.google.devtools.ksp") version "2.2.20-2.0.3"  // Required for code generation
-    id("com.metalastic") version "2.0.0"
+    id("com.ekino.oss.metalastic") version "3.0.0"
 }
 
 repositories {
-    mavenCentral()
-    maven {
-        url = uri("https://gitlab.ekino.com/api/v4/projects/{PROJECT_ID}/packages/maven")
-    }
+    mavenCentral()  // That's it! No special configuration needed
 }
 
 // Dependencies are automatically added by the Metalastic plugin
@@ -136,8 +121,8 @@ plugins {
 }
 
 dependencies {
-    implementation("com.metalastic:core:2.0.0")
-    ksp("com.metalastic:processor:2.0.0")
+    implementation("com.ekino.oss:metalastic-core:3.0.0")
+    ksp("com.ekino.oss:metalastic-processor:3.0.0")
 }
 
 ksp {
@@ -174,7 +159,7 @@ The `elasticsearch-dsl` module provides an innovative query building DSL with ty
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.metalastic:elasticsearch-dsl:5.0.12-1.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
 }
 ```
 
@@ -495,7 +480,7 @@ class MetaActivity(
 
 #### Centralized Registry
 ```kotlin
-@Generated("com.metalastic.processor.MetalasticSymbolProcessor")
+@Generated("com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor")
 data object Metamodels {
     /**
      * Metamodel for @Document class [com.example.Person]
@@ -943,10 +928,10 @@ ksp {
 
 | Option | Description | Default |
 |--------|-------------|---------|
-| `metamodels.{sourceSet}.package` | Custom package for specific source set | `com.metalastic.metamodels.{sourceSet}` |
+| `metamodels.{sourceSet}.package` | Custom package for specific source set | `com.ekino.oss.metalastic.metamodels.{sourceSet}` |
 | `metamodels.{sourceSet}.className` | Custom class name for specific source set | `Metamodels` |
 | `metamodels.{sourceSet}.classPrefix` | Custom class prefix for specific source set | `Meta` |
-| `metamodels.package` | Global default package | `com.metalastic` |
+| `metamodels.package` | Global default package | `com.ekino.oss.metalastic` |
 | `metamodels.className` | Global default class name | `Metamodels` |
 | `metamodels.classPrefix` | Global default class prefix | `Meta` |
 | `metalastic.generateJavaCompatibility` | Add `@JvmField` for Java interop | `true` |
@@ -1311,10 +1296,10 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 | Module | Group ID | Latest Version | Versioning Strategy |
 |--------|----------|----------------|-------------------|
-| **Core Runtime** | `com.metalastic:core` | `2.1.0` | Semantic versioning |
-| **Annotation Processor** | `com.metalastic:processor` | `2.1.0` | Semantic versioning |
-| **Enhanced DSL** | `com.metalastic:elasticsearch-dsl` | `5.0.12-1.0` | `{spring-data-es}-{dsl-version}` |
-| **Gradle Plugin** | `com.metalastic:gradle-plugin` | `2.1.0` | Semantic versioning |
+| **Core Runtime** | `com.ekino.oss:metalastic-core` | `3.0.0` | Semantic versioning |
+| **Annotation Processor** | `com.ekino.oss:metalastic-processor` | `3.0.0` | Semantic versioning |
+| **Enhanced DSL** | `com.ekino.oss:metalastic-elasticsearch-dsl` | `5.0.12-1.0` | `{spring-data-es}-{dsl-version}` |
+| **Gradle Plugin** | `com.ekino.oss:metalastic-gradle-plugin` | `3.0.0` | Semantic versioning |
 
 ### elasticsearch-dsl Version Matrix
 
@@ -1394,7 +1379,7 @@ The processor uses **runtime field type detection**, automatically supporting:
    ```kotlin
    plugins {
        id("com.google.devtools.ksp") version "2.2.20-2.0.3"
-       id("com.metalastic") version "2.0.0"
+       id("com.ekino.oss.metalastic") version "3.0.0"
    }
    ```
 2. **Check for `@Document` annotations**:
@@ -1621,13 +1606,13 @@ Metalastic uses a **dual publication strategy** to handle different versioning n
 1. **Core Modules** (`core`, `processor`, `gradle-plugin`)
    - **Tag Format**: `v2.1.0`
    - **Publishes**:
-     - `com.metalastic:core:2.1.0`
-     - `com.metalastic:processor:2.1.0`
-     - `com.metalastic:gradle-plugin:2.1.0`
+     - `com.ekino.oss:metalastic-core:3.0.0`
+     - `com.ekino.oss:metalastic-processor:3.0.0`
+     - `com.ekino.oss:metalastic-gradle-plugin:3.0.0`
 
 2. **elasticsearch-dsl Module**
    - **Tag Format**: `elasticsearch-dsl-v5.0.12-1.0`
-   - **Publishes**: `com.metalastic:elasticsearch-dsl:5.0.12-1.0`
+   - **Publishes**: `com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0`
 
 ### 🚀 Release Process
 
@@ -1656,10 +1641,10 @@ git push origin elasticsearch-dsl-v5.0.12-1.0
 
 ### 🏢 Repository Information
 
-- **Repository**: https://gitlab.ekino.com/iperia/metalastic
-- **Package Registry**: https://gitlab.ekino.com/iperia/metalastic/-/packages
-- **Group ID**: `com.metalastic`
-- **CI/CD**: Automatic publishing on tag pushes
+- **Repository**: https://github.com/ekino/Metalastic
+- **Package Registry**: https://central.sonatype.com/namespace/com.ekino.oss
+- **Group ID**: `com.ekino.oss`
+- **CI/CD**: GitHub Actions with automatic publishing on tag pushes
 
 ## Roadmap
 
@@ -1691,6 +1676,14 @@ git push origin elasticsearch-dsl-v5.0.12-1.0
 - Query execution utilities
 - IDE plugin for enhanced development experience
 - Performance benchmarking and optimization
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+
+Copyright (c) 2025 ekino
 
 ---
 
