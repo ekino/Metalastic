@@ -62,15 +62,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Publish snapshot
+      - name: Publish snapshot to Maven Central
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+          MAVEN_CENTRAL_USERNAME: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          MAVEN_CENTRAL_PASSWORD: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
         run: |
           if [ "${{ github.event.inputs.module }}" == "all" ]; then
-            echo "📦 Publishing all modules as snapshot"
-            ./gradlew publish
+            echo "📦 Publishing all modules as snapshot to Maven Central"
+            ./gradlew publish --no-daemon --stacktrace
           elif [ "${{ github.event.inputs.module }}" == "elasticsearch-dsl" ]; then
-            echo "📦 Publishing elasticsearch-dsl module only"
-            ./gradlew :modules:elasticsearch-dsl:publish
+            echo "📦 Publishing elasticsearch-dsl module only to Maven Central"
+            ./gradlew :modules:elasticsearch-dsl:publish --no-daemon --stacktrace
           fi
