@@ -1,7 +1,7 @@
 plugins {
   `kotlin-dsl`
   `java-gradle-plugin`
-  `maven-publish`
+  alias(libs.plugins.gradle.maven.publish.plugin)
 }
 
 dependencies {
@@ -26,8 +26,8 @@ gradlePlugin {
 
   plugins {
     create("metalastic") {
-      id = "com.metalastic"
-      implementationClass = "com.metalastic.gradle.MetalasticPlugin"
+      id = "com.ekino.oss.metalastic"
+      implementationClass = "com.ekino.oss.metalastic.gradle.MetalasticPlugin"
       displayName = "Metalastic Plugin"
       description =
         "Gradle plugin for configuring Metalastic annotation processor with type-safe DSL"
@@ -69,31 +69,42 @@ tasks.processResources { dependsOn(generateVersionPropertiesTask) }
 tasks.withType<GenerateModuleMetadata> { enabled = false }
 
 // Publishing configuration for the plugin
-publishing {
-  repositories {
-    // GitHub Packages - Primary target
-    maven {
-      name = "GitHubPackages"
-      url = uri("https://maven.pkg.github.com/ekino/Metalastic")
-      credentials {
-        username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("gpr.user") as String?
-        password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("gpr.token") as String?
+mavenPublishing {
+  // Publish to Maven Central via Central Portal
+  publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+
+  // Automatically sign all publications
+  signAllPublications()
+
+  // Configure POM metadata
+  pom {
+    name.set("Metalastic Gradle Plugin")
+    description.set(
+      "Gradle plugin for configuring Metalastic annotation processor with type-safe DSL"
+    )
+    url.set("https://github.com/ekino/Metalastic")
+
+    licenses {
+      license {
+        name.set("MIT License")
+        url.set("https://opensource.org/licenses/MIT")
       }
     }
 
-    // GitLab Maven Registry - Only when running in GitLab CI
-    val gitlabProjectId = System.getenv("CI_PROJECT_ID")
-    val gitlabJobToken = System.getenv("CI_JOB_TOKEN")
-    if (gitlabProjectId != null && gitlabJobToken != null) {
-      maven {
-        name = "GitLab"
-        url = uri("https://gitlab.ekino.com/api/v4/projects/${gitlabProjectId}/packages/maven")
-        credentials(HttpHeaderCredentials::class) {
-          name = "Job-Token"
-          value = gitlabJobToken
-        }
-        authentication { create("header", HttpHeaderAuthentication::class) }
+    developers {
+      developer {
+        id.set("ekino")
+        name.set("ekino")
+        email.set("opensource@ekino.com")
+        organization.set("ekino")
+        organizationUrl.set("https://github.com/ekino")
       }
+    }
+
+    scm {
+      connection.set("scm:git:git://github.com/ekino/Metalastic.git")
+      developerConnection.set("scm:git:ssh://github.com/ekino/Metalastic.git")
+      url.set("https://github.com/ekino/Metalastic")
     }
   }
 }
