@@ -1,0 +1,76 @@
+name: Manual Publish (Snapshot)
+
+on:
+  workflow_dispatch:
+    inputs:
+      module:
+        description: 'Module to publish (all, elasticsearch-dsl)'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - elasticsearch-dsl
+
+permissions:
+  packages: write
+
+jobs:
+  publish-snapshot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'corretto'
+          java-version: '21'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Calculate snapshot version
+        id: version
+        run: |
+          VERSION=$(git describe --tags --always --dirty --abbrev=7)
+          VERSION="${VERSION#v}"
+          if echo "$VERSION" | grep -q '-'; then
+            SNAPSHOT_VERSION="$VERSION-SNAPSHOT"
+          else
+            SNAPSHOT_VERSION="$VERSION-SNAPSHOT"
+          fi
+          echo "snapshot_version=$SNAPSHOT_VERSION" >> $GITHUB_OUTPUT
+          echo "📦 Snapshot version: $SNAPSHOT_VERSION"
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Publish snapshot
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        run: |
+          if [ "${{ github.event.inputs.module }}" == "all" ]; then
+            echo "📦 Publishing all modules as snapshot"
+            ./gradlew publish
+          elif [ "${{ github.event.inputs.module }}" == "elasticsearch-dsl" ]; then
+            echo "📦 Publishing elasticsearch-dsl module only"
+            ./gradlew :modules:elasticsearch-dsl:publish
+          fi
