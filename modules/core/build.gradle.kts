@@ -2,8 +2,8 @@ dependencies {
   // Jakarta annotations for generated code
   api(libs.jakarta.annotation.api)
 
-  // Spring Data Elasticsearch for annotations
-  implementation(libs.spring.data.elasticsearch)
+  // Spring Data Elasticsearch for annotations (compile-only, consumers provide at runtime)
+  compileOnly(libs.spring.data.elasticsearch)
 
   // Kotlin reflection for runtime inspection
   implementation(libs.kotlin.reflect)

@@ -8,7 +8,7 @@ dependencies {
   // DSL runtime dependency
   implementation(project(":modules:core"))
 
-  // Spring Data Elasticsearch for annotations
+  // Spring Data Elasticsearch for annotations (needed at KSP runtime for annotation processing)
   implementation(libs.spring.data.elasticsearch)
 
   // KSP and Code generation

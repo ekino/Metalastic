@@ -118,6 +118,13 @@ subprojects {
 
     if (shouldPublish) {
         configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
+            // Set Maven coordinates: group:artifactId:version
+            coordinates(
+                groupId = project.group.toString(),
+                artifactId = "metalastic-${project.name}",
+                version = project.version.toString()
+            )
+
             // Publish to Maven Central via Central Portal
             // v0.34.0+ supports both SNAPSHOTs and Releases
             publishToMavenCentral(automaticRelease = true)
@@ -140,9 +147,9 @@ subprojects {
 
                 developers {
                     developer {
-                        id.set("ekino")
-                        name.set("ekino")
-                        email.set("opensource@ekino.com")
+                        id.set("Benoit.Havret")
+                        name.set("Benoît Havret")
+                        email.set("benoit.havret@ekino.com")
                         organization.set("ekino")
                         organizationUrl.set("https://github.com/ekino")
                     }

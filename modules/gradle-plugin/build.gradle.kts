@@ -70,6 +70,13 @@ tasks.withType<GenerateModuleMetadata> { enabled = false }
 
 // Publishing configuration for the plugin
 mavenPublishing {
+  // Set Maven coordinates: group:artifactId:version
+  coordinates(
+    groupId = project.group.toString(),
+    artifactId = "metalastic-gradle-plugin",
+    version = project.version.toString(),
+  )
+
   // Publish to Maven Central via Central Portal
   // v0.34.0+ supports both SNAPSHOTs and Releases
   publishToMavenCentral(automaticRelease = true)
@@ -96,7 +103,7 @@ mavenPublishing {
       developer {
         id.set("ekino")
         name.set("ekino")
-        email.set("opensource@ekino.com")
+        email.set("benoit.havret@ekino.com")
         organization.set("ekino")
         organizationUrl.set("https://github.com/ekino")
       }
