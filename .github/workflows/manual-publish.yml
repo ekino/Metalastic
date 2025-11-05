@@ -13,6 +13,7 @@ on:
           - elasticsearch-dsl
 
 permissions:
+  contents: read
   packages: write
 
 jobs:
@@ -62,15 +63,17 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Publish snapshot
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_ACTOR: ${{ github.actor }}
+      - name: Publish snapshot to Maven Central
+          env:
+            ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
+            ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
+            ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
+            ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
         run: |
           if [ "${{ github.event.inputs.module }}" == "all" ]; then
-            echo "📦 Publishing all modules as snapshot"
-            ./gradlew publish
+            echo "📦 Publishing all modules as snapshot to Maven Central"
+            ./gradlew publish --no-daemon --stacktrace
           elif [ "${{ github.event.inputs.module }}" == "elasticsearch-dsl" ]; then
-            echo "📦 Publishing elasticsearch-dsl module only"
-            ./gradlew :modules:elasticsearch-dsl:publish
+            echo "📦 Publishing elasticsearch-dsl module only to Maven Central"
+            ./gradlew :modules:elasticsearch-dsl:publish --no-daemon --stacktrace
           fi

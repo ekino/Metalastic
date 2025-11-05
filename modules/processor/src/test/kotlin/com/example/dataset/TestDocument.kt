@@ -6,7 +6,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType
 
 @Document(indexName = "test_document")
 class TestDocument : IndexActivity {
-  //  @Field(type = FieldType.Keyword)
   private var id: String = ""
 
   @Field(type = FieldType.Object) var address: Address = Address()
@@ -14,7 +13,7 @@ class TestDocument : IndexActivity {
   @Field(type = FieldType.Keyword) override fun getId() = id
 }
 
-public interface IndexActivity {
+interface IndexActivity {
   @Field(type = FieldType.Keyword) fun getId(): String
 }
 

@@ -17,6 +17,9 @@ spotless = "7.2.1"
 detekt = "1.23.8"
 ktfmt = "0.58"
 
+# Publishing
+gradle-maven-publish-plugin = "0.30.0"
+
 # Testing
 mockk = "1.14.5"
 kotlin-compile-testing = "1.6.0"
@@ -68,3 +71,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+gradle-maven-publish-plugin = { id = "com.vanniktech.maven.publish", version.ref = "gradle-maven-publish-plugin" }
