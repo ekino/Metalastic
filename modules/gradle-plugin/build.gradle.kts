@@ -72,7 +72,7 @@ tasks.withType<GenerateModuleMetadata> { enabled = false }
 mavenPublishing {
   // Publish to Maven Central via Central Portal
   // v0.34.0+ supports both SNAPSHOTs and Releases
-  publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL, automaticRelease = true)
+  publishToMavenCentral(automaticRelease = true)
 
   // Automatically sign all publications
   signAllPublications()
