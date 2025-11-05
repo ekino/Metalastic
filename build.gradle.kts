@@ -118,8 +118,9 @@ subprojects {
 
     if (shouldPublish) {
         configure<com.vanniktech.maven.publish.MavenPublishBaseExtension> {
-            // Publish to Maven Central via Central Portal
-            publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.CENTRAL_PORTAL)
+            // Publish to Maven Central via S01 OSSRH
+            // Note: Central Portal doesn't support SNAPSHOTs, so we use S01 which supports both
+            publishToMavenCentral(com.vanniktech.maven.publish.SonatypeHost.S01, automaticRelease = true)
 
             // Automatically sign all publications
             signAllPublications()
