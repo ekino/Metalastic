@@ -1,0 +1,74 @@
+[versions]
+# Kotlin and JVM
+kotlin = "2.2.20"
+
+# KSP and Code Generation
+ksp = "2.2.20-2.0.3"
+kotlinpoet = "2.2.0"
+
+# Spring Data Elasticsearch
+spring-data-elasticsearch = "5.5.4"
+
+#annotations
+jakarta-annotation-api = "3.0.0"
+
+# Code Quality
+spotless = "7.2.1"
+detekt = "1.23.8"
+ktfmt = "0.58"
+
+# Publishing
+gradle-maven-publish-plugin = "0.34.0"
+
+# Testing
+mockk = "1.14.5"
+kotlin-compile-testing = "1.6.0"
+kotest = "5.9.1"
+junit-jupiter = "5.10.1"
+
+# Logging
+kotlin-logging = "7.0.0"
+
+[libraries]
+# Kotlin
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
+
+# Spring Data Elasticsearch
+spring-data-elasticsearch = { module = "org.springframework.data:spring-data-elasticsearch", version.ref = "spring-data-elasticsearch" }
+
+# KSP and Code Generation
+ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+ksp-gradlePlugin = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
+kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
+
+# Testing
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+kotlin-compile-testing = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlin-compile-testing" }
+kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlin-compile-testing" }
+
+# Kotest
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-property = { module = "io.kotest:kotest-property", version.ref = "kotest" }
+kotest-framework-datatest = { module = "io.kotest:kotest-framework-datatest", version.ref = "kotest" }
+
+# JUnit Jupiter
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+
+# Annotations
+jakarta-annotation-api = { module = "jakarta.annotation:jakarta.annotation-api", version.ref = "jakarta-annotation-api" }
+
+# Logging
+kotlin-logging = { module = "io.github.oshai:kotlin-logging-jvm", version.ref = "kotlin-logging" }
+
+[bundles]
+kotest-extended = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property", "kotest-framework-datatest", "kotlin-test"]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+gradle-maven-publish-plugin = { id = "com.vanniktech.maven.publish", version.ref = "gradle-maven-publish-plugin" }
