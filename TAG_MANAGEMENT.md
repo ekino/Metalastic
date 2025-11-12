@@ -38,20 +38,26 @@ com.ekino.oss:metalastic-processor:1.0.0
 com.ekino.oss:metalastic-gradle-plugin:1.0.0
 ```
 
-### Elasticsearch DSL Module Versioning
+### Elasticsearch DSL Modules Versioning
 
-**Format**: `elasticsearch-dsl-v{SPRING_DATA_ES_VERSION}-{DSL_VERSION}`
+**Multi-version support**: 6 separate artifacts for Spring Data ES 5.0 through 5.5
+
+**Format**: `elasticsearch-dsl-5.{x}-v{DSL_VERSION}`
 
 **Examples**:
-- `elasticsearch-dsl-v5.0.12-1.0` - DSL v1.0 compatible with Spring Data ES 5.0.12
-- `elasticsearch-dsl-v5.5.4-1.0` - DSL v1.0 compatible with Spring Data ES 5.5.4
+- `elasticsearch-dsl-5.5-v1.0` - DSL v1.0 for Spring Data ES 5.5.x
+- `elasticsearch-dsl-5.0-v1.0` - DSL v1.0 for Spring Data ES 5.0.x
 
-**Publishes**:
+**Publishes** (per tag):
 ```
-com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0
+# Tag elasticsearch-dsl-5.5-v1.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0
+
+# Tag elasticsearch-dsl-5.0-v1.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0
 ```
 
-**Rationale**: The DSL module version is tied to the Spring Data Elasticsearch version it's compatible with, allowing consumers to match their dependency versions.
+**Rationale**: Separate artifacts per Spring Data ES version prevent dependency conflicts. Consumers choose the variant matching their Spring Data ES version.
 
 ## Release Process
 
@@ -97,23 +103,46 @@ com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0
    - Add release notes from `release-notes/RELEASE_NOTES_v1.0.0.md`
    - Publish the release
 
-### Releasing Elasticsearch DSL Module
+### Releasing Elasticsearch DSL Modules
 
-1. **Update DSL version** (if needed)
+**Option A: Release specific version variant**
 
-   Edit `modules/elasticsearch-dsl/build.gradle.kts`:
-   ```kotlin
-   val springDataEsVersion = "5.0.12"
-   val dslVersion = "1.0"
-   ```
+1. **Choose which Spring Data ES version to release**
+   - 5.0, 5.1, 5.2, 5.3, 5.4, or 5.5
 
 2. **Create and push the tag**
    ```bash
-   git tag elasticsearch-dsl-v5.0.12-1.0
-   git push origin elasticsearch-dsl-v5.0.12-1.0
+   # Example: Release DSL v1.0 for Spring Data ES 5.5
+   git tag elasticsearch-dsl-5.5-v1.0
+   git push origin elasticsearch-dsl-5.5-v1.0
    ```
 
 3. **Monitor and verify** (same as core modules)
+
+**Option B: Release all DSL variants together** (recommended)
+
+When releasing a new DSL version, release all 6 variants with the same DSL version:
+
+```bash
+# Tag all 6 variants with DSL v1.0
+git tag elasticsearch-dsl-5.0-v1.0
+git tag elasticsearch-dsl-5.1-v1.0
+git tag elasticsearch-dsl-5.2-v1.0
+git tag elasticsearch-dsl-5.3-v1.0
+git tag elasticsearch-dsl-5.4-v1.0
+git tag elasticsearch-dsl-5.5-v1.0
+
+# Push all tags
+git push origin --tags
+```
+
+This publishes:
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0`
 
 ### Publishing SNAPSHOTs
 
@@ -151,7 +180,7 @@ SNAPSHOTs are automatically published on every commit to `master` via the "Manua
 **File**: `.github/workflows/publish.yml`
 
 **Triggers**:
-- Tag push matching `v*` or `elasticsearch-dsl-v*`
+- Tag push matching `v*` or `elasticsearch-dsl-*-v*`
 
 **Actions**:
 1. Detects tag type (core modules vs DSL)
@@ -182,7 +211,7 @@ SNAPSHOTs are automatically published on every commit to `master` via the "Manua
 ### Tag Push Doesn't Trigger Workflow
 
 **Check**:
-1. Tag format matches `v*` or `elasticsearch-dsl-v*`
+1. Tag format matches `v*` or `elasticsearch-dsl-*-v*`
 2. Tag was pushed to GitHub: `git ls-remote --tags origin`
 3. Workflow file exists and is valid: `.github/workflows/publish.yml`
 
