@@ -13,7 +13,7 @@ spring-data-elasticsearch = "5.5.4"
 jakarta-annotation-api = "3.0.0"
 
 # Code Quality
-spotless = "7.2.1"
+spotless = "8.0.0"
 detekt = "1.23.8"
 ktfmt = "0.58"
 
