@@ -1,0 +1,101 @@
+# Dependabot configuration for Metalastic
+# Automatically updates dependencies in gradle/libs.versions.toml
+#
+# Documentation: https://docs.github.com/en/code-security/dependabot
+
+version: 2
+updates:
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Paris"
+
+    # Limit concurrent PRs to avoid overwhelming the repository
+    open-pull-requests-limit: 5
+
+    # Group related dependencies to reduce PR noise
+    groups:
+      # Kotlin ecosystem - must be updated together for compatibility
+      kotlin:
+        patterns:
+          - "org.jetbrains.kotlin*"
+          - "com.google.devtools.ksp*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Spring Data Elasticsearch - keep separate for careful review
+      # Note: Version-specific DSL modules (5.0-5.5) intentionally pin versions
+      spring-data:
+        patterns:
+          - "org.springframework.data:spring-data-elasticsearch"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Code generation tools
+      code-generation:
+        patterns:
+          - "com.squareup:kotlinpoet*"
+
+      # Code quality tools (spotless, detekt, ktfmt)
+      code-quality:
+        patterns:
+          - "com.diffplug.spotless*"
+          - "io.gitlab.arturbosch.detekt*"
+        update-types:
+          - "minor"
+          - "patch"
+
+      # Testing frameworks (kotest, mockk, junit, kotlin-compile-testing)
+      testing:
+        patterns:
+          - "io.kotest*"
+          - "io.mockk*"
+          - "org.junit.jupiter*"
+          - "com.github.tschuchortdev:kotlin-compile-testing*"
+
+      # Publishing plugin
+      publishing:
+        patterns:
+          - "com.vanniktech.maven.publish*"
+
+      # Other dependencies (logging, annotations, etc.)
+      other:
+        patterns:
+          - "io.github.oshai:kotlin-logging*"
+          - "jakarta.annotation:jakarta-annotation-api"
+          - "com.google.guava*"
+
+    # Ignore rules to prevent unwanted updates
+    ignore:
+      # Don't auto-update major versions of critical dependencies
+      # Major updates need manual review and testing
+      - dependency-name: "org.springframework.data:spring-data-elasticsearch"
+        update-types: ["version-update:semver-major"]
+
+      - dependency-name: "org.jetbrains.kotlin:*"
+        update-types: ["version-update:semver-major"]
+
+      - dependency-name: "com.google.devtools.ksp:*"
+        update-types: ["version-update:semver-major"]
+
+      # Code quality tools - major updates can change formatting
+      - dependency-name: "com.diffplug.spotless:*"
+        update-types: ["version-update:semver-major"]
+
+      - dependency-name: "io.gitlab.arturbosch.detekt:*"
+        update-types: ["version-update:semver-major"]
+
+    # Customize PR labels
+    labels:
+      - "dependencies"
+      - "automated"
+
+    # Customize commit messages to follow project conventions
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
