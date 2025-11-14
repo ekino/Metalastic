@@ -13,7 +13,7 @@ allprojects {
         System.getenv("GITHUB_ACTIONS") != null -> {
             // Use GITHUB_REF_NAME for tag-based releases
             val tag = System.getenv("GITHUB_REF_NAME")?.takeIf {
-                it.startsWith("v") || it.startsWith("elasticsearch-dsl-v")
+                it.startsWith("v") || it.startsWith("elasticsearch-dsl-")
             }
 
             tag?.removePrefix("v") // v1.2.3 -> 1.2.3
@@ -53,7 +53,11 @@ subprojects {
 
     // Skip publishing for test module - it's only for integration testing
     // gradle-plugin has its own special publication setup
-    val shouldPublish = project.name != "test" && project.name != "gradle-plugin"
+    // elasticsearch-dsl-shared-* are just source code (not published, only version-specific variants)
+    val shouldPublish = project.name != "test" &&
+                        project.name != "gradle-plugin" &&
+                        project.name != "elasticsearch-dsl-shared-8.5" &&
+                        project.name != "elasticsearch-dsl-shared-8.15"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")

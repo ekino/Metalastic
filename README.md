@@ -156,20 +156,31 @@ SearchSourceBuilder()
 
 ## Enhanced Query Building DSL
 
-The `elasticsearch-dsl` module provides an innovative query building DSL with type-safe, fluent syntax:
+The `elasticsearch-dsl` modules provide innovative query building DSL with type-safe, fluent syntax.
+
+**Multi-version support**: Separate artifacts for Spring Data Elasticsearch 5.0 through 5.5
 
 ### Installation
+
+Choose the artifact matching your Spring Data Elasticsearch version:
 
 ```kotlin
 // build.gradle.kts
 dependencies {
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
+    // For Spring Data ES 5.5.x
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")
+
+    // For Spring Data ES 5.4.x
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")
+
+    // For Spring Data ES 5.0.x through 5.3.x
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")
 }
 ```
 
-**Version Format**: `{spring-data-es-version}-{dsl-version}`
-- **5.0.12** = Compatible with Spring Data Elasticsearch 5.0.12
-- **1.0** = elasticsearch-dsl module version 1.0
+**Version Format**: `{dsl-version}` (e.g., `1.0`)
+- Choose artifact suffix (5.0, 5.1, 5.2, 5.3, 5.4, or 5.5) matching your Spring Data ES version
+- All variants share the same DSL version number
 
 ### Innovative `clause + { }` Syntax
 
@@ -1270,14 +1281,14 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 ### Spring Data Elasticsearch Compatibility
 
-| Spring Data ES | Elasticsearch | Metalastic Core | elasticsearch-dsl |
-|----------------|---------------|-----------------|-------------------|
-| 5.5.x | 8.15.x | ✅ Full | ✅ Full |
-| 5.4.x | 8.14.x | ✅ Full | ✅ Full |
-| 5.3.x | 8.13.x | ✅ Full | ✅ Full |
-| 5.2.x | 8.12.x | ✅ Full | ✅ Full |
-| 5.1.x | 8.11.x | ✅ Full | ✅ Full |
-| 5.0.x | 8.7.x+ | ✅ Full | ✅ Full |
+| Spring Data ES | Elasticsearch | Metalastic Core | elasticsearch-dsl Artifact |
+|----------------|---------------|-----------------|---------------------------|
+| 5.5.x | 8.18.x | ✅ Full | `metalastic-elasticsearch-dsl-5.5:1.0` |
+| 5.4.x | 8.15.x | ✅ Full | `metalastic-elasticsearch-dsl-5.4:1.0` |
+| 5.3.x | 8.13.x | ✅ Full | `metalastic-elasticsearch-dsl-5.3:1.0` |
+| 5.2.x | 8.11.x | ✅ Full | `metalastic-elasticsearch-dsl-5.2:1.0` |
+| 5.1.x | 8.7.x | ✅ Full | `metalastic-elasticsearch-dsl-5.1:1.0` |
+| 5.0.x | 8.5.x | ✅ Full | `metalastic-elasticsearch-dsl-5.0:1.0` |
 
 ### Framework Integration
 
@@ -1300,18 +1311,26 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 | Module | Group ID | Latest Version | Versioning Strategy |
 |--------|----------|----------------|-------------------|
-| **Core Runtime** | `com.ekino.oss:metalastic-core` | `3.0.0` | Semantic versioning |
-| **Annotation Processor** | `com.ekino.oss:metalastic-processor` | `3.0.0` | Semantic versioning |
-| **Enhanced DSL** | `com.ekino.oss:metalastic-elasticsearch-dsl` | `5.0.12-1.0` | `{spring-data-es}-{dsl-version}` |
-| **Gradle Plugin** | `com.ekino.oss:metalastic-gradle-plugin` | `3.0.0` | Semantic versioning |
+| **Core Runtime** | `com.ekino.oss:metalastic-core` | `1.0.0` | Semantic versioning |
+| **Annotation Processor** | `com.ekino.oss:metalastic-processor` | `1.0.0` | Semantic versioning |
+| **Gradle Plugin** | `com.ekino.oss:metalastic-gradle-plugin` | `1.0.0` | Semantic versioning |
+| **Enhanced DSL (5.0)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.0` | `1.0` | DSL version only |
+| **Enhanced DSL (5.1)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.1` | `1.0` | DSL version only |
+| **Enhanced DSL (5.2)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.2` | `1.0` | DSL version only |
+| **Enhanced DSL (5.3)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.3` | `1.0` | DSL version only |
+| **Enhanced DSL (5.4)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.4` | `1.0` | DSL version only |
+| **Enhanced DSL (5.5)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.5` | `1.0` | DSL version only |
 
-### elasticsearch-dsl Version Matrix
+### elasticsearch-dsl Version Compatibility
 
-| elasticsearch-dsl | Spring Data ES | Elasticsearch | DSL Features |
-|-------------------|---------------|---------------|--------------|
-| **5.0.12-1.0** | 5.0.12 | 8.7.x+ | ✅ Full DSL, Range queries, JCV |
-| **5.1.x-1.x** | 5.1.x | 8.11.x | 🔄 Future release |
-| **5.2.x-1.x** | 5.2.x | 8.12.x | 🔄 Future release |
+| Artifact | Spring Data ES | Elasticsearch Java | Implementation |
+|-------------------|---------------|-------------------|----------------|
+| **elasticsearch-dsl-5.0:1.0** | 5.0.12 | 8.5.3 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.1:1.0** | 5.1.12 | 8.7.1 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.2:1.0** | 5.2.12 | 8.11.1 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.3:1.0** | 5.3.13 | 8.13.4 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.4:1.0** | 5.4.11 | 8.15.5 | shared-8.15 (UntypedRangeQuery) |
+| **elasticsearch-dsl-5.5:1.0** | 5.5.5 | 8.18.8 | shared-8.15 (UntypedRangeQuery) |
 
 ### Feature Matrix by Module
 
@@ -1326,28 +1345,28 @@ The processor uses **runtime field type detection**, automatically supporting:
 | Native query integration | ❌ | ✅ | Spring Data ES NativeQuery |
 | JSON validation | ❌ | ✅ | JCV integration for testing |
 
-### Version Upgrade Path
+### elasticsearch-dsl Version Selection Guide
 
-| From | To | Breaking Changes | Migration Guide |
-|------|----|-----------------|-----------------|
-| 1.x | 2.x | ✅ Package restructure | Update imports, use Gradle plugin |
-| 2.0 | 2.1+ | ❌ None | Drop-in replacement |
-| Core only | + elasticsearch-dsl | ❌ None | Add `elasticsearch-dsl:5.0.12-1.0` dependency |
-| elasticsearch-dsl 5.0.12-1.0 | 5.0.12-1.1 | ❌ None | DSL feature updates only |
-| elasticsearch-dsl 5.0.12-x | 5.1.x-1.0 | ⚠️ Possible | Follow Spring Data ES migration guide |
+**Choose the artifact matching your Spring Data Elasticsearch version:**
 
-### elasticsearch-dsl Versioning Strategy
+| Your Spring Data ES | Use This Artifact |
+|---------------------|-------------------|
+| 5.5.x | `metalastic-elasticsearch-dsl-5.5:1.0` |
+| 5.4.x | `metalastic-elasticsearch-dsl-5.4:1.0` |
+| 5.3.x | `metalastic-elasticsearch-dsl-5.3:1.0` |
+| 5.2.x | `metalastic-elasticsearch-dsl-5.2:1.0` |
+| 5.1.x | `metalastic-elasticsearch-dsl-5.1:1.0` |
+| 5.0.x | `metalastic-elasticsearch-dsl-5.0:1.0` |
 
-**Format**: `{spring-data-elasticsearch-version}-{dsl-version}`
-
-**Examples**:
-- `5.0.12-1.0` = Compatible with Spring Data ES 5.0.12, DSL features version 1.0
-- `5.1.0-1.0` = Compatible with Spring Data ES 5.1.0, DSL features version 1.0
-- `5.0.12-1.1` = Compatible with Spring Data ES 5.0.12, DSL features version 1.1
+**Versioning Strategy**:
+- Artifact suffix indicates Spring Data ES compatibility (5.0, 5.1, etc.)
+- Version number is DSL version only (e.g., `1.0`)
+- All DSL variants released together with same version number
 
 **Benefits**:
-- ✅ **Clear compatibility** - Version immediately shows Spring Data ES compatibility
-- ✅ **Independent evolution** - DSL features can evolve independently of Spring Data ES
+- ✅ **No version conflicts** - Each artifact brings correct Spring Data ES as transitive dependency
+- ✅ **Explicit choice** - Clear which Spring Data ES version you're targeting
+- ✅ **Independent updates** - DSL features can evolve across all variants simultaneously
 - ✅ **Easy selection** - Choose version based on your Spring Data ES version
 - ✅ **Future-proof** - Supports multiple Spring Data ES versions simultaneously
 
@@ -1514,12 +1533,21 @@ If you encounter issues not covered here:
 ```
 Metalastic/
 ├── modules/
-│   ├── core/                    # DSL runtime library
-│   │   ├── src/main/kotlin/     # Field classes, Index base classes
-│   │   └── src/test/kotlin/     # Unit tests for DSL
-│   ├── elasticsearch-dsl/       # Enhanced query building DSL
-│   │   ├── src/main/kotlin/     # Innovative clause + { } syntax, range queries
-│   │   └── src/test/kotlin/     # DSL integration tests with JCV validation
+│   ├── core/                         # Runtime library
+│   │   ├── src/main/kotlin/          # Field classes, metamodel base classes
+│   │   └── src/test/kotlin/          # Unit tests
+│   ├── elasticsearch-dsl-shared-8.5/ # DSL source for elasticsearch-java 8.5-8.13 (not published)
+│   │   ├── src/main/kotlin/          # BoolQueryDsl, QueryVariantDsl, classic RangeQuery
+│   │   └── src/test/kotlin/          # DSL tests with JCV validation
+│   ├── elasticsearch-dsl-shared-8.15/# DSL source for elasticsearch-java 8.15+ (not published)
+│   │   ├── src/main/kotlin/          # Same as 8.5, but uses UntypedRangeQuery
+│   │   └── src/test/kotlin/          # DSL tests
+│   ├── elasticsearch-dsl-5.0/        # Published variant for Spring Data ES 5.0.x
+│   ├── elasticsearch-dsl-5.1/        # Published variant for Spring Data ES 5.1.x
+│   ├── elasticsearch-dsl-5.2/        # Published variant for Spring Data ES 5.2.x
+│   ├── elasticsearch-dsl-5.3/        # Published variant for Spring Data ES 5.3.x
+│   ├── elasticsearch-dsl-5.4/        # Published variant for Spring Data ES 5.4.x
+│   ├── elasticsearch-dsl-5.5/        # Published variant for Spring Data ES 5.5.x
 │   ├── processor/               # KSP annotation processor
 │   │   ├── src/main/kotlin/     # Code generation logic
 │   │   └── src/test/kotlin/     # Processor unit tests
@@ -1614,9 +1642,9 @@ Metalastic uses a **dual publication strategy** to handle different versioning n
      - `com.ekino.oss:metalastic-processor:1.0.0`
      - `com.ekino.oss:metalastic-gradle-plugin:1.0.0`
 
-2. **elasticsearch-dsl Module**
-   - **Tag Format**: `elasticsearch-dsl-v5.0.12-1.0`
-   - **Publishes**: `com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0`
+2. **elasticsearch-dsl Modules** (6 separate artifacts)
+   - **Tag Format**: `elasticsearch-dsl-5.{x}-v{version}` (e.g., `elasticsearch-dsl-5.5-v1.0`)
+   - **Publishes**: Version-specific artifact (e.g., `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0`)
 
 ### 🚀 Release Process
 
@@ -1627,11 +1655,22 @@ git push origin v1.0.0
 # Triggers CI/CD → publishes core, processor, gradle-plugin
 ```
 
-**For elasticsearch-dsl Module:**
+**For elasticsearch-dsl Modules:**
 ```bash
-git tag elasticsearch-dsl-v5.0.12-1.0
-git push origin elasticsearch-dsl-v5.0.12-1.0
-# Triggers CI/CD → publishes elasticsearch-dsl:5.0.12-1.0
+# Publish specific version variant
+git tag elasticsearch-dsl-5.5-v1.0
+git push origin elasticsearch-dsl-5.5-v1.0
+# Triggers CI/CD → publishes elasticsearch-dsl-5.5:1.0
+
+# Or publish all DSL versions with same DSL version:
+git tag elasticsearch-dsl-5.0-v1.0
+git tag elasticsearch-dsl-5.1-v1.0
+git tag elasticsearch-dsl-5.2-v1.0
+git tag elasticsearch-dsl-5.3-v1.0
+git tag elasticsearch-dsl-5.4-v1.0
+git tag elasticsearch-dsl-5.5-v1.0
+git push origin --tags
+# Triggers CI/CD → publishes all 6 DSL variants
 ```
 
 ### 📋 Publication Matrix
@@ -1641,7 +1680,12 @@ git push origin elasticsearch-dsl-v5.0.12-1.0
 | **core** | `v1.0.0` | `1.0.0` | Maven Central |
 | **processor** | `v1.0.0` | `1.0.0` | Maven Central |
 | **gradle-plugin** | `v1.0.0` | `1.0.0` | Maven Central |
-| **elasticsearch-dsl** | `elasticsearch-dsl-v5.0.12-1.0` | `5.0.12-1.0` | Maven Central |
+| **elasticsearch-dsl-5.0** | `elasticsearch-dsl-5.0-v1.0` | `1.0` | Maven Central |
+| **elasticsearch-dsl-5.1** | `elasticsearch-dsl-5.1-v1.0` | `1.0` | Maven Central |
+| **elasticsearch-dsl-5.2** | `elasticsearch-dsl-5.2-v1.0` | `1.0` | Maven Central |
+| **elasticsearch-dsl-5.3** | `elasticsearch-dsl-5.3-v1.0` | `1.0` | Maven Central |
+| **elasticsearch-dsl-5.4** | `elasticsearch-dsl-5.4-v1.0` | `1.0` | Maven Central |
+| **elasticsearch-dsl-5.5** | `elasticsearch-dsl-5.5-v1.0` | `1.0` | Maven Central |
 
 ### 🏢 Repository Information
 

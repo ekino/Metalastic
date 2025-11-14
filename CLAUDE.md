@@ -17,13 +17,21 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **gradle-plugin**: Gradle plugin providing type-safe DSL configuration for the annotation processor
 - **test**: Integration tests verifying the annotation processor with real Spring Data Elasticsearch documents
 
-### Query DSL Module
+### Query DSL Modules
 
-- **elasticsearch-dsl**: Type-safe Elasticsearch query builder using generated metamodels
-  - **Separate versioning**: `{spring-data-es-version}-{dsl-version}` format
-  - **Current**: 5.0.12-1.0
+- **elasticsearch-dsl-{version}**: Type-safe Elasticsearch query builder using generated metamodels
+  - **Multi-version support**: Separate artifacts for Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
+  - **Version format**: `{dsl-version}` (e.g., `1.0`)
+  - **Artifacts**:
+    - `metalastic-elasticsearch-dsl-5.0:1.0` (Spring Data ES 5.0.12 + elasticsearch-java 8.5.3)
+    - `metalastic-elasticsearch-dsl-5.1:1.0` (Spring Data ES 5.1.+ + elasticsearch-java 8.7.1)
+    - `metalastic-elasticsearch-dsl-5.2:1.0` (Spring Data ES 5.2.+ + elasticsearch-java 8.11.1)
+    - `metalastic-elasticsearch-dsl-5.3:1.0` (Spring Data ES 5.3.+ + elasticsearch-java 8.13.4)
+    - `metalastic-elasticsearch-dsl-5.4:1.0` (Spring Data ES 5.4.+ + elasticsearch-java 8.15.5)
+    - `metalastic-elasticsearch-dsl-5.5:1.0` (Spring Data ES 5.5.+ + elasticsearch-java 8.18.8)
+  - **Shared source**: Versions 5.0-5.3 use `elasticsearch-dsl-shared-8.5`, versions 5.4-5.5 use `elasticsearch-dsl-shared-8.15`
   - **Features**: BoolQueryDsl, QueryVariantDsl, type-safe query construction
-  - **Dependencies**: Spring Data Elasticsearch 5.0.12, Elasticsearch Java client 8.5.3
+  - **Code duplication**: Minimal (~60 lines in RangeQueryUtils.kt) to handle elasticsearch-java 8.15 UntypedRangeQuery API
 
 ## Goals
 
@@ -49,10 +57,13 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **Code Generation**: KotlinPoet 2.2.0
 - **Testing**: Kotest v5.9.1 (ShouldSpec format)
 
-### Elasticsearch DSL Module
-- **Spring Data Elasticsearch**: 5.0.12
-- **Elasticsearch Java Client**: 8.5.3
-- **Google Guava**: For Range support
+### Elasticsearch DSL Modules
+- **Multi-version support**: 6 separate modules for Spring Data ES 5.0 through 5.5
+- **Shared codebases**:
+  - `elasticsearch-dsl-shared-8.5` for versions 5.0-5.3 (elasticsearch-java 8.5-8.13)
+  - `elasticsearch-dsl-shared-8.15` for versions 5.4-5.5 (elasticsearch-java 8.15-8.18, uses UntypedRangeQuery)
+- **Version-specific dependencies**: Each module targets specific Spring Data ES + elasticsearch-java versions
+- **Google Guava**: For Range support (all versions)
 
 ## Development Notes
 
@@ -61,7 +72,15 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **modules/core**: Runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
 - **modules/processor**: Three-phase annotation processor (COLLECTING, BUILDING, WRITING)
 - **modules/gradle-plugin**: Type-safe configuration DSL
-- **modules/elasticsearch-dsl**: Query builder DSL
+- **modules/elasticsearch-dsl-shared-8.5**: Query builder DSL source for elasticsearch-java 8.5-8.13 (not published)
+- **modules/elasticsearch-dsl-shared-8.15**: Query builder DSL source for elasticsearch-java 8.15+ (not published, uses UntypedRangeQuery)
+- **modules/elasticsearch-dsl-5.x**: Version-specific DSL modules (published separately)
+  - elasticsearch-dsl-5.0 (Spring Data ES 5.0.12, uses shared-8.5)
+  - elasticsearch-dsl-5.1 (Spring Data ES 5.1.+, uses shared-8.5)
+  - elasticsearch-dsl-5.2 (Spring Data ES 5.2.+, uses shared-8.5)
+  - elasticsearch-dsl-5.3 (Spring Data ES 5.3.+, uses shared-8.5)
+  - elasticsearch-dsl-5.4 (Spring Data ES 5.4.+, uses shared-8.15)
+  - elasticsearch-dsl-5.5 (Spring Data ES 5.5.+, uses shared-8.15)
 - **modules/test**: End-to-end integration tests
 
 ### Generation Behavior
@@ -95,8 +114,16 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 # Test individual modules
 ./gradlew :modules:core:test
 ./gradlew :modules:processor:test
-./gradlew :modules:elasticsearch-dsl:test
+./gradlew :modules:elasticsearch-dsl-5.3:test  # Test specific DSL version
 ./gradlew :modules:test:test
+
+# Test all DSL versions
+./gradlew :modules:elasticsearch-dsl-5.0:test
+./gradlew :modules:elasticsearch-dsl-5.1:test
+./gradlew :modules:elasticsearch-dsl-5.2:test
+./gradlew :modules:elasticsearch-dsl-5.3:test
+./gradlew :modules:elasticsearch-dsl-5.4:test
+./gradlew :modules:elasticsearch-dsl-5.5:test
 
 # Publish to local Maven repository
 ./gradlew publishToMavenLocal
@@ -401,13 +428,25 @@ exampleDocument.testDocument.name.path() shouldBe "testDocument.name"
 exampleDocument.testDocument.address.city.path() shouldBe "testDocument.address.city"
 ```
 
-## Elasticsearch DSL Module
+## Elasticsearch DSL Modules
 
 ### Overview
 
-The `elasticsearch-dsl` module provides type-safe query builders using generated metamodels.
+The `elasticsearch-dsl-{version}` modules provide type-safe query builders using generated metamodels.
 
-**Versioning**: Aligned with Spring Data Elasticsearch version (`5.0.12-1.0`)
+**Multi-version Support**: Separate artifacts for Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
+**Versioning**: DSL version only (e.g., `1.0`). Choose artifact matching your Spring Data ES version.
+
+### Version Compatibility Matrix
+
+| Artifact | Spring Data ES | Elasticsearch Java | Maven Coordinate | Source Module |
+|----------|---------------|-------------------|------------------|---------------|
+| elasticsearch-dsl-5.0 | 5.0.12 | 8.5.3 | `metalastic-elasticsearch-dsl-5.0:1.0` | shared-8.5 |
+| elasticsearch-dsl-5.1 | 5.1.+ | 8.7.1 | `metalastic-elasticsearch-dsl-5.1:1.0` | shared-8.5 |
+| elasticsearch-dsl-5.2 | 5.2.+ | 8.11.1 | `metalastic-elasticsearch-dsl-5.2:1.0` | shared-8.5 |
+| elasticsearch-dsl-5.3 | 5.3.+ | 8.13.4 | `metalastic-elasticsearch-dsl-5.3:1.0` | shared-8.5 |
+| elasticsearch-dsl-5.4 | 5.4.+ | 8.15.5 | `metalastic-elasticsearch-dsl-5.4:1.0` | shared-8.15 |
+| elasticsearch-dsl-5.5 | 5.5.+ | 8.18.8 | `metalastic-elasticsearch-dsl-5.5:1.0` | shared-8.15 |
 
 ### Query Types Supported
 
@@ -585,11 +624,16 @@ repositories {
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:3.0.0")
-    ksp("com.ekino.oss:metalastic-processor:3.0.0")
+    implementation("com.ekino.oss:metalastic-core:1.0.0")
+    ksp("com.ekino.oss:metalastic-processor:1.0.0")
 
-    // Optional: Query DSL module (separate versioning)
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
+    // Optional: Query DSL module (choose version matching your Spring Data ES)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")  // For Spring Data ES 5.5.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")  // For Spring Data ES 5.4.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0")  // For Spring Data ES 5.3.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0")  // For Spring Data ES 5.2.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0")  // For Spring Data ES 5.1.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")  // For Spring Data ES 5.0.x
 }
 ```
 
@@ -600,10 +644,14 @@ dependencies {
 - Git tag: `v1.0.0`
 - Automatic from GITHUB_REF_NAME or git describe
 
-**Elasticsearch DSL module**:
-- Version-aligned: `{spring-data-es-version}-{dsl-version}`
-- Git tag: `elasticsearch-dsl-v5.0.12-1.0`
-- Tracks Spring Data Elasticsearch versions
+**Elasticsearch DSL modules**:
+- Multi-version support with separate artifacts per Spring Data ES version
+- Version format: `{dsl-version}` (e.g., `1.0`)
+- Git tags: `elasticsearch-dsl-5.x-v{dsl-version}` (e.g., `elasticsearch-dsl-5.5-v1.0`)
+- All versions supported: Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
+- Two shared source modules:
+  - `elasticsearch-dsl-shared-8.5` for versions 5.0-5.3 (elasticsearch-java 8.5-8.13)
+  - `elasticsearch-dsl-shared-8.15` for versions 5.4-5.5 (elasticsearch-java 8.15+, uses UntypedRangeQuery)
 
 See [TAG_MANAGEMENT.md](TAG_MANAGEMENT.md) for detailed publishing workflows.
 
