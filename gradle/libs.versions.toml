@@ -1,9 +1,9 @@
 [versions]
 # Kotlin and JVM
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 
 # KSP and Code Generation
-ksp = "2.2.20-2.0.3"
+ksp = "2.3.2"
 kotlinpoet = "2.2.0"
 
 # Spring Data Elasticsearch
