@@ -2,7 +2,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 // Elasticsearch DSL module for Spring Data ES 5.3.x
 
-val springDataEsVersion = "5.3.13" // Latest 5.3.x release
+val springDataEsVersion = "5.5.6" // Latest 5.3.x release
 val elasticsearchJavaVersion = "8.13.4"
 
 // Read version from parent shared module

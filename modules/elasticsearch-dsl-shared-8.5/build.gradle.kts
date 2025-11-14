@@ -14,7 +14,7 @@ dependencies {
   api(project(":modules:core"))
 
   // Spring Data Elasticsearch 5.0.12 for compatibility
-  api("org.springframework.data:spring-data-elasticsearch:5.0.12")
+  api("org.springframework.data:spring-data-elasticsearch:5.5.6")
 
   // Force elasticsearch-java version to match Spring Data ES 5.0.12
   implementation("co.elastic.clients:elasticsearch-java:8.5.3")!!

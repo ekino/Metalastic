@@ -7,7 +7,7 @@ ksp = "2.3.2"
 kotlinpoet = "2.2.0"
 
 # Spring Data Elasticsearch
-spring-data-elasticsearch = "5.5.4"
+spring-data-elasticsearch = "5.5.6"
 
 #annotations
 jakarta-annotation-api = "3.0.0"
