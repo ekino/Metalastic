@@ -48,7 +48,7 @@ dependencies {
 
   // JCV for advanced JSON testing
   testImplementation("com.ekino.oss.jcv:jcv-hamcrest:1.5.0")
-  testImplementation("org.hamcrest:hamcrest:2.2")
+  testImplementation("org.hamcrest:hamcrest:3.0")
   testImplementation("org.skyscreamer:jsonassert:1.5.1")
 
   // Logging for tests
