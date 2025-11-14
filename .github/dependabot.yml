@@ -27,15 +27,6 @@ updates:
           - "minor"
           - "patch"
 
-      # Spring Data Elasticsearch - keep separate for careful review
-      # Note: Version-specific DSL modules (5.0-5.5) intentionally pin versions
-      spring-data:
-        patterns:
-          - "org.springframework.data:spring-data-elasticsearch"
-        update-types:
-          - "minor"
-          - "patch"
-
       # Code generation tools
       code-generation:
         patterns:
@@ -72,11 +63,16 @@ updates:
 
     # Ignore rules to prevent unwanted updates
     ignore:
+      # Spring Data Elasticsearch - COMPLETELY IGNORED
+      # The version in libs.versions.toml is only used by the test module.
+      # DSL modules (5.0-5.5) intentionally pin specific versions in their
+      # own build.gradle.kts files to support multiple Spring Data ES versions.
+      # Updating the version catalog would not affect published artifacts but
+      # would create noise and confusion. Manual updates only when needed.
+      - dependency-name: "org.springframework.data:spring-data-elasticsearch"
+
       # Don't auto-update major versions of critical dependencies
       # Major updates need manual review and testing
-      - dependency-name: "org.springframework.data:spring-data-elasticsearch"
-        update-types: ["version-update:semver-major"]
-
       - dependency-name: "org.jetbrains.kotlin:*"
         update-types: ["version-update:semver-major"]
 
