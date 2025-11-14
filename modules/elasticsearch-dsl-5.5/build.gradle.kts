@@ -32,7 +32,7 @@ dependencies {
   implementation("co.elastic.clients:elasticsearch-java:$elasticsearchJavaVersion")!!
 
   // Google Guava for Range support
-  api("com.google.guava:guava:33.3.1-jre")
+  api("com.google.guava:guava:33.5.0-jre")
 
   // Kotlin reflection for type checking
   implementation("org.jetbrains.kotlin:kotlin-reflect")
