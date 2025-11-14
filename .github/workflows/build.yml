@@ -58,7 +58,8 @@ jobs:
 
       - name: Publish test report
         uses: dorny/test-reporter@v1
-        if: always()
+        # Skip for Dependabot PRs due to restricted permissions
+        if: always() && github.actor != 'dependabot[bot]'
         with:
           name: Test Results
           path: '**/build/test-results/test/TEST-*.xml'
