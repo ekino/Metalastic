@@ -10,7 +10,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.ekino.oss/metalastic-core)](https://central.sonatype.com/search?q=g:com.ekino.oss.metalastic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.20-purple)](https://kotlinlang.org/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple)](https://kotlinlang.org/)
 [![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.4-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
 ## Table of Contents
@@ -376,17 +376,17 @@ val results = elasticsearchOperations.search(nativeQuery, Document::class.java)
 
 ```mermaid
 graph LR
-    A[Spring Data ES<br>@Document Classes] --> B[Metalastic<br>Annotation Processor]
-    B --> C[Generated<br>Meta-Classes]
-    C --> D[Type-safe<br>Query Building]
+    A["Spring Data ES<br/>@Document Classes"] --> B["Metalastic<br/>Annotation Processor"]
+    B --> C["Generated<br/>Meta-Classes"]
+    C --> D["Type-safe<br/>Query Building"]
 
-    A1[@Document Person] --> B
-    A2[@Field annotations] --> B
-    A3[Nested objects] --> B
+    E["@Document Person"] --> B
+    F["@Field annotations"] --> B
+    G["Nested objects"] --> B
 
-    B --> C1[MetaPerson.kt]
-    B --> C2[Metamodels.kt]
-    B --> C3[Object fields]
+    B --> H["MetaPerson.kt"]
+    B --> I["Metamodels.kt"]
+    B --> J["Object fields"]
 ```
 
 **Compilation Process:**
