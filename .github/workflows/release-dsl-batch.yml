@@ -1,0 +1,298 @@
+name: Release DSL Modules (Batch)
+
+on:
+  workflow_dispatch:
+    inputs:
+      dsl_version:
+        description: 'DSL version (e.g., 1.0, 1.1, 2.0)'
+        required: true
+        type: string
+      variants:
+        description: 'Which Spring Data ES versions to release'
+        required: true
+        type: choice
+        options:
+          - 'all'
+          - '5.0-5.3'
+          - '5.4-5.5'
+          - 'custom'
+        default: 'all'
+      custom_variants:
+        description: 'If "custom" selected, specify variants (comma-separated: 5.0,5.1,5.2,5.3,5.4,5.5)'
+        required: false
+        type: string
+      dry_run:
+        description: 'Dry run (validate only, do not create/push tags)'
+        required: true
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+jobs:
+  release-dsl-batch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for tag checking
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Determine variants to release
+        id: variants
+        run: |
+          case "${{ inputs.variants }}" in
+            "all")
+              VARIANTS="5.0,5.1,5.2,5.3,5.4,5.5"
+              ;;
+            "5.0-5.3")
+              VARIANTS="5.0,5.1,5.2,5.3"
+              ;;
+            "5.4-5.5")
+              VARIANTS="5.4,5.5"
+              ;;
+            "custom")
+              VARIANTS="${{ inputs.custom_variants }}"
+              if [ -z "$VARIANTS" ]; then
+                echo "❌ Error: custom_variants input is required when variants='custom'"
+                exit 1
+              fi
+              ;;
+          esac
+
+          echo "variants=$VARIANTS" >> $GITHUB_OUTPUT
+          echo "📦 Selected variants: $VARIANTS"
+
+      - name: Validate version format
+        run: |
+          VERSION="${{ inputs.dsl_version }}"
+          if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?(-[a-zA-Z0-9]+)?$'; then
+            echo "❌ Error: Invalid version format: $VERSION"
+            echo "Expected format: X.Y or X.Y.Z or X.Y.Z-suffix (e.g., 1.0, 1.0.0, 1.0.0-rc1)"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Validate variant names
+        run: |
+          VALID_VARIANTS="5.0 5.1 5.2 5.3 5.4 5.5"
+          IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
+
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)  # Trim whitespace
+            if ! echo "$VALID_VARIANTS" | grep -wq "$variant"; then
+              echo "❌ Error: Invalid variant: $variant"
+              echo "Valid variants: $VALID_VARIANTS"
+              exit 1
+            fi
+          done
+          echo "✅ All variants valid"
+
+      - name: Check for existing tags
+        id: tag_check
+        run: |
+          IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
+          EXISTING_TAGS=""
+
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)
+            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+            if git rev-parse "$TAG" >/dev/null 2>&1; then
+              echo "⚠️  Tag already exists: $TAG"
+              EXISTING_TAGS="$EXISTING_TAGS $TAG"
+            fi
+          done
+
+          if [ -n "$EXISTING_TAGS" ]; then
+            echo "has_existing=true" >> $GITHUB_OUTPUT
+            echo "existing_tags=$EXISTING_TAGS" >> $GITHUB_OUTPUT
+            echo "❌ Error: Some tags already exist:$EXISTING_TAGS"
+            exit 1
+          else
+            echo "has_existing=false" >> $GITHUB_OUTPUT
+            echo "✅ No duplicate tags found"
+          fi
+
+      - name: Build and test DSL modules
+        run: |
+          IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
+
+          echo "🔨 Building and testing selected DSL modules..."
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)
+            MODULE="modules/elasticsearch-dsl-${variant}"
+
+            echo ""
+            echo "📦 Building elasticsearch-dsl-${variant}..."
+            ./gradlew :modules:elasticsearch-dsl-${variant}:build --no-daemon
+
+            if [ $? -ne 0 ]; then
+              echo "❌ Build failed for elasticsearch-dsl-${variant}"
+              exit 1
+            fi
+            echo "✅ elasticsearch-dsl-${variant} built successfully"
+          done
+
+          echo ""
+          echo "✅ All DSL modules built and tested successfully"
+
+      - name: Check release notes
+        id: release_notes
+        run: |
+          IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
+          MISSING_NOTES=""
+
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)
+            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+            NOTES_FILE="release-notes/RELEASE_NOTES_${TAG}.md"
+
+            if [ ! -f "$NOTES_FILE" ]; then
+              echo "⚠️  Missing release notes: $NOTES_FILE"
+              MISSING_NOTES="$MISSING_NOTES $TAG"
+            else
+              echo "✅ Found release notes: $NOTES_FILE"
+            fi
+          done
+
+          if [ -n "$MISSING_NOTES" ]; then
+            echo "has_missing=true" >> $GITHUB_OUTPUT
+            echo "missing_tags=$MISSING_NOTES" >> $GITHUB_OUTPUT
+            echo ""
+            echo "⚠️  Warning: Auto-generated release notes will be used for:$MISSING_NOTES"
+          else
+            echo "has_missing=false" >> $GITHUB_OUTPUT
+            echo ""
+            echo "✅ All release notes found"
+          fi
+
+      - name: Create and push tags
+        if: ${{ !inputs.dry_run }}
+        run: |
+          IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "🏷️  Creating tags..."
+          CREATED_TAGS=""
+
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)
+            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+            git tag "$TAG"
+            echo "✅ Created tag: $TAG"
+            CREATED_TAGS="$CREATED_TAGS $TAG"
+          done
+
+          echo ""
+          echo "📤 Pushing all tags to origin..."
+          git push origin --tags
+
+          echo ""
+          echo "✅ Successfully created and pushed tags:$CREATED_TAGS"
+
+      - name: Generate job summary
+        if: always()
+        run: |
+          IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
+
+          echo "## 🚀 DSL Batch Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Input details
+          echo "### 📋 Release Details" >> $GITHUB_STEP_SUMMARY
+          echo "- **DSL Version**: \`v${{ inputs.dsl_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Variants**: \`${{ inputs.variants }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Dry Run**: \`${{ inputs.dry_run }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Tags table
+          echo "### 🏷️  Tags" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Variant | Tag | Status | Release Notes |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-----|--------|---------------|" >> $GITHUB_STEP_SUMMARY
+
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)
+            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+            NOTES_FILE="release-notes/RELEASE_NOTES_${TAG}.md"
+
+            if [ "${{ inputs.dry_run }}" = "true" ]; then
+              STATUS="🔍 Validated"
+            else
+              STATUS="✅ Created"
+            fi
+
+            if [ -f "$NOTES_FILE" ]; then
+              NOTES_STATUS="✅ Found"
+            else
+              NOTES_STATUS="⚠️  Auto-generated"
+            fi
+
+            echo "| elasticsearch-dsl-${variant} | \`$TAG\` | $STATUS | $NOTES_STATUS |" >> $GITHUB_STEP_SUMMARY
+          done
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Maven coordinates
+          echo "### 📦 Maven Coordinates" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Once published, these artifacts will be available on Maven Central:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`kotlin" >> $GITHUB_STEP_SUMMARY
+          echo "dependencies {" >> $GITHUB_STEP_SUMMARY
+          for variant in "${VARIANT_ARRAY[@]}"; do
+            variant=$(echo "$variant" | xargs)
+            echo "    // For Spring Data Elasticsearch ${variant}.x" >> $GITHUB_STEP_SUMMARY
+            echo "    implementation(\"com.ekino.oss:metalastic-elasticsearch-dsl-${variant}:${{ inputs.dsl_version }}\")" >> $GITHUB_STEP_SUMMARY
+          done
+          echo "}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Next steps
+          if [ "${{ inputs.dry_run }}" = "false" ]; then
+            echo "### ✅ Next Steps" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "1. Monitor the [Publish workflow](https://github.com/${{ github.repository }}/actions/workflows/publish.yml) for each variant" >> $GITHUB_STEP_SUMMARY
+            echo "2. Verify Maven Central publication (may take 10-30 minutes)" >> $GITHUB_STEP_SUMMARY
+            echo "3. Check GitHub Releases for each variant" >> $GITHUB_STEP_SUMMARY
+            echo "4. Update documentation if needed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### 🔍 Dry Run Complete" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "All validations passed! To create and push tags, run this workflow again with **dry_run = false**" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Warnings
+          if [ "${{ steps.release_notes.outputs.has_missing }}" = "true" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️  Warnings" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Missing release notes for:${{ steps.release_notes.outputs.missing_tags }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Auto-generated release notes will be used. To provide custom release notes, create:" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            for variant in "${VARIANT_ARRAY[@]}"; do
+              variant=$(echo "$variant" | xargs)
+              TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+              NOTES_FILE="release-notes/RELEASE_NOTES_${TAG}.md"
+              if [ ! -f "$NOTES_FILE" ]; then
+                echo "- \`$NOTES_FILE\`" >> $GITHUB_STEP_SUMMARY
+              fi
+            done
+          fi
