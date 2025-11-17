@@ -56,8 +56,8 @@ Add to your `build.gradle.kts`:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
-    id("com.ekino.oss.metalastic") version "1.0.0"
+    id("com.google.devtools.ksp") version "2.3.2"
+    id("com.ekino.oss.metalastic") version "3.0.0"
 }
 
 repositories {
@@ -66,7 +66,10 @@ repositories {
 
 dependencies {
     // Optional: Query DSL module for type-safe query building
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
+    // Choose the version matching your Spring Data Elasticsearch version
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")  // For Spring Data ES 5.5.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")  // For Spring Data ES 5.4.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")  // For Spring Data ES 5.0.x
 }
 ```
 
@@ -78,7 +81,7 @@ If you prefer not to use the plugin:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "2.3.2"
 }
 
 repositories {
@@ -90,7 +93,7 @@ dependencies {
     ksp("com.ekino.oss:metalastic-processor:1.0.0")
 
     // Optional: Query DSL module
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")  // Choose your version
 }
 
 // Configure KSP options manually
@@ -149,7 +152,7 @@ data class Product(
 Metalastic generates:
 
 ```kotlin
-import com.example.search.MainMetamodels.product
+import com.example.search.metamodels.MetaProduct.Companion.product
 
 // Type-safe path traversal
 product.title.path() // "title"
@@ -175,21 +178,23 @@ All artifacts are published to Maven Central under group ID `com.ekino.oss`:
 
 | Artifact | Version | Usage |
 |----------|---------|-------|
-| `metalastic-gradle-plugin` | `1.0.0` | Gradle plugin (automatically adds core + processor) |
+| `metalastic-gradle-plugin` | `3.0.0` | Gradle plugin (automatically adds core + processor) |
 | `metalastic-core` | `1.0.0` | Runtime library (added automatically by plugin) |
 | `metalastic-processor` | `1.0.0` | KSP processor (added automatically by plugin) |
-| `metalastic-elasticsearch-dsl` | `5.0.12-1.0` | Optional query DSL module |
+| `metalastic-elasticsearch-dsl-5.5` | `1.0` | Optional query DSL for Spring Data ES 5.5.x |
+| `metalastic-elasticsearch-dsl-5.4` | `1.0` | Optional query DSL for Spring Data ES 5.4.x |
+| `metalastic-elasticsearch-dsl-5.0` | `1.0` | Optional query DSL for Spring Data ES 5.0.x |
 
 **Recommended setup** (using Gradle plugin):
 
 ```kotlin
 plugins {
-    id("com.ekino.oss.metalastic") version "1.0.0"
+    id("com.ekino.oss.metalastic") version "3.0.0"
 }
 
 dependencies {
-    // Optional: Add DSL module for query building
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:5.0.12-1.0")
+    // Optional: Add DSL module for query building (choose your Spring Data ES version)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")
 }
 ```
 
@@ -204,10 +209,10 @@ dependencies {
 
 ## Technology Stack
 
-- **Kotlin**: 2.2.20
+- **Kotlin**: 2.2.21
 - **Java**: 21
-- **KSP**: 2.2.20-2.0.3
-- **Spring Data Elasticsearch**: 5.5.4 (core/processor), 5.0.12 (DSL module)
+- **KSP**: 2.3.2
+- **Spring Data Elasticsearch**: 5.5.4 (core/processor), version-specific (DSL modules)
 - **KotlinPoet**: 2.2.0
 - **Testing**: Kotest 5.9.1
 
@@ -221,7 +226,7 @@ dependencies {
 ## Requirements
 
 - Java 21 or higher
-- Kotlin 2.2.20 or higher
+- Kotlin 2.2.21 or higher (2.2.20+ supported)
 - Gradle 8.x or higher
 - Spring Data Elasticsearch 5.x
 

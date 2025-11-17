@@ -105,7 +105,66 @@ com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0
 
 ### Releasing Elasticsearch DSL Modules
 
-**Option A: Release specific version variant**
+**Option A: Batch release via GitHub Actions** (recommended)
+
+Use the automated workflow to release multiple DSL variants with built-in validation:
+
+1. **Navigate to GitHub Actions**
+   - Go to: https://github.com/ekino/Metalastic/actions
+   - Select: "Release DSL Modules (Batch)"
+   - Click: "Run workflow"
+
+2. **Configure the release**
+   - **Branch**: `master` (or your release branch)
+   - **DSL version**: e.g., `1.0`, `1.1`, `2.0`
+   - **Variants**: Choose one of:
+     - `all` - All 6 variants (5.0 through 5.5)
+     - `5.0-5.3` - Only versions using shared-8.5 codebase
+     - `5.4-5.5` - Only versions using shared-8.15 codebase
+     - `custom` - Specify exact variants (e.g., `5.4,5.5`)
+   - **Dry run**: ✅ Check this first (validation only)
+
+3. **Validate with dry-run**
+   - Click "Run workflow"
+   - Wait for workflow to complete
+   - Review the job summary:
+     - Version format validation
+     - Duplicate tag detection
+     - Build verification results
+     - Release notes status
+     - Maven coordinates preview
+
+4. **Create tags (if validation passes)**
+   - Run workflow again with same settings
+   - **Dry run**: ❌ Uncheck (to actually create tags)
+   - Tags will be created and pushed automatically
+
+5. **Monitor publication**
+   - Each tag triggers the "Publish to Maven Central" workflow
+   - Monitor all 6 workflows (for `all` variants)
+   - Verify GitHub Releases are created automatically
+
+**Quick release scenarios**:
+
+```yaml
+# Release all variants with version 1.0
+Variants: all
+DSL version: 1.0
+Creates: elasticsearch-dsl-5.0-v1.0 through elasticsearch-dsl-5.5-v1.0
+
+# Release only newest versions
+Variants: 5.4-5.5
+DSL version: 1.0
+Creates: elasticsearch-dsl-5.4-v1.0 and elasticsearch-dsl-5.5-v1.0
+
+# Hot-fix for specific variant
+Variants: custom
+Custom variants: 5.5
+DSL version: 1.0.1
+Creates: elasticsearch-dsl-5.5-v1.0.1
+```
+
+**Option B: Release specific version variant** (manual)
 
 1. **Choose which Spring Data ES version to release**
    - 5.0, 5.1, 5.2, 5.3, 5.4, or 5.5
@@ -119,7 +178,7 @@ com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0
 
 3. **Monitor and verify** (same as core modules)
 
-**Option B: Release all DSL variants together** (recommended)
+**Option C: Release all DSL variants together** (manual)
 
 When releasing a new DSL version, release all 6 variants with the same DSL version:
 
@@ -143,6 +202,8 @@ This publishes:
 - `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0`
 - `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0`
 - `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0`
+
+**Note**: Option A (batch via GitHub Actions) is recommended as it includes validation, prevents errors, and provides a clear audit trail.
 
 ### Publishing SNAPSHOTs
 
@@ -205,6 +266,39 @@ SNAPSHOTs are automatically published on every commit to `master` via the "Manua
 **Actions**:
 - Publishes SNAPSHOT versions
 - Useful for testing publication process
+
+### Batch DSL Release Workflow
+
+**File**: `.github/workflows/release-dsl-batch.yml`
+
+**Triggers**:
+- Manual workflow dispatch (GitHub UI only)
+
+**Actions**:
+1. Validates version format (semantic versioning)
+2. Checks for duplicate tags
+3. Builds and tests selected DSL module variants
+4. Checks for release notes files (warns if missing)
+5. Creates and pushes tags (if not dry-run mode)
+6. Generates detailed job summary
+
+**Configuration Options**:
+- **DSL version**: The version to release (e.g., `1.0`, `1.1`)
+- **Variants**: Which Spring Data ES versions to release
+  - `all` - All 6 variants (5.0-5.5)
+  - `5.0-5.3` - Only shared-8.5 based versions
+  - `5.4-5.5` - Only shared-8.15 based versions
+  - `custom` - Specify exact variants
+- **Custom variants**: Comma-separated list when using `custom` mode
+- **Dry run**: Validate without creating tags (recommended first step)
+
+**Benefits**:
+- Atomic tag creation (all-or-nothing)
+- Pre-flight validation prevents common errors
+- Build verification ensures modules compile
+- Release notes status checking
+- Detailed job summary with Maven coordinates
+- Safe testing with dry-run mode
 
 ## Troubleshooting
 
