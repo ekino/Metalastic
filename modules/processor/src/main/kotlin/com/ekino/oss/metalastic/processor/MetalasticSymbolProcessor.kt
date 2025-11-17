@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 ekino (https://www.ekino.com/)
+ */
+
 package com.ekino.oss.metalastic.processor
 
 import com.ekino.oss.metalastic.processor.CoreConstants.PRODUCT_NAME
