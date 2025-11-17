@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 ekino (https://www.ekino.com/)
+ */
+
 @file:OptIn(ExperimentalCompilerApi::class)
 
 package com.ekino.oss.metalastic.processor

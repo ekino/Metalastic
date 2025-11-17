@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2025 ekino (https://www.ekino.com/)
+ */
+
 package com.ekino.oss.metalastic.gradle
 
 import java.lang.reflect.Method
