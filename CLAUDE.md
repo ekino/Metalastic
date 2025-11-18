@@ -615,12 +615,20 @@ ksp {
 - **Package Registry**: https://central.sonatype.com/namespace/com.ekino.oss
 - **Group ID**: `com.ekino.oss`
 - **License**: MIT License
+- **Published modules**: core, processor, elasticsearch-dsl-*
+
+### Gradle Plugin Portal
+
+- **Plugin ID**: `com.ekino.oss.metalastic`
+- **Portal**: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
+- **Published module**: gradle-plugin
 
 ### Published Artifacts
 
+**Core and DSL modules (Maven Central):**
 ```kotlin
 repositories {
-    mavenCentral()  // No authentication required!
+    mavenCentral()
 }
 
 dependencies {
@@ -637,11 +645,26 @@ dependencies {
 }
 ```
 
+**Gradle Plugin (Gradle Plugin Portal):**
+```kotlin
+plugins {
+    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.ekino.oss.metalastic") version "1.0.0"
+}
+```
+
 ### Versioning Strategy
 
-**Core modules** (core, processor, gradle-plugin):
+**Core modules** (core, processor):
 - Semantic versioning: `v1.0.0`
 - Git tag: `v1.0.0`
+- Published to Maven Central
+- Automatic from GITHUB_REF_NAME or git describe
+
+**Gradle Plugin**:
+- Semantic versioning: `v1.0.0`
+- Git tag: `v1.0.0`
+- Published to Gradle Plugin Portal
 - Automatic from GITHUB_REF_NAME or git describe
 
 **Elasticsearch DSL modules**:

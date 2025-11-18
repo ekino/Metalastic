@@ -12,12 +12,13 @@ This document explains how to manage releases and publish Metalastic to Maven Ce
 
 ## Overview
 
-Metalastic uses **GitHub Actions** to automatically publish artifacts to **Maven Central** when git tags are pushed. The project supports two versioning strategies:
+Metalastic uses **GitHub Actions** to automatically publish artifacts when git tags are pushed. The project supports two versioning strategies:
 
-1. **Core Modules** (`core`, `processor`, `gradle-plugin`) - Semantic versioning
-2. **Elasticsearch DSL Module** - Version-aligned with Spring Data Elasticsearch
+1. **Core Modules** (`core`, `processor`) - Published to Maven Central
+2. **Gradle Plugin** (`gradle-plugin`) - Published to Gradle Plugin Portal
+3. **Elasticsearch DSL Modules** - Published to Maven Central
 
-All artifacts are published to Maven Central under the `com.ekino.oss` group ID.
+Core modules are published to Maven Central under the `com.ekino.oss` group ID. The Gradle plugin is published to the Gradle Plugin Portal with plugin ID `com.ekino.oss.metalastic`.
 
 ## Versioning Strategy
 
@@ -31,11 +32,17 @@ All artifacts are published to Maven Central under the `com.ekino.oss` group ID.
 - `v1.0.1` - Patch/bugfix
 - `v2.0.0` - Breaking changes
 
-**Publishes**:
+**Publishes to Maven Central**:
 ```
 com.ekino.oss:metalastic-core:1.0.0
 com.ekino.oss:metalastic-processor:1.0.0
-com.ekino.oss:metalastic-gradle-plugin:1.0.0
+```
+
+**Publishes to Gradle Plugin Portal**:
+```
+Plugin ID: com.ekino.oss.metalastic
+Version: 1.0.0
+URL: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 ```
 
 ### Elasticsearch DSL Modules Versioning
@@ -88,13 +95,17 @@ com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0
 
 2. **Monitor GitHub Actions**
    - Go to: https://github.com/ekino/Metalastic/actions
-   - Watch the "Publish to Maven Central" workflow
+   - Watch the "Publish Release" workflow
    - Verify all steps complete successfully
 
 3. **Verify publication**
-   - Check Maven Central: https://central.sonatype.com/namespace/com.ekino.oss
-   - Search for: `com.ekino.oss:metalastic-core:1.0.0`
-   - Artifacts typically appear within 15-30 minutes
+   - **Maven Central**: https://central.sonatype.com/namespace/com.ekino.oss
+     - Search for: `com.ekino.oss:metalastic-core:1.0.0`
+     - Artifacts typically appear within 15-30 minutes
+   - **Gradle Plugin Portal**: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
+     - Search for plugin version: `1.0.0`
+     - Initial submission requires manual approval (1-2 business days)
+     - Subsequent releases typically auto-approved
 
 4. **Create GitHub Release**
    - Go to: https://github.com/ekino/Metalastic/releases
@@ -247,14 +258,21 @@ SNAPSHOTs are automatically published on every commit to `master` via the "Manua
 1. Detects tag type (core modules vs DSL)
 2. Builds artifacts
 3. Signs with GPG
-4. Publishes to Maven Central
-5. Creates GitHub Release automatically
+4. Publishes to Maven Central (core, processor, elasticsearch-dsl-*)
+5. Publishes gradle-plugin to Gradle Plugin Portal (core releases only)
+6. Creates GitHub Release automatically
 
 **Required Secrets** (configured in GitHub repository settings):
+
+_Maven Central secrets:_
 - `ORG_GRADLE_PROJECT_mavenCentralUsername` - Maven Central username
 - `ORG_GRADLE_PROJECT_mavenCentralPassword` - Maven Central token
 - `ORG_GRADLE_PROJECT_signingInMemoryKey` - GPG private key (base64)
 - `ORG_GRADLE_PROJECT_signingInMemoryKeyPassword` - GPG key password
+
+_Gradle Plugin Portal secrets:_
+- `GRADLE_PUBLISH_KEY` - Plugin Portal API key
+- `GRADLE_PUBLISH_SECRET` - Plugin Portal API secret
 
 ### Manual Publish Workflow
 
@@ -395,6 +413,37 @@ git tag -l
 # Check version detection
 ./gradlew properties | grep version
 ```
+
+### Gradle Plugin Portal - Publication Fails
+
+**Symptoms**: `publishPlugins` task fails with authentication error
+
+**Fix**:
+1. Verify `GRADLE_PUBLISH_KEY` and `GRADLE_PUBLISH_SECRET` are set in GitHub repository settings
+2. Check credentials at: https://plugins.gradle.org/ (Profile → API Keys)
+3. Regenerate API key if needed
+
+**Local testing**:
+```bash
+# Add credentials to ~/.gradle/gradle.properties
+gradle.publish.key=<your-api-key>
+gradle.publish.secret=<your-api-secret>
+
+# Validate configuration
+./gradlew :modules:gradle-plugin:publishPlugins --validate-only
+```
+
+### Gradle Plugin Portal - Pending Approval
+
+**Symptoms**: Plugin published but not visible in search
+
+**Timeline**:
+- **First submission**: Manual review by Gradle team (1-2 business days)
+- **Subsequent versions**: Typically auto-approved
+
+**Check status**:
+- Email notification to registered account
+- Plugin Portal: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 
 ## Best Practices
 
