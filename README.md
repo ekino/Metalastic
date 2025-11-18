@@ -75,8 +75,8 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 ```kotlin
 // build.gradle.kts
 plugins {
-    kotlin("jvm") version "2.2.20"
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"  // Required for code generation
+    kotlin("jvm") version "2.2.21"
+    id("com.google.devtools.ksp") version "2.3.2"  // Required for code generation
     id("com.ekino.oss.metalastic") version "1.0.0"
 }
 
@@ -174,25 +174,44 @@ The `elasticsearch-dsl` modules provide innovative query building DSL with type-
 
 ### Installation
 
-Choose the artifact matching your Spring Data Elasticsearch version:
+#### With BOM (Recommended)
 
 ```kotlin
 // build.gradle.kts
 dependencies {
-    // For Spring Data ES 5.5.x
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0")
+    // Import BOM for version alignment
+    implementation(platform("com.ekino.oss:metalastic-bom:1.0.0"))
 
-    // For Spring Data ES 5.4.x
+    // Choose DSL artifact based on your Spring Data ES version
+    // For Spring Data ES 5.4.x - 5.5.x
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4")
+
+    // OR for Spring Data ES 5.0.x - 5.3.x
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0")
+}
+```
+
+#### Without BOM
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    // For Spring Data ES 5.4.x - 5.5.x
     implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0")
 
-    // For Spring Data ES 5.0.x through 5.3.x
+    // OR for Spring Data ES 5.0.x - 5.3.x
     implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0")
 }
 ```
 
-**Version Format**: `{dsl-version}` (e.g., `1.0.0`)
-- Choose artifact suffix (5.0, 5.1, 5.2, 5.3, 5.4, or 5.5) matching your Spring Data ES version
-- All variants share the same DSL version number
+**DSL Artifact Selection**:
+
+| Your Spring Data ES Version | Use This Artifact | Brings Transitively |
+|------------------------------|------------------|---------------------|
+| 5.0.x - 5.3.x | `metalastic-elasticsearch-dsl-5.0` | Spring Data ES 5.3.13 |
+| 5.4.x - 5.5.x | `metalastic-elasticsearch-dsl-5.4` | Spring Data ES 5.5.6 |
+
+**Note**: The DSL artifacts bring the latest Spring Data ES version in their supported range as a transitive dependency. You can override this by explicitly declaring your preferred version.
 
 ### Innovative `clause + { }` Syntax
 
@@ -1346,23 +1365,18 @@ The processor uses **runtime field type detection**, automatically supporting:
 | **Core Runtime** | `com.ekino.oss:metalastic-core` | `1.0.0`        | Semantic versioning |
 | **Annotation Processor** | `com.ekino.oss:metalastic-processor` | `1.0.0`        | Semantic versioning |
 | **Gradle Plugin** | `com.ekino.oss:metalastic-gradle-plugin` | `1.0.0`        | Semantic versioning |
-| **Enhanced DSL (5.0)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.0` | `1.0.0`        | Semantic versioning |
-| **Enhanced DSL (5.1)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.1` | `1.0.0`        | Semantic versioning |
-| **Enhanced DSL (5.2)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.2` | `1.0.0`        | Semantic versioning |
-| **Enhanced DSL (5.3)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.3` | `1.0.0`        | Semantic versioning |
-| **Enhanced DSL (5.4)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.4` | `1.0.0`        | Semantic versioning |
-| **Enhanced DSL (5.5)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.5` | `1.0.0`        | Semantic versioning |
+| **BOM** | `com.ekino.oss:metalastic-bom` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.0-5.3)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.0` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.4-5.5)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.4` | `1.0.0`        | Semantic versioning |
 
 ### elasticsearch-dsl Version Compatibility
 
-| Artifact | Spring Data ES | Elasticsearch Java | Implementation |
-|-------------------|---------------|-------------------|----------------|
-| **elasticsearch-dsl-5.0:1.0.0** | 5.0.12 | 8.5.3 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.1:1.0.0** | 5.1.12 | 8.7.1 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.2:1.0.0** | 5.2.12 | 8.11.1 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.3:1.0.0** | 5.3.13 | 8.13.4 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.4:1.0.0** | 5.4.11 | 8.15.5 | shared-8.15 (UntypedRangeQuery) |
-| **elasticsearch-dsl-5.5:1.0.0** | 5.5.6 | 8.18.8 | shared-8.15 (UntypedRangeQuery) |
+| Artifact | Supported Spring Data ES Versions | Brings Transitively | Implementation |
+|----------|----------------------------------|---------------------|----------------|
+| **elasticsearch-dsl-5.0:1.0.0** | 5.0.x - 5.3.x | Spring Data ES 5.3.13 | Classic RangeQuery API |
+| **elasticsearch-dsl-5.4:1.0.0** | 5.4.x - 5.5.x | Spring Data ES 5.5.6 | UntypedRangeQuery API |
+
+**Note**: Elasticsearch Java client comes transitively from Spring Data Elasticsearch (5.3.13 brings 8.13.4, 5.5.6 brings 8.18.8)
 
 ### Feature Matrix by Module
 
@@ -1475,18 +1489,13 @@ Metalastic/
 │   ├── core/                         # Runtime library
 │   │   ├── src/main/kotlin/          # Field classes, metamodel base classes
 │   │   └── src/test/kotlin/          # Unit tests
-│   ├── elasticsearch-dsl-shared-8.5/ # DSL source for elasticsearch-java 8.5-8.13 (not published)
-│   │   ├── src/main/kotlin/          # BoolQueryDsl, QueryVariantDsl, classic RangeQuery
-│   │   └── src/test/kotlin/          # DSL tests with JCV validation
-│   ├── elasticsearch-dsl-shared-8.15/# DSL source for elasticsearch-java 8.15+ (not published)
-│   │   ├── src/main/kotlin/          # Same as 8.5, but uses UntypedRangeQuery
-│   │   └── src/test/kotlin/          # DSL tests
-│   ├── elasticsearch-dsl-5.0/        # Published variant for Spring Data ES 5.0.x
-│   ├── elasticsearch-dsl-5.1/        # Published variant for Spring Data ES 5.1.x
-│   ├── elasticsearch-dsl-5.2/        # Published variant for Spring Data ES 5.2.x
-│   ├── elasticsearch-dsl-5.3/        # Published variant for Spring Data ES 5.3.x
-│   ├── elasticsearch-dsl-5.4/        # Published variant for Spring Data ES 5.4.x
-│   ├── elasticsearch-dsl-5.5/        # Published variant for Spring Data ES 5.5.x
+│   ├── bom/                     # Bill of Materials for version alignment
+│   ├── elasticsearch-dsl-5.0/   # DSL for Spring Data ES 5.0-5.3 (published)
+│   │   ├── src/main/kotlin/     # BoolQueryDsl, QueryVariantDsl, classic RangeQuery
+│   │   └── src/test/kotlin/     # DSL tests with JCV validation
+│   ├── elasticsearch-dsl-5.4/   # DSL for Spring Data ES 5.4-5.5 (published)
+│   │   ├── src/main/kotlin/     # BoolQueryDsl, QueryVariantDsl, UntypedRangeQuery
+│   │   └── src/test/kotlin/     # DSL tests with JCV validation
 │   ├── processor/               # KSP annotation processor
 │   │   ├── src/main/kotlin/     # Code generation logic
 │   │   └── src/test/kotlin/     # Processor unit tests
