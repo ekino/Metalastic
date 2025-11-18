@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "com.ekino.oss"
-version = "1.0.0"
+// Version inherited from root project (set from git tags)
 
 dependencies {
     constraints {
