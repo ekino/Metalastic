@@ -4,7 +4,8 @@ on:
   push:
     tags:
       - 'v*'                      # Core modules: v1.0.0
-      - 'elasticsearch-dsl-*-v*'  # DSL modules: elasticsearch-dsl-5.5-v1.0.0
+      - 'elasticsearch-dsl-*-v*'  # DSL frozen modules: elasticsearch-dsl-5.3-v1.0.0
+      - 'elasticsearch-dsl-v*'    # DSL rolling module: elasticsearch-dsl-v1.0.0
 
 permissions:
   contents: write
@@ -53,8 +54,14 @@ jobs:
             VERSION="${TAG_NAME#v}"
             echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
             echo "release_type=core" >> $GITHUB_OUTPUT
-          elif [[ "$TAG_NAME" =~ ^elasticsearch-dsl-5\.[0-9]+-v ]]; then
-            # DSL release: elasticsearch-dsl-5.5-v1.0.0 → 1.0.0
+          elif [[ "$TAG_NAME" =~ ^elasticsearch-dsl-v ]]; then
+            # DSL rolling release: elasticsearch-dsl-v1.0.0 → 1.0.0
+            VERSION="${TAG_NAME#elasticsearch-dsl-v}"
+            echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
+            echo "dsl_variant=rolling" >> $GITHUB_OUTPUT
+            echo "release_type=dsl" >> $GITHUB_OUTPUT
+          elif [[ "$TAG_NAME" =~ ^elasticsearch-dsl-[0-9]+\.[0-9]+-v ]]; then
+            # DSL frozen release: elasticsearch-dsl-5.3-v1.0.0 → 1.0.0
             VERSION="${TAG_NAME##*-v}"
             DSL_VERSION="${TAG_NAME#elasticsearch-dsl-}"
             DSL_VERSION="${DSL_VERSION%-v*}"
