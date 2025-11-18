@@ -4,7 +4,7 @@ on:
   push:
     tags:
       - 'v*'                      # Core modules: v1.0.0
-      - 'elasticsearch-dsl-*-v*'  # DSL modules: elasticsearch-dsl-5.5-v1.0
+      - 'elasticsearch-dsl-*-v*'  # DSL modules: elasticsearch-dsl-5.5-v1.0.0
 
 permissions:
   contents: write
@@ -54,7 +54,7 @@ jobs:
             echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
             echo "release_type=core" >> $GITHUB_OUTPUT
           elif [[ "$TAG_NAME" =~ ^elasticsearch-dsl-5\.[0-9]+-v ]]; then
-            # DSL release: elasticsearch-dsl-5.5-v1.0 → 1.0
+            # DSL release: elasticsearch-dsl-5.5-v1.0.0 → 1.0.0
             VERSION="${TAG_NAME##*-v}"
             DSL_VERSION="${TAG_NAME#elasticsearch-dsl-}"
             DSL_VERSION="${DSL_VERSION%-v*}"

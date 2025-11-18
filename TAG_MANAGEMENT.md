@@ -45,16 +45,16 @@ com.ekino.oss:metalastic-gradle-plugin:1.0.0
 **Format**: `elasticsearch-dsl-5.{x}-v{DSL_VERSION}`
 
 **Examples**:
-- `elasticsearch-dsl-5.5-v1.0` - DSL v1.0 for Spring Data ES 5.5.x
-- `elasticsearch-dsl-5.0-v1.0` - DSL v1.0 for Spring Data ES 5.0.x
+- `elasticsearch-dsl-5.5-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.5.x
+- `elasticsearch-dsl-5.0-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.0.x
 
 **Publishes** (per tag):
 ```
-# Tag elasticsearch-dsl-5.5-v1.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0
+# Tag elasticsearch-dsl-5.5-v1.0.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0
 
-# Tag elasticsearch-dsl-5.0-v1.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0
+# Tag elasticsearch-dsl-5.0-v1.0.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0
 ```
 
 **Rationale**: Separate artifacts per Spring Data ES version prevent dependency conflicts. Consumers choose the variant matching their Spring Data ES version.
@@ -116,7 +116,7 @@ Use the automated workflow to release multiple DSL variants with built-in valida
 
 2. **Configure the release**
    - **Branch**: `master` (or your release branch)
-   - **DSL version**: e.g., `1.0`, `1.1`, `2.0`
+   - **DSL version**: e.g., `1.0.0`, `1.1.0`, `2.0.0`
    - **Variants**: Choose one of:
      - `all` - All 6 variants (5.0 through 5.5)
      - `5.0-5.3` - Only versions using shared-8.5 codebase
@@ -147,15 +147,15 @@ Use the automated workflow to release multiple DSL variants with built-in valida
 **Quick release scenarios**:
 
 ```yaml
-# Release all variants with version 1.0
+# Release all variants with version 1.0.0
 Variants: all
-DSL version: 1.0
-Creates: elasticsearch-dsl-5.0-v1.0 through elasticsearch-dsl-5.5-v1.0
+DSL version: 1.0.0
+Creates: elasticsearch-dsl-5.0-v1.0.0 through elasticsearch-dsl-5.5-v1.0.0
 
 # Release only newest versions
 Variants: 5.4-5.5
-DSL version: 1.0
-Creates: elasticsearch-dsl-5.4-v1.0 and elasticsearch-dsl-5.5-v1.0
+DSL version: 1.0.0
+Creates: elasticsearch-dsl-5.4-v1.0.0 and elasticsearch-dsl-5.5-v1.0.0
 
 # Hot-fix for specific variant
 Variants: custom
@@ -171,9 +171,9 @@ Creates: elasticsearch-dsl-5.5-v1.0.1
 
 2. **Create and push the tag**
    ```bash
-   # Example: Release DSL v1.0 for Spring Data ES 5.5
-   git tag elasticsearch-dsl-5.5-v1.0
-   git push origin elasticsearch-dsl-5.5-v1.0
+   # Example: Release DSL v1.0.0 for Spring Data ES 5.5
+   git tag elasticsearch-dsl-5.5-v1.0.0
+   git push origin elasticsearch-dsl-5.5-v1.0.0
    ```
 
 3. **Monitor and verify** (same as core modules)
@@ -183,25 +183,25 @@ Creates: elasticsearch-dsl-5.5-v1.0.1
 When releasing a new DSL version, release all 6 variants with the same DSL version:
 
 ```bash
-# Tag all 6 variants with DSL v1.0
-git tag elasticsearch-dsl-5.0-v1.0
-git tag elasticsearch-dsl-5.1-v1.0
-git tag elasticsearch-dsl-5.2-v1.0
-git tag elasticsearch-dsl-5.3-v1.0
-git tag elasticsearch-dsl-5.4-v1.0
-git tag elasticsearch-dsl-5.5-v1.0
+# Tag all 6 variants with DSL v1.0.0
+git tag elasticsearch-dsl-5.0-v1.0.0
+git tag elasticsearch-dsl-5.1-v1.0.0
+git tag elasticsearch-dsl-5.2-v1.0.0
+git tag elasticsearch-dsl-5.3-v1.0.0
+git tag elasticsearch-dsl-5.4-v1.0.0
+git tag elasticsearch-dsl-5.5-v1.0.0
 
 # Push all tags
 git push origin --tags
 ```
 
 This publishes:
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0`
 
 **Note**: Option A (batch via GitHub Actions) is recommended as it includes validation, prevents errors, and provides a clear audit trail.
 
@@ -283,7 +283,7 @@ SNAPSHOTs are automatically published on every commit to `master` via the "Manua
 6. Generates detailed job summary
 
 **Configuration Options**:
-- **DSL version**: The version to release (e.g., `1.0`, `1.1`)
+- **DSL version**: The version to release (e.g., `1.0.0`, `1.1.0`)
 - **Variants**: Which Spring Data ES versions to release
   - `all` - All 6 variants (5.0-5.5)
   - `5.0-5.3` - Only shared-8.5 based versions

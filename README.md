@@ -51,7 +51,6 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 - 🛡️ **Type safety** - Compile-time verification of field types and relationships
 - 📦 **Zero runtime dependencies** - Generated code uses only your existing Spring Data ES
 - 🔄 **Automatic updates** - Regenerated when document classes change
-- 🎯 **QueryDSL-inspired** - Familiar API for developers coming from JPA/QueryDSL
 
 ## Key Features
 
@@ -78,7 +77,7 @@ Metalastic provides **compile-time code generation** to create type-safe, fluent
 plugins {
     kotlin("jvm") version "2.2.20"
     id("com.google.devtools.ksp") version "2.2.20-2.0.3"  // Required for code generation
-    id("com.ekino.oss.metalastic") version "3.0.0"
+    id("com.ekino.oss.metalastic") version "1.0.0"
 }
 
 repositories {
@@ -96,21 +95,32 @@ repositories {
 // build.gradle.kts
 metalastic {
     metamodels {
+        // Source-set specific configuration (optional)
         main {
-            packageName = "com.example.search.metamodels"
-            className = "SearchMetamodels"
+            packageName = "com.example.search.metamodels"  // default: com.ekino.oss.metalastic
+            className = "SearchMetamodels"                  // default: Metamodels
+            classPrefix = "Meta"                            // default: Meta
         }
         test {
             packageName = "com.example.test.metamodels"
             className = "TestMetamodels"
         }
-        fallbackPackage = "com.example.metamodels"
-        fallbackClassName = "GlobalMetamodels"
+
+        // Global defaults (optional, used when source-set specific config is not set)
+        packageName = "com.example.metamodels"   // default: com.ekino.oss.metalastic
+        className = "GlobalMetamodels"            // default: Metamodels
+        classPrefix = "Meta"                      // default: Meta
     }
 
-    generateJavaCompatibility = true // default: true
-    generatePrivateClassMetamodels = false // default: false
-    reportingPath = "build/reports/metalastic/processor-report.md"
+    features {
+        generateJavaCompatibility = true              // default: true
+        generatePrivateClassMetamodels = false        // default: false
+    }
+
+    reporting {
+        enabled = false                               // default: false
+        outputPath = "build/reports/metalastic/processor-report.md"  // default path
+    }
 }
 ```
 
@@ -140,10 +150,12 @@ ksp {
 ### 3. Use Generated Code
 
 ```kotlin
+// Import the metamodel from companion object
+import com.example.MetaPerson.Companion.person
+
 // Access type-safe field paths
-val document = Metamodels.person
-document.name.path() shouldBe "name"
-document.address.city.path() shouldBe "address.city"
+person.name.path() shouldBe "name"
+person.address.city.path() shouldBe "address.city"
 
 // Use in Elasticsearch queries
 SearchSourceBuilder()
@@ -168,17 +180,17 @@ Choose the artifact matching your Spring Data Elasticsearch version:
 // build.gradle.kts
 dependencies {
     // For Spring Data ES 5.5.x
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0")
 
     // For Spring Data ES 5.4.x
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0")
 
     // For Spring Data ES 5.0.x through 5.3.x
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0")
 }
 ```
 
-**Version Format**: `{dsl-version}` (e.g., `1.0`)
+**Version Format**: `{dsl-version}` (e.g., `1.0.0`)
 - Choose artifact suffix (5.0, 5.1, 5.2, 5.3, 5.4, or 5.5) matching your Spring Data ES version
 - All variants share the same DSL version number
 
@@ -355,23 +367,6 @@ builder.boolQueryDsl {
 val query = Query(builder.build())
 ```
 
-### Spring Data Integration
-
-Seamless integration with Spring Data Elasticsearch:
-
-```kotlin
-import org.springframework.data.elasticsearch.client.elc.NativeQuery
-
-val nativeQuery = NativeQuery.builder()
-    .withQuery(Query(builder.build()))
-    .withMaxResults(20)
-    .withMinScore(0.5f)
-    .build()
-
-// Use with ElasticsearchOperations
-val results = elasticsearchOperations.search(nativeQuery, Document::class.java)
-```
-
 ## How It Works
 
 ```mermaid
@@ -495,26 +490,58 @@ class MetaActivity(
 
 #### Centralized Registry
 ```kotlin
-@Generated("com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor")
-data object Metamodels {
-    /**
-     * Metamodel for @Document class [com.example.Person]
-     */
-    @JvmField
-    val person: MetaPerson = MetaPerson()
+...
 
+@Generated("com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor", date="2025-11-17T15:39:35.989303+01:00")
+object Metamodels {
     /**
-     * Returns all available metamodels for discovery and iteration.
+     * Returns a sequence of all generated metamodel instances.
      */
-    fun entries(): List<Index> = listOf(person)
+    @JvmStatic
+    fun entries(): Sequence<Document<*>> = sequenceOf(
+        person,
+        product,
+        // ... other documents
+    )
+}
+```
+
+**Note**: Individual metamodel instances are accessed via companion objects in the generated Meta classes:
+
+```kotlin
+// Each generated Meta class has a companion object with a singleton instance
+class MetaPerson<T : Any?>(
+    parent: ObjectField<*>? = null,
+    name: String = "",
+    nested: Boolean = false,
+    fieldType: KType,
+) : Document<T>(parent, name, nested, fieldType) {
+
+    @JvmField
+    val id: KeywordField<String> = keyword<String>("id")
+
+    @JvmField
+    val name: TextField<String> = text<String>("name")
+
+    // ... other fields
+
+    companion object {
+        const val INDEX_NAME: String = "person"
+
+        @JvmField
+        val person: MetaPerson<Person> = MetaPerson(fieldType = typeOf<Person>())
+    }
 }
 ```
 
 ### Usage: Type-safe Field Access
 
 ```kotlin
+// Import directly from companion object (recommended)
+import com.example.MetaPerson.Companion.person
+
 // Access document metamodel
-val document = Metamodels.person
+val document = person
 
 // Root level fields
 document.name.path() shouldBe "name"
@@ -537,11 +564,12 @@ document.activities.name.nestedPaths() shouldBe listOf("activities")
 ### Usage: Elasticsearch Queries
 
 ```kotlin
-// Type-safe query construction
-val person = Metamodels.person
+// Import the metamodel from companion object
+import com.example.MetaPerson.Companion.person
 
+// Type-safe query construction
 val searchRequest = SearchRequest()
-    .indices(person.indexName)
+    .indices(MetaPerson.INDEX_NAME)
     .source(
         SearchSourceBuilder()
             .query(
@@ -667,7 +695,8 @@ public class Customer {
 Generates type-safe cross-references:
 
 ```kotlin
-val order = Metamodels.order
+import com.example.MetaOrder.Companion.order
+
 order.customer.name.path() shouldBe "customer.name"
 ```
 
@@ -771,7 +800,6 @@ class MetaProduct<T : Any?>(
 **Common scenarios for UnModellableObject:**
 - 🚫 Dynamic collections: `Map<String, Any>`, `Map<String, *>`
 - 🚫 Complex generics: `Map<String, List<Set<T>>>`
-- 🚫 External library types without `@Field` annotations
 - 🚫 Collections with unknown element structure
 
 **Benefits of terminal objects:**
@@ -859,18 +887,21 @@ The field hierarchy uses clear visual indicators:
 
 ### Discovery and Iteration
 
-Use the `Metamodels.entries()` function for runtime discovery:
+Use the centralized registry's `entries()` function for runtime discovery:
 
 ```kotlin
+// Import the centralized registry
+import com.example.search.metamodels.Metamodels
+
 // Find all available metamodels
 val allMetamodels = Metamodels.entries()
 
-// Programmatic access
-val indexNames = Metamodels.entries().map { it.indexName }
+// Programmatic access to index names
+val indexNames = Metamodels.entries().map { it.indexName() }
 
-// Dynamic query building
+// Dynamic query building across all indices
 fun buildSearchAcrossAllIndices(term: String): SearchRequest {
-    val indices = Metamodels.entries().map { it.indexName }.toTypedArray()
+    val indices = Metamodels.entries().map { it.indexName() }.toTypedArray()
     return SearchRequest(*indices)
         .source(SearchSourceBuilder().query(QueryBuilders.queryStringQuery(term)))
 }
@@ -1005,17 +1036,18 @@ metalastic {
 ```kotlin
 metalastic {
     metamodels {
-        classPrefix = "Q"  // Global default
+        // Global defaults (classPrefix defaults to "Meta" if not set)
+        classPrefix = "Q"  // Change global default to QueryDSL-style "Q"
 
         main {
-            classPrefix = "Meta"  // Override for main source set only
+            classPrefix = "Index"  // Override for main source set only
         }
     }
 }
 ```
 
-- Main classes: `MetaIndexPerson` (overridden)
-- Test classes: `QTestDocument` (inherited from global)
+- Main classes: `IndexPerson` (overridden to "Index")
+- Test classes: `QTestDocument` (inherited from global "Q")
 
 ### Private Class Handling
 
@@ -1283,12 +1315,12 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 | Spring Data ES | Elasticsearch | Metalastic Core | elasticsearch-dsl Artifact |
 |----------------|---------------|-----------------|---------------------------|
-| 5.5.x | 8.18.x | ✅ Full | `metalastic-elasticsearch-dsl-5.5:1.0` |
-| 5.4.x | 8.15.x | ✅ Full | `metalastic-elasticsearch-dsl-5.4:1.0` |
-| 5.3.x | 8.13.x | ✅ Full | `metalastic-elasticsearch-dsl-5.3:1.0` |
-| 5.2.x | 8.11.x | ✅ Full | `metalastic-elasticsearch-dsl-5.2:1.0` |
-| 5.1.x | 8.7.x | ✅ Full | `metalastic-elasticsearch-dsl-5.1:1.0` |
-| 5.0.x | 8.5.x | ✅ Full | `metalastic-elasticsearch-dsl-5.0:1.0` |
+| 5.5.x | 8.18.x | ✅ Full | `metalastic-elasticsearch-dsl-5.5:1.0.0` |
+| 5.4.x | 8.15.x | ✅ Full | `metalastic-elasticsearch-dsl-5.4:1.0.0` |
+| 5.3.x | 8.13.x | ✅ Full | `metalastic-elasticsearch-dsl-5.3:1.0.0` |
+| 5.2.x | 8.11.x | ✅ Full | `metalastic-elasticsearch-dsl-5.2:1.0.0` |
+| 5.1.x | 8.7.x | ✅ Full | `metalastic-elasticsearch-dsl-5.1:1.0.0` |
+| 5.0.x | 8.5.x | ✅ Full | `metalastic-elasticsearch-dsl-5.0:1.0.0` |
 
 ### Framework Integration
 
@@ -1311,26 +1343,26 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 | Module | Group ID | Latest Version | Versioning Strategy |
 |--------|----------|----------------|-------------------|
-| **Core Runtime** | `com.ekino.oss:metalastic-core` | `1.0.0` | Semantic versioning |
-| **Annotation Processor** | `com.ekino.oss:metalastic-processor` | `1.0.0` | Semantic versioning |
-| **Gradle Plugin** | `com.ekino.oss:metalastic-gradle-plugin` | `1.0.0` | Semantic versioning |
-| **Enhanced DSL (5.0)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.0` | `1.0` | DSL version only |
-| **Enhanced DSL (5.1)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.1` | `1.0` | DSL version only |
-| **Enhanced DSL (5.2)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.2` | `1.0` | DSL version only |
-| **Enhanced DSL (5.3)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.3` | `1.0` | DSL version only |
-| **Enhanced DSL (5.4)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.4` | `1.0` | DSL version only |
-| **Enhanced DSL (5.5)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.5` | `1.0` | DSL version only |
+| **Core Runtime** | `com.ekino.oss:metalastic-core` | `1.0.0`        | Semantic versioning |
+| **Annotation Processor** | `com.ekino.oss:metalastic-processor` | `1.0.0`        | Semantic versioning |
+| **Gradle Plugin** | `com.ekino.oss:metalastic-gradle-plugin` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.0)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.0` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.1)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.1` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.2)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.2` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.3)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.3` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.4)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.4` | `1.0.0`        | Semantic versioning |
+| **Enhanced DSL (5.5)** | `com.ekino.oss:metalastic-elasticsearch-dsl-5.5` | `1.0.0`        | Semantic versioning |
 
 ### elasticsearch-dsl Version Compatibility
 
 | Artifact | Spring Data ES | Elasticsearch Java | Implementation |
 |-------------------|---------------|-------------------|----------------|
-| **elasticsearch-dsl-5.0:1.0** | 5.0.12 | 8.5.3 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.1:1.0** | 5.1.12 | 8.7.1 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.2:1.0** | 5.2.12 | 8.11.1 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.3:1.0** | 5.3.13 | 8.13.4 | shared-8.5 (classic API) |
-| **elasticsearch-dsl-5.4:1.0** | 5.4.11 | 8.15.5 | shared-8.15 (UntypedRangeQuery) |
-| **elasticsearch-dsl-5.5:1.0** | 5.5.5 | 8.18.8 | shared-8.15 (UntypedRangeQuery) |
+| **elasticsearch-dsl-5.0:1.0.0** | 5.0.12 | 8.5.3 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.1:1.0.0** | 5.1.12 | 8.7.1 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.2:1.0.0** | 5.2.12 | 8.11.1 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.3:1.0.0** | 5.3.13 | 8.13.4 | shared-8.5 (classic API) |
+| **elasticsearch-dsl-5.4:1.0.0** | 5.4.11 | 8.15.5 | shared-8.15 (UntypedRangeQuery) |
+| **elasticsearch-dsl-5.5:1.0.0** | 5.5.5 | 8.18.8 | shared-8.15 (UntypedRangeQuery) |
 
 ### Feature Matrix by Module
 
@@ -1349,18 +1381,18 @@ The processor uses **runtime field type detection**, automatically supporting:
 
 **Choose the artifact matching your Spring Data Elasticsearch version:**
 
-| Your Spring Data ES | Use This Artifact |
-|---------------------|-------------------|
-| 5.5.x | `metalastic-elasticsearch-dsl-5.5:1.0` |
-| 5.4.x | `metalastic-elasticsearch-dsl-5.4:1.0` |
-| 5.3.x | `metalastic-elasticsearch-dsl-5.3:1.0` |
-| 5.2.x | `metalastic-elasticsearch-dsl-5.2:1.0` |
-| 5.1.x | `metalastic-elasticsearch-dsl-5.1:1.0` |
-| 5.0.x | `metalastic-elasticsearch-dsl-5.0:1.0` |
+| Your Spring Data ES | Use This Artifact                        |
+|---------------------|------------------------------------------|
+| 5.5.x | `metalastic-elasticsearch-dsl-5.5:1.0.0` |
+| 5.4.x | `metalastic-elasticsearch-dsl-5.4:1.0.0` |
+| 5.3.x | `metalastic-elasticsearch-dsl-5.3:1.0.0` |
+| 5.2.x | `metalastic-elasticsearch-dsl-5.2:1.0.0` |
+| 5.1.x | `metalastic-elasticsearch-dsl-5.1:1.0.0` |
+| 5.0.x | `metalastic-elasticsearch-dsl-5.0:1.0.0` |
 
 **Versioning Strategy**:
 - Artifact suffix indicates Spring Data ES compatibility (5.0, 5.1, etc.)
-- Version number is DSL version only (e.g., `1.0`)
+- Version number uses semantic versioning (e.g., `1.0.0`)
 - All DSL variants released together with same version number
 
 **Benefits**:
@@ -1389,7 +1421,7 @@ The processor uses **runtime field type detection**, automatically supporting:
 4. **Ensure KSP plugin is applied**:
    ```kotlin
    plugins {
-       id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+       id("com.google.devtools.ksp") version "2.3.2"
    }
    ```
 
@@ -1401,8 +1433,8 @@ The processor uses **runtime field type detection**, automatically supporting:
 1. **Verify both plugins are applied**:
    ```kotlin
    plugins {
-       id("com.google.devtools.ksp") version "2.2.20-2.0.3"
-       id("com.ekino.oss.metalastic") version "3.0.0"
+       id("com.google.devtools.ksp") version "2.3.2"
+       id("com.ekino.oss.metalastic") version "1.0.0"
    }
    ```
 2. **Check for `@Document` annotations**:
@@ -1417,99 +1449,6 @@ The processor uses **runtime field type detection**, automatically supporting:
 4. **Clean and rebuild**:
    ```bash
    ./gradlew clean kspKotlin
-   ```
-
-### Import Conflicts
-
-**Problem**: Ambiguous imports or naming conflicts with generated classes.
-
-**Solutions**:
-1. **Use custom package configuration**:
-   ```kotlin
-   metalastic {
-       metamodels {
-           main {
-               packageName = "com.example.search.metamodels"
-               className = "SearchMetamodels"
-           }
-       }
-   }
-   ```
-2. **Use qualified imports**:
-   ```kotlin
-   import com.example.search.metamodels.Metamodels
-   import com.example.search.metamodels.MetaPerson
-   ```
-
-### Private Class Not Generating Metamodel
-
-**Problem**: Private `@Document` class doesn't generate Meta-class.
-
-**Solution**: This is expected behavior. Private classes are excluded by default. To include them:
-
-```kotlin
-metalastic {
-    generatePrivateClassMetamodels = true
-}
-```
-
-**Note**: Including private class metamodels is generally not recommended.
-
-### Field Not Generating
-
-**Problem**: Specific field missing from generated Meta-class.
-
-**Check**:
-1. **Field has `@Field` annotation**:
-   ```java
-   @Field(type = FieldType.Text)
-   private String name;
-   ```
-2. **Field is not static or transient**
-3. **Getter method has `@Field` for interfaces**:
-   ```java
-   @Field(type = FieldType.Text)
-   String getName();
-   ```
-
-### Build Performance Issues
-
-**Problem**: Slow compilation with KSP.
-
-**Solutions**:
-1. **Enable Gradle configuration cache**:
-   ```kotlin
-   // gradle.properties
-   org.gradle.configuration-cache=true
-   ```
-2. **Increase Gradle daemon memory**:
-   ```kotlin
-   // gradle.properties
-   org.gradle.jvmargs=-Xmx2048m
-   ```
-3. **Use incremental compilation** (enabled by default in KSP)
-
-### Metamodels Class Not Found
-
-**Problem**: `Metamodels` object not found at runtime.
-
-**Solutions**:
-1. **Check source set configuration** matches where you're using it:
-   ```kotlin
-   metalastic {
-       metamodels {
-           main {  // For src/main/kotlin
-               packageName = "com.example.metamodels"
-           }
-           test {  // For src/test/kotlin
-               packageName = "com.example.test.metamodels"
-           }
-       }
-   }
-   ```
-2. **Verify import matches configured package**:
-   ```kotlin
-   import com.example.metamodels.Metamodels
    ```
 
 ### Getting Help
@@ -1643,8 +1582,8 @@ Metalastic uses a **dual publication strategy** to handle different versioning n
      - `com.ekino.oss:metalastic-gradle-plugin:1.0.0`
 
 2. **elasticsearch-dsl Modules** (6 separate artifacts)
-   - **Tag Format**: `elasticsearch-dsl-5.{x}-v{version}` (e.g., `elasticsearch-dsl-5.5-v1.0`)
-   - **Publishes**: Version-specific artifact (e.g., `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0`)
+   - **Tag Format**: `elasticsearch-dsl-5.{x}-v{version}` (e.g., `elasticsearch-dsl-5.5-v1.0.0`)
+   - **Publishes**: Version-specific artifact (e.g., `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0`)
 
 ### 🚀 Release Process
 
@@ -1658,17 +1597,17 @@ git push origin v1.0.0
 **For elasticsearch-dsl Modules:**
 ```bash
 # Publish specific version variant
-git tag elasticsearch-dsl-5.5-v1.0
-git push origin elasticsearch-dsl-5.5-v1.0
-# Triggers CI/CD → publishes elasticsearch-dsl-5.5:1.0
+git tag elasticsearch-dsl-5.5-v1.0.0
+git push origin elasticsearch-dsl-5.5-v1.0.0
+# Triggers CI/CD → publishes elasticsearch-dsl-5.5:1.0.0
 
 # Or publish all DSL versions with same DSL version:
-git tag elasticsearch-dsl-5.0-v1.0
-git tag elasticsearch-dsl-5.1-v1.0
-git tag elasticsearch-dsl-5.2-v1.0
-git tag elasticsearch-dsl-5.3-v1.0
-git tag elasticsearch-dsl-5.4-v1.0
-git tag elasticsearch-dsl-5.5-v1.0
+git tag elasticsearch-dsl-5.0-v1.0.0
+git tag elasticsearch-dsl-5.1-v1.0.0
+git tag elasticsearch-dsl-5.2-v1.0.0
+git tag elasticsearch-dsl-5.3-v1.0.0
+git tag elasticsearch-dsl-5.4-v1.0.0
+git tag elasticsearch-dsl-5.5-v1.0.0
 git push origin --tags
 # Triggers CI/CD → publishes all 6 DSL variants
 ```
@@ -1677,15 +1616,15 @@ git push origin --tags
 
 | Module | Tag Format | Published Version | Repository |
 |--------|------------|-------------------|------------|
-| **core** | `v1.0.0` | `1.0.0` | Maven Central |
-| **processor** | `v1.0.0` | `1.0.0` | Maven Central |
-| **gradle-plugin** | `v1.0.0` | `1.0.0` | Maven Central |
-| **elasticsearch-dsl-5.0** | `elasticsearch-dsl-5.0-v1.0` | `1.0` | Maven Central |
-| **elasticsearch-dsl-5.1** | `elasticsearch-dsl-5.1-v1.0` | `1.0` | Maven Central |
-| **elasticsearch-dsl-5.2** | `elasticsearch-dsl-5.2-v1.0` | `1.0` | Maven Central |
-| **elasticsearch-dsl-5.3** | `elasticsearch-dsl-5.3-v1.0` | `1.0` | Maven Central |
-| **elasticsearch-dsl-5.4** | `elasticsearch-dsl-5.4-v1.0` | `1.0` | Maven Central |
-| **elasticsearch-dsl-5.5** | `elasticsearch-dsl-5.5-v1.0` | `1.0` | Maven Central |
+| **core** | `v1.0.0` | `1.0.0`           | Maven Central |
+| **processor** | `v1.0.0` | `1.0.0`           | Maven Central |
+| **gradle-plugin** | `v1.0.0` | `1.0.0`           | Maven Central |
+| **elasticsearch-dsl-5.0** | `elasticsearch-dsl-5.0-v1.0.0` | `1.0.0`           | Maven Central |
+| **elasticsearch-dsl-5.1** | `elasticsearch-dsl-5.1-v1.0.0` | `1.0.0`           | Maven Central |
+| **elasticsearch-dsl-5.2** | `elasticsearch-dsl-5.2-v1.0.0` | `1.0.0`           | Maven Central |
+| **elasticsearch-dsl-5.3** | `elasticsearch-dsl-5.3-v1.0.0` | `1.0.0`           | Maven Central |
+| **elasticsearch-dsl-5.4** | `elasticsearch-dsl-5.4-v1.0.0` | `1.0.0`           | Maven Central |
+| **elasticsearch-dsl-5.5** | `elasticsearch-dsl-5.5-v1.0.0` | `1.0.0`           | Maven Central |
 
 ### 🏢 Repository Information
 

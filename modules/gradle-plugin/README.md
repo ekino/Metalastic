@@ -130,9 +130,9 @@ metalastic {
             className = "ContractMetamodels"
         }
 
-        // Global fallbacks (optional)
-        fallbackPackage = "com.example.default"
-        fallbackClassName = "DefaultMetamodels"
+        // Global defaults (optional)
+        packageName = "com.example.default"
+        className = "DefaultMetamodels"
     }
 }
 ```
@@ -286,17 +286,38 @@ class QUserDocument(
 
 ### 2. Centralized Registry
 
-A single registry class for easy access:
+A single registry object for discovering all metamodels:
 
 ```kotlin
-// Generated in configured package
-data object Metamodels {
-    @JvmField
-    val userDocument: QUserDocument = QUserDocument()
+// Generated in configured package (e.g., com.example.metamodels)
+import com.ekino.oss.metalastic.core.Document
+import com.example.QUserDocument.Companion.userDocument
+import com.example.QProductDocument.Companion.productDocument
+import jakarta.annotation.Generated
+import kotlin.jvm.JvmStatic
+import kotlin.sequences.Sequence
 
-    @JvmField
-    val productDocument: QProductDocument = QProductDocument()
+@Generated("com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor", date="...")
+object Metamodels {
+    /**
+     * Returns a sequence of all generated metamodel instances.
+     */
+    @JvmStatic
+    fun entries(): Sequence<Document<*>> = sequenceOf(
+        userDocument,
+        productDocument,
+        // ... other documents
+    )
 }
+```
+
+Individual metamodel instances are accessed via companion objects:
+
+```kotlin
+import com.example.QUserDocument.Companion.userDocument
+
+// Use directly
+userDocument.name.path() shouldBe "name"
 ```
 
 ## Troubleshooting

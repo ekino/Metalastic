@@ -21,14 +21,14 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 
 - **elasticsearch-dsl-{version}**: Type-safe Elasticsearch query builder using generated metamodels
   - **Multi-version support**: Separate artifacts for Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
-  - **Version format**: `{dsl-version}` (e.g., `1.0`)
+  - **Version format**: `{dsl-version}` (e.g., `1.0.0`)
   - **Artifacts**:
-    - `metalastic-elasticsearch-dsl-5.0:1.0` (Spring Data ES 5.0.12 + elasticsearch-java 8.5.3)
-    - `metalastic-elasticsearch-dsl-5.1:1.0` (Spring Data ES 5.1.+ + elasticsearch-java 8.7.1)
-    - `metalastic-elasticsearch-dsl-5.2:1.0` (Spring Data ES 5.2.+ + elasticsearch-java 8.11.1)
-    - `metalastic-elasticsearch-dsl-5.3:1.0` (Spring Data ES 5.3.+ + elasticsearch-java 8.13.4)
-    - `metalastic-elasticsearch-dsl-5.4:1.0` (Spring Data ES 5.4.+ + elasticsearch-java 8.15.5)
-    - `metalastic-elasticsearch-dsl-5.5:1.0` (Spring Data ES 5.5.+ + elasticsearch-java 8.18.8)
+    - `metalastic-elasticsearch-dsl-5.0:1.0.0` (Spring Data ES 5.0.12 + elasticsearch-java 8.5.3)
+    - `metalastic-elasticsearch-dsl-5.1:1.0.0` (Spring Data ES 5.1.+ + elasticsearch-java 8.7.1)
+    - `metalastic-elasticsearch-dsl-5.2:1.0.0` (Spring Data ES 5.2.+ + elasticsearch-java 8.11.1)
+    - `metalastic-elasticsearch-dsl-5.3:1.0.0` (Spring Data ES 5.3.+ + elasticsearch-java 8.13.4)
+    - `metalastic-elasticsearch-dsl-5.4:1.0.0` (Spring Data ES 5.4.+ + elasticsearch-java 8.15.5)
+    - `metalastic-elasticsearch-dsl-5.5:1.0.0` (Spring Data ES 5.5.+ + elasticsearch-java 8.18.8)
   - **Shared source**: Versions 5.0-5.3 use `elasticsearch-dsl-shared-8.5`, versions 5.4-5.5 use `elasticsearch-dsl-shared-8.15`
   - **Features**: BoolQueryDsl, QueryVariantDsl, type-safe query construction
   - **Code duplication**: Minimal (~60 lines in RangeQueryUtils.kt) to handle elasticsearch-java 8.15 UntypedRangeQuery API
@@ -215,7 +215,7 @@ import kotlin.sequences.Sequence
     value = ["com.ekino.oss.metalastic.processor.MetalasticSymbolProcessor"],
     date = "2025-10-10T10:00:00Z"
 )
-data object Metamodels {
+object Metamodels {
     /**
      * Returns a sequence of all generated metamodel instances.
      */
@@ -435,18 +435,18 @@ exampleDocument.testDocument.address.city.path() shouldBe "testDocument.address.
 The `elasticsearch-dsl-{version}` modules provide type-safe query builders using generated metamodels.
 
 **Multi-version Support**: Separate artifacts for Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
-**Versioning**: DSL version only (e.g., `1.0`). Choose artifact matching your Spring Data ES version.
+**Versioning**: Semantic versioning (e.g., `1.0.0`). Choose artifact matching your Spring Data ES version.
 
 ### Version Compatibility Matrix
 
 | Artifact | Spring Data ES | Elasticsearch Java | Maven Coordinate | Source Module |
 |----------|---------------|-------------------|------------------|---------------|
-| elasticsearch-dsl-5.0 | 5.0.12 | 8.5.3 | `metalastic-elasticsearch-dsl-5.0:1.0` | shared-8.5 |
-| elasticsearch-dsl-5.1 | 5.1.+ | 8.7.1 | `metalastic-elasticsearch-dsl-5.1:1.0` | shared-8.5 |
-| elasticsearch-dsl-5.2 | 5.2.+ | 8.11.1 | `metalastic-elasticsearch-dsl-5.2:1.0` | shared-8.5 |
-| elasticsearch-dsl-5.3 | 5.3.+ | 8.13.4 | `metalastic-elasticsearch-dsl-5.3:1.0` | shared-8.5 |
-| elasticsearch-dsl-5.4 | 5.4.+ | 8.15.5 | `metalastic-elasticsearch-dsl-5.4:1.0` | shared-8.15 |
-| elasticsearch-dsl-5.5 | 5.5.+ | 8.18.8 | `metalastic-elasticsearch-dsl-5.5:1.0` | shared-8.15 |
+| elasticsearch-dsl-5.0 | 5.0.12 | 8.5.3 | `metalastic-elasticsearch-dsl-5.0:1.0.0` | shared-8.5 |
+| elasticsearch-dsl-5.1 | 5.1.+ | 8.7.1 | `metalastic-elasticsearch-dsl-5.1:1.0.0` | shared-8.5 |
+| elasticsearch-dsl-5.2 | 5.2.+ | 8.11.1 | `metalastic-elasticsearch-dsl-5.2:1.0.0` | shared-8.5 |
+| elasticsearch-dsl-5.3 | 5.3.+ | 8.13.4 | `metalastic-elasticsearch-dsl-5.3:1.0.0` | shared-8.5 |
+| elasticsearch-dsl-5.4 | 5.4.+ | 8.15.5 | `metalastic-elasticsearch-dsl-5.4:1.0.0` | shared-8.15 |
+| elasticsearch-dsl-5.5 | 5.5.+ | 8.18.8 | `metalastic-elasticsearch-dsl-5.5:1.0.0` | shared-8.15 |
 
 ### Query Types Supported
 
@@ -628,12 +628,12 @@ dependencies {
     ksp("com.ekino.oss:metalastic-processor:1.0.0")
 
     // Optional: Query DSL module (choose version matching your Spring Data ES)
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")  // For Spring Data ES 5.5.x
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")  // For Spring Data ES 5.4.x
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0")  // For Spring Data ES 5.3.x
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0")  // For Spring Data ES 5.2.x
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0")  // For Spring Data ES 5.1.x
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")  // For Spring Data ES 5.0.x
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0")  // For Spring Data ES 5.5.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0")  // For Spring Data ES 5.4.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0")  // For Spring Data ES 5.3.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0.0")  // For Spring Data ES 5.2.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0.0")  // For Spring Data ES 5.1.x
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0")  // For Spring Data ES 5.0.x
 }
 ```
 
@@ -646,8 +646,8 @@ dependencies {
 
 **Elasticsearch DSL modules**:
 - Multi-version support with separate artifacts per Spring Data ES version
-- Version format: `{dsl-version}` (e.g., `1.0`)
-- Git tags: `elasticsearch-dsl-5.x-v{dsl-version}` (e.g., `elasticsearch-dsl-5.5-v1.0`)
+- Version format: `{dsl-version}` (e.g., `1.0.0`) - uses semantic versioning
+- Git tags: `elasticsearch-dsl-5.x-v{dsl-version}` (e.g., `elasticsearch-dsl-5.5-v1.0.0`)
 - All versions supported: Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
 - Two shared source modules:
   - `elasticsearch-dsl-shared-8.5` for versions 5.0-5.3 (elasticsearch-java 8.5-8.13)

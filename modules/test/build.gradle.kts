@@ -40,7 +40,7 @@ metalastic {
       packageName = "com.example.test.metamodels"
       className = "TestMetamodels"
     }
-    fallbackPackage = "com.example.metamodels"
+    packageName = "com.example.metamodels"
   }
 
   features {

@@ -23,7 +23,8 @@ import org.gradle.api.model.ObjectFactory
  *             packageName = "com.example.test.metamodels"
  *             className = "TestMetamodels"
  *         }
- *         fallbackPackage = "com.example.metamodels"
+ *         packageName = "com.example.metamodels"
+ *         className = "GlobalMetamodels"
  *     }
  *
  *     features {

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       dsl_version:
-        description: 'DSL version (e.g., 1.0, 1.1, 2.0)'
+        description: 'DSL version (e.g., 1.0.0, 1.1.0, 2.0.0)'
         required: true
         type: string
       variants:
@@ -79,7 +79,8 @@ jobs:
           VERSION="${{ inputs.dsl_version }}"
           if ! echo "$VERSION" | grep -qE '^[0-9]+\.[0-9]+(\.[0-9]+)?(-[a-zA-Z0-9]+)?$'; then
             echo "❌ Error: Invalid version format: $VERSION"
-            echo "Expected format: X.Y or X.Y.Z or X.Y.Z-suffix (e.g., 1.0, 1.0.0, 1.0.0-rc1)"
+            echo "Expected format: X.Y.Z or X.Y.Z-suffix (e.g., 1.0.0, 1.1.0, 2.0.0-rc1)"
+            echo "Note: Two-part versions (X.Y) are supported but semantic versioning (X.Y.Z) is recommended"
             exit 1
           fi
           echo "✅ Version format valid: $VERSION"
