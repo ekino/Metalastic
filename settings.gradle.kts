@@ -9,7 +9,7 @@ include(
     ":modules:processor",
     ":modules:gradle-plugin",
     ":modules:bom",
-    ":modules:elasticsearch-dsl-5.0",
-    ":modules:elasticsearch-dsl-5.4",
+    ":modules:elasticsearch-dsl-5.3",
+    ":modules:elasticsearch-dsl",
     ":modules:test"
 )

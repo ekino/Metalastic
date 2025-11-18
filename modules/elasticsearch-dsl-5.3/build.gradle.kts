@@ -1,6 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-// Elasticsearch DSL module for Spring Data ES 5.0-5.3
+// Elasticsearch DSL module for Spring Data ES 5.0-5.3 (Frozen)
+// This artifact supports Spring Data ES 5.0.x through 5.3.x and will not change its compatibility
+// range.
+// For latest Spring Data ES 5.x support, use metalastic-elasticsearch-dsl instead.
 
 val springDataEsVersion = "5.3.13" // Latest in 5.0-5.3 range
 
@@ -40,7 +43,7 @@ dependencies {
 tasks.test { systemProperty("kotest.framework.classpath.scanning.autoscan.disable", "true") }
 
 tasks.register("showVersion") {
-  doLast { println("elasticsearch-dsl-5.0 version: ${project.version}") }
+  doLast { println("elasticsearch-dsl-5.3 version: ${project.version}") }
 }
 
 tasks.withType<KotlinCompile> {

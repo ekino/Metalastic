@@ -16,7 +16,7 @@ on:
           - 'custom'
         default: 'all'
       custom_variants:
-        description: 'If "custom" selected, specify variants (comma-separated: 5.0,5.4)'
+        description: 'If "custom" selected, specify variants (comma-separated: 5.3,latest)'
         required: false
         type: string
       dry_run:
@@ -52,7 +52,7 @@ jobs:
         run: |
           case "${{ inputs.variants }}" in
             "all")
-              VARIANTS="5.0,5.4"
+              VARIANTS="5.3,latest"
               ;;
             "custom")
               VARIANTS="${{ inputs.custom_variants }}"
@@ -79,7 +79,7 @@ jobs:
 
       - name: Validate variant names
         run: |
-          VALID_VARIANTS="5.0 5.4"
+          VALID_VARIANTS="5.3 latest"
           IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
 
           for variant in "${VARIANT_ARRAY[@]}"; do
@@ -87,8 +87,8 @@ jobs:
             if ! echo "$VALID_VARIANTS" | grep -wq "$variant"; then
               echo "❌ Error: Invalid variant: $variant"
               echo "Valid variants: $VALID_VARIANTS"
-              echo "  - 5.0 = Spring Data ES 5.0-5.3"
-              echo "  - 5.4 = Spring Data ES 5.4-5.5"
+              echo "  - 5.3 = Frozen for Spring Data ES 5.0-5.3"
+              echo "  - latest = Rolling, tracks latest Spring Data ES 5.x (currently 5.4-5.5)"
               exit 1
             fi
           done
@@ -102,7 +102,13 @@ jobs:
 
           for variant in "${VARIANT_ARRAY[@]}"; do
             variant=$(echo "$variant" | xargs)
-            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+            # Map variant to tag name
+            if [ "$variant" = "latest" ]; then
+              TAG="elasticsearch-dsl-v${{ inputs.dsl_version }}"
+            else
+              TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+            fi
 
             if git rev-parse "$TAG" >/dev/null 2>&1; then
               echo "⚠️  Tag already exists: $TAG"
@@ -127,17 +133,23 @@ jobs:
           echo "🔨 Building and testing selected DSL modules..."
           for variant in "${VARIANT_ARRAY[@]}"; do
             variant=$(echo "$variant" | xargs)
-            MODULE="modules/elasticsearch-dsl-${variant}"
+
+            # Map variant to module name
+            if [ "$variant" = "latest" ]; then
+              MODULE_NAME="elasticsearch-dsl"
+            else
+              MODULE_NAME="elasticsearch-dsl-${variant}"
+            fi
 
             echo ""
-            echo "📦 Building elasticsearch-dsl-${variant}..."
-            ./gradlew :modules:elasticsearch-dsl-${variant}:build --no-daemon
+            echo "📦 Building $MODULE_NAME (variant: $variant)..."
+            ./gradlew :modules:${MODULE_NAME}:build --no-daemon
 
             if [ $? -ne 0 ]; then
-              echo "❌ Build failed for elasticsearch-dsl-${variant}"
+              echo "❌ Build failed for $MODULE_NAME"
               exit 1
             fi
-            echo "✅ elasticsearch-dsl-${variant} built successfully"
+            echo "✅ $MODULE_NAME built successfully"
           done
 
           echo ""
@@ -151,7 +163,14 @@ jobs:
 
           for variant in "${VARIANT_ARRAY[@]}"; do
             variant=$(echo "$variant" | xargs)
-            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+            # Map variant to tag name
+            if [ "$variant" = "latest" ]; then
+              TAG="elasticsearch-dsl-v${{ inputs.dsl_version }}"
+            else
+              TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+            fi
+
             NOTES_FILE="release-notes/RELEASE_NOTES_${TAG}.md"
 
             if [ ! -f "$NOTES_FILE" ]; then
@@ -186,7 +205,13 @@ jobs:
 
           for variant in "${VARIANT_ARRAY[@]}"; do
             variant=$(echo "$variant" | xargs)
-            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+            # Map variant to tag name
+            if [ "$variant" = "latest" ]; then
+              TAG="elasticsearch-dsl-v${{ inputs.dsl_version }}"
+            else
+              TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+            fi
 
             git tag "$TAG"
             echo "✅ Created tag: $TAG"
@@ -223,7 +248,16 @@ jobs:
 
           for variant in "${VARIANT_ARRAY[@]}"; do
             variant=$(echo "$variant" | xargs)
-            TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+            # Map variant to tag and artifact name
+            if [ "$variant" = "latest" ]; then
+              TAG="elasticsearch-dsl-v${{ inputs.dsl_version }}"
+              ARTIFACT_NAME="elasticsearch-dsl"
+            else
+              TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+              ARTIFACT_NAME="elasticsearch-dsl-${variant}"
+            fi
+
             NOTES_FILE="release-notes/RELEASE_NOTES_${TAG}.md"
 
             if [ "${{ inputs.dry_run }}" = "true" ]; then
@@ -238,7 +272,7 @@ jobs:
               NOTES_STATUS="⚠️  Auto-generated"
             fi
 
-            echo "| elasticsearch-dsl-${variant} | \`$TAG\` | $STATUS | $NOTES_STATUS |" >> $GITHUB_STEP_SUMMARY
+            echo "| $ARTIFACT_NAME | \`$TAG\` | $STATUS | $NOTES_STATUS |" >> $GITHUB_STEP_SUMMARY
           done
 
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -252,8 +286,18 @@ jobs:
           echo "dependencies {" >> $GITHUB_STEP_SUMMARY
           for variant in "${VARIANT_ARRAY[@]}"; do
             variant=$(echo "$variant" | xargs)
-            echo "    // For Spring Data Elasticsearch ${variant}.x" >> $GITHUB_STEP_SUMMARY
-            echo "    implementation(\"com.ekino.oss:metalastic-elasticsearch-dsl-${variant}:${{ inputs.dsl_version }}\")" >> $GITHUB_STEP_SUMMARY
+
+            # Map variant to artifact name and description
+            if [ "$variant" = "latest" ]; then
+              ARTIFACT_ID="metalastic-elasticsearch-dsl"
+              DESCRIPTION="Rolling release (latest Spring Data ES 5.x)"
+            else
+              ARTIFACT_ID="metalastic-elasticsearch-dsl-${variant}"
+              DESCRIPTION="Frozen (Spring Data ES 5.0-5.3)"
+            fi
+
+            echo "    // $DESCRIPTION" >> $GITHUB_STEP_SUMMARY
+            echo "    implementation(\"com.ekino.oss:${ARTIFACT_ID}:${{ inputs.dsl_version }}\")" >> $GITHUB_STEP_SUMMARY
           done
           echo "}" >> $GITHUB_STEP_SUMMARY
           echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
@@ -284,7 +328,14 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             for variant in "${VARIANT_ARRAY[@]}"; do
               variant=$(echo "$variant" | xargs)
-              TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+
+              # Map variant to tag name
+              if [ "$variant" = "latest" ]; then
+                TAG="elasticsearch-dsl-v${{ inputs.dsl_version }}"
+              else
+                TAG="elasticsearch-dsl-${variant}-v${{ inputs.dsl_version }}"
+              fi
+
               NOTES_FILE="release-notes/RELEASE_NOTES_${TAG}.md"
               if [ ! -f "$NOTES_FILE" ]; then
                 echo "- \`$NOTES_FILE\`" >> $GITHUB_STEP_SUMMARY

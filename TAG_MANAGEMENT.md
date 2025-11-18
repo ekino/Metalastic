@@ -52,21 +52,29 @@ URL: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 **Format**: `elasticsearch-dsl-{min-version}-v{DSL_VERSION}`
 
 **Examples**:
-- `elasticsearch-dsl-5.0-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.0.x - 5.3.x
-- `elasticsearch-dsl-5.4-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.4.x - 5.5.x
+- `elasticsearch-dsl-5.3-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.0.x - 5.3.x
+- `elasticsearch-dsl-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.4.x - 5.5.x
 
 **Publishes** (per tag):
 ```
-# Tag elasticsearch-dsl-5.0-v1.0.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0
+# Tag elasticsearch-dsl-5.3-v1.0.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0
 (Supports Spring Data ES 5.0-5.3, brings 5.3.13 transitively)
 
-# Tag elasticsearch-dsl-5.4-v1.0.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0
+# Tag elasticsearch-dsl-v1.0.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0
 (Supports Spring Data ES 5.4-5.5, brings 5.5.6 transitively)
 ```
 
-**Rationale**: Consolidated artifacts based on API compatibility reduce maintenance burden while providing runtime version warnings for mismatches.
+**Rationale**: Rolling release strategy provides a "latest" artifact that tracks newest Spring Data ES versions, while frozen artifacts provide stability.
+
+**Rolling Release Strategy:**
+- `elasticsearch-dsl` (no suffix) = Rolling artifact, tracks latest Spring Data ES 5.x
+- `elasticsearch-dsl-5.3` (with suffix) = Frozen artifact, locked to 5.0-5.3 range
+- When breaking changes occur in Spring Data ES (e.g., 5.6), we:
+  1. Create new frozen artifact for previous range (e.g., `elasticsearch-dsl-5.5`)
+  2. Update rolling artifact to support latest versions
+- Consumers choose: Rolling for latest, Frozen for stability
 
 ## Release Process
 
@@ -163,26 +171,36 @@ Use the automated workflow to release multiple DSL variants with built-in valida
 # Release all variants with version 1.0.0
 Variants: all
 DSL version: 1.0.0
-Creates: elasticsearch-dsl-5.0-v1.0.0, elasticsearch-dsl-5.4-v1.0.0
+Creates: elasticsearch-dsl-5.3-v1.0.0, elasticsearch-dsl-v1.0.0
 
-# Hot-fix for specific variant
+# Hot-fix for rolling artifact only
 Variants: custom
-Custom variants: 5.4
+Custom variants: latest
 DSL version: 1.0.1
-Creates: elasticsearch-dsl-5.4-v1.0.1
+Creates: elasticsearch-dsl-v1.0.1
+
+# Hot-fix for frozen artifact only
+Variants: custom
+Custom variants: 5.3
+DSL version: 1.0.1
+Creates: elasticsearch-dsl-5.3-v1.0.1
 ```
 
 **Option B: Release specific DSL artifact** (manual)
 
 1. **Choose which DSL artifact to release**
-   - `5.0` (for Spring Data ES 5.0-5.3)
-   - `5.4` (for Spring Data ES 5.4-5.5)
+   - `5.3` - Frozen for Spring Data ES 5.0-5.3
+   - Rolling (no suffix) - Latest Spring Data ES 5.x (currently 5.4-5.5)
 
 2. **Create and push the tag**
    ```bash
-   # Example: Release DSL v1.0.0 for Spring Data ES 5.4-5.5
-   git tag elasticsearch-dsl-5.4-v1.0.0
-   git push origin elasticsearch-dsl-5.4-v1.0.0
+   # Example: Release rolling DSL v1.0.0
+   git tag elasticsearch-dsl-v1.0.0
+   git push origin elasticsearch-dsl-v1.0.0
+
+   # OR release frozen DSL v1.0.0
+   git tag elasticsearch-dsl-5.3-v1.0.0
+   git push origin elasticsearch-dsl-5.3-v1.0.0
    ```
 
 3. **Monitor and verify** (same as core modules)
@@ -193,16 +211,16 @@ When releasing a new DSL version, release both artifacts with the same DSL versi
 
 ```bash
 # Tag both artifacts with DSL v1.0.0
-git tag elasticsearch-dsl-5.0-v1.0.0
-git tag elasticsearch-dsl-5.4-v1.0.0
+git tag elasticsearch-dsl-5.3-v1.0.0
+git tag elasticsearch-dsl-v1.0.0
 
 # Push tags
-git push origin elasticsearch-dsl-5.0-v1.0.0 elasticsearch-dsl-5.4-v1.0.0
+git push origin elasticsearch-dsl-5.3-v1.0.0 elasticsearch-dsl-v1.0.0
 ```
 
 This publishes:
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0` (Spring Data ES 5.0-5.3)
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0` (Spring Data ES 5.4-5.5)
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0` (Spring Data ES 5.0-5.3)
+- `com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0` (Spring Data ES 5.4-5.5)
 
 **Note**: Option A (batch via GitHub Actions) is recommended as it includes validation, prevents errors, and provides a clear audit trail.
 
