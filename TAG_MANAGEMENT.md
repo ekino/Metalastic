@@ -153,8 +153,8 @@ Use the automated workflow to release multiple DSL variants with built-in valida
    - Tags will be created and pushed automatically
 
 5. **Monitor publication**
-   - Each tag triggers the "Publish to Maven Central" workflow
-   - Monitor all 6 workflows (for `all` variants)
+   - Each tag triggers the "Publish Release" workflow
+   - Monitor both workflows (for `all` variants)
    - Verify GitHub Releases are created automatically
 
 **Quick release scenarios**:
@@ -163,18 +163,13 @@ Use the automated workflow to release multiple DSL variants with built-in valida
 # Release all variants with version 1.0.0
 Variants: all
 DSL version: 1.0.0
-Creates: elasticsearch-dsl-5.0-v1.0.0 through elasticsearch-dsl-5.5-v1.0.0
-
-# Release only newest versions
-Variants: 5.4-5.5
-DSL version: 1.0.0
-Creates: elasticsearch-dsl-5.4-v1.0.0 and elasticsearch-dsl-5.5-v1.0.0
+Creates: elasticsearch-dsl-5.0-v1.0.0, elasticsearch-dsl-5.4-v1.0.0
 
 # Hot-fix for specific variant
 Variants: custom
-Custom variants: 5.5
+Custom variants: 5.4
 DSL version: 1.0.1
-Creates: elasticsearch-dsl-5.5-v1.0.1
+Creates: elasticsearch-dsl-5.4-v1.0.1
 ```
 
 **Option B: Release specific DSL artifact** (manual)

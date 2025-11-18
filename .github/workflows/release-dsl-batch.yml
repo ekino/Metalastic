@@ -8,17 +8,15 @@ on:
         required: true
         type: string
       variants:
-        description: 'Which Spring Data ES versions to release'
+        description: 'Which DSL artifacts to release'
         required: true
         type: choice
         options:
           - 'all'
-          - '5.0-5.3'
-          - '5.4-5.5'
           - 'custom'
         default: 'all'
       custom_variants:
-        description: 'If "custom" selected, specify variants (comma-separated: 5.0,5.1,5.2,5.3,5.4,5.5)'
+        description: 'If "custom" selected, specify variants (comma-separated: 5.0,5.4)'
         required: false
         type: string
       dry_run:
@@ -54,13 +52,7 @@ jobs:
         run: |
           case "${{ inputs.variants }}" in
             "all")
-              VARIANTS="5.0,5.1,5.2,5.3,5.4,5.5"
-              ;;
-            "5.0-5.3")
-              VARIANTS="5.0,5.1,5.2,5.3"
-              ;;
-            "5.4-5.5")
-              VARIANTS="5.4,5.5"
+              VARIANTS="5.0,5.4"
               ;;
             "custom")
               VARIANTS="${{ inputs.custom_variants }}"
@@ -87,7 +79,7 @@ jobs:
 
       - name: Validate variant names
         run: |
-          VALID_VARIANTS="5.0 5.1 5.2 5.3 5.4 5.5"
+          VALID_VARIANTS="5.0 5.4"
           IFS=',' read -ra VARIANT_ARRAY <<< "${{ steps.variants.outputs.variants }}"
 
           for variant in "${VARIANT_ARRAY[@]}"; do
@@ -95,6 +87,8 @@ jobs:
             if ! echo "$VALID_VARIANTS" | grep -wq "$variant"; then
               echo "❌ Error: Invalid variant: $variant"
               echo "Valid variants: $VALID_VARIANTS"
+              echo "  - 5.0 = Spring Data ES 5.0-5.3"
+              echo "  - 5.4 = Spring Data ES 5.4-5.5"
               exit 1
             fi
           done
