@@ -47,24 +47,26 @@ URL: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 
 ### Elasticsearch DSL Modules Versioning
 
-**Multi-version support**: 6 separate artifacts for Spring Data ES 5.0 through 5.5
+**Multi-version support**: 2 artifacts based on Spring Data ES API compatibility
 
-**Format**: `elasticsearch-dsl-5.{x}-v{DSL_VERSION}`
+**Format**: `elasticsearch-dsl-{min-version}-v{DSL_VERSION}`
 
 **Examples**:
-- `elasticsearch-dsl-5.5-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.5.x
-- `elasticsearch-dsl-5.0-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.0.x
+- `elasticsearch-dsl-5.0-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.0.x - 5.3.x
+- `elasticsearch-dsl-5.4-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.4.x - 5.5.x
 
 **Publishes** (per tag):
 ```
-# Tag elasticsearch-dsl-5.5-v1.0.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0
-
 # Tag elasticsearch-dsl-5.0-v1.0.0 publishes:
 com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0
+(Supports Spring Data ES 5.0-5.3, brings 5.3.13 transitively)
+
+# Tag elasticsearch-dsl-5.4-v1.0.0 publishes:
+com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0
+(Supports Spring Data ES 5.4-5.5, brings 5.5.6 transitively)
 ```
 
-**Rationale**: Separate artifacts per Spring Data ES version prevent dependency conflicts. Consumers choose the variant matching their Spring Data ES version.
+**Rationale**: Consolidated artifacts based on API compatibility reduce maintenance burden while providing runtime version warnings for mismatches.
 
 ## Release Process
 
@@ -175,44 +177,37 @@ DSL version: 1.0.1
 Creates: elasticsearch-dsl-5.5-v1.0.1
 ```
 
-**Option B: Release specific version variant** (manual)
+**Option B: Release specific DSL artifact** (manual)
 
-1. **Choose which Spring Data ES version to release**
-   - 5.0, 5.1, 5.2, 5.3, 5.4, or 5.5
+1. **Choose which DSL artifact to release**
+   - `5.0` (for Spring Data ES 5.0-5.3)
+   - `5.4` (for Spring Data ES 5.4-5.5)
 
 2. **Create and push the tag**
    ```bash
-   # Example: Release DSL v1.0.0 for Spring Data ES 5.5
-   git tag elasticsearch-dsl-5.5-v1.0.0
-   git push origin elasticsearch-dsl-5.5-v1.0.0
+   # Example: Release DSL v1.0.0 for Spring Data ES 5.4-5.5
+   git tag elasticsearch-dsl-5.4-v1.0.0
+   git push origin elasticsearch-dsl-5.4-v1.0.0
    ```
 
 3. **Monitor and verify** (same as core modules)
 
-**Option C: Release all DSL variants together** (manual)
+**Option C: Release both DSL artifacts together** (manual)
 
-When releasing a new DSL version, release all 6 variants with the same DSL version:
+When releasing a new DSL version, release both artifacts with the same DSL version:
 
 ```bash
-# Tag all 6 variants with DSL v1.0.0
+# Tag both artifacts with DSL v1.0.0
 git tag elasticsearch-dsl-5.0-v1.0.0
-git tag elasticsearch-dsl-5.1-v1.0.0
-git tag elasticsearch-dsl-5.2-v1.0.0
-git tag elasticsearch-dsl-5.3-v1.0.0
 git tag elasticsearch-dsl-5.4-v1.0.0
-git tag elasticsearch-dsl-5.5-v1.0.0
 
-# Push all tags
-git push origin --tags
+# Push tags
+git push origin elasticsearch-dsl-5.0-v1.0.0 elasticsearch-dsl-5.4-v1.0.0
 ```
 
 This publishes:
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.1:1.0.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.2:1.0.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0`
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0`
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0.0` (Spring Data ES 5.0-5.3)
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0.0` (Spring Data ES 5.4-5.5)
 
 **Note**: Option A (batch via GitHub Actions) is recommended as it includes validation, prevents errors, and provides a clear audit trail.
 

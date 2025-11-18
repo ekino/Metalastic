@@ -20,18 +20,20 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 ### Query DSL Modules
 
 - **elasticsearch-dsl-{version}**: Type-safe Elasticsearch query builder using generated metamodels
-  - **Multi-version support**: Separate artifacts for Spring Data ES 5.0, 5.1, 5.2, 5.3, 5.4, and 5.5
+  - **Multi-version support**: 2 artifacts based on Spring Data ES API compatibility
   - **Version format**: `{dsl-version}` (e.g., `1.0.0`)
   - **Artifacts**:
-    - `metalastic-elasticsearch-dsl-5.0:1.0.0` (Spring Data ES 5.0.12 + elasticsearch-java 8.5.3)
-    - `metalastic-elasticsearch-dsl-5.1:1.0.0` (Spring Data ES 5.1.+ + elasticsearch-java 8.7.1)
-    - `metalastic-elasticsearch-dsl-5.2:1.0.0` (Spring Data ES 5.2.+ + elasticsearch-java 8.11.1)
-    - `metalastic-elasticsearch-dsl-5.3:1.0.0` (Spring Data ES 5.3.+ + elasticsearch-java 8.13.4)
-    - `metalastic-elasticsearch-dsl-5.4:1.0.0` (Spring Data ES 5.4.+ + elasticsearch-java 8.15.5)
-    - `metalastic-elasticsearch-dsl-5.5:1.0.0` (Spring Data ES 5.5.+ + elasticsearch-java 8.18.8)
-  - **Shared source**: Versions 5.0-5.3 use `elasticsearch-dsl-shared-8.5`, versions 5.4-5.5 use `elasticsearch-dsl-shared-8.15`
-  - **Features**: BoolQueryDsl, QueryVariantDsl, type-safe query construction
-  - **Code duplication**: Minimal (~60 lines in RangeQueryUtils.kt) to handle elasticsearch-java 8.15 UntypedRangeQuery API
+    - `metalastic-elasticsearch-dsl-5.0:1.0.0` (Spring Data ES 5.0-5.3, brings 5.3.13 transitively)
+    - `metalastic-elasticsearch-dsl-5.4:1.0.0` (Spring Data ES 5.4-5.5, brings 5.5.6 transitively)
+  - **Features**: BoolQueryDsl, QueryVariantDsl, type-safe query construction, runtime version warnings
+  - **Implementation difference**: Only RangeQueryUtils.kt differs (~60 lines) due to elasticsearch-java 8.15 UntypedRangeQuery API
+
+### BOM Module
+
+- **bom**: Bill of Materials for version alignment
+  - Provides dependency management for all Metalastic artifacts
+  - Simplifies version management for consumers
+  - Use with `implementation(platform("com.ekino.oss:metalastic-bom:1.0.0"))`
 
 ## Goals
 
@@ -58,11 +60,11 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **Testing**: Kotest v5.9.1 (ShouldSpec format)
 
 ### Elasticsearch DSL Modules
-- **Multi-version support**: 6 separate modules for Spring Data ES 5.0 through 5.5
-- **Shared codebases**:
-  - `elasticsearch-dsl-shared-8.5` for versions 5.0-5.3 (elasticsearch-java 8.5-8.13)
-  - `elasticsearch-dsl-shared-8.15` for versions 5.4-5.5 (elasticsearch-java 8.15-8.18, uses UntypedRangeQuery)
-- **Version-specific dependencies**: Each module targets specific Spring Data ES + elasticsearch-java versions
+- **Multi-version support**: 2 modules based on elasticsearch-java API compatibility
+- **Modules**:
+  - `elasticsearch-dsl-5.0` for Spring Data ES 5.0-5.3 (elasticsearch-java 8.5-8.13)
+  - `elasticsearch-dsl-5.4` for Spring Data ES 5.4-5.5 (elasticsearch-java 8.15-8.18, uses UntypedRangeQuery)
+- **Version-specific dependencies**: Each module brings latest Spring Data ES in its range as transitive dependency
 - **Google Guava**: For Range support (all versions)
 
 ## Development Notes
@@ -72,15 +74,9 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **modules/core**: Runtime in `src/main/kotlin/`, tests in `src/test/kotlin/`
 - **modules/processor**: Three-phase annotation processor (COLLECTING, BUILDING, WRITING)
 - **modules/gradle-plugin**: Type-safe configuration DSL
-- **modules/elasticsearch-dsl-shared-8.5**: Query builder DSL source for elasticsearch-java 8.5-8.13 (not published)
-- **modules/elasticsearch-dsl-shared-8.15**: Query builder DSL source for elasticsearch-java 8.15+ (not published, uses UntypedRangeQuery)
-- **modules/elasticsearch-dsl-5.x**: Version-specific DSL modules (published separately)
-  - elasticsearch-dsl-5.0 (Spring Data ES 5.0.12, uses shared-8.5)
-  - elasticsearch-dsl-5.1 (Spring Data ES 5.1.+, uses shared-8.5)
-  - elasticsearch-dsl-5.2 (Spring Data ES 5.2.+, uses shared-8.5)
-  - elasticsearch-dsl-5.3 (Spring Data ES 5.3.+, uses shared-8.5)
-  - elasticsearch-dsl-5.4 (Spring Data ES 5.4.+, uses shared-8.15)
-  - elasticsearch-dsl-5.5 (Spring Data ES 5.5.+, uses shared-8.15)
+- **modules/bom**: Bill of Materials for version alignment (published)
+- **modules/elasticsearch-dsl-5.0**: DSL for Spring Data ES 5.0-5.3 (published, brings 5.3.13 transitively)
+- **modules/elasticsearch-dsl-5.4**: DSL for Spring Data ES 5.4-5.5 (published, brings 5.5.6 transitively, uses UntypedRangeQuery)
 - **modules/test**: End-to-end integration tests
 
 ### Generation Behavior
@@ -114,16 +110,11 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 # Test individual modules
 ./gradlew :modules:core:test
 ./gradlew :modules:processor:test
-./gradlew :modules:elasticsearch-dsl-5.3:test  # Test specific DSL version
 ./gradlew :modules:test:test
 
-# Test all DSL versions
+# Test DSL modules
 ./gradlew :modules:elasticsearch-dsl-5.0:test
-./gradlew :modules:elasticsearch-dsl-5.1:test
-./gradlew :modules:elasticsearch-dsl-5.2:test
-./gradlew :modules:elasticsearch-dsl-5.3:test
 ./gradlew :modules:elasticsearch-dsl-5.4:test
-./gradlew :modules:elasticsearch-dsl-5.5:test
 
 # Publish to local Maven repository
 ./gradlew publishToMavenLocal

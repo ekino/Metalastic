@@ -1,10 +1,10 @@
-# Metalastic Elasticsearch DSL v1.0 for Spring Data ES 5.5.x
+# Metalastic Elasticsearch DSL v1.0 for Spring Data ES 5.0-5.3
 
 **Release Date:** TBD
 
 ## Overview
 
-First release of the Metalastic Elasticsearch DSL module for **Spring Data Elasticsearch 5.5.x** (latest).
+First release of the Metalastic Elasticsearch DSL module for **Spring Data Elasticsearch 5.0.x through 5.3.x**.
 
 This module provides type-safe, fluent query builders using generated metamodels from the Metalastic processor.
 
@@ -13,12 +13,32 @@ This module provides type-safe, fluent query builders using generated metamodels
 | Component | Version |
 |-----------|---------|
 | **DSL Module** | `1.0` |
-| **Spring Data Elasticsearch** | `5.5.+` |
-| **Elasticsearch Java Client** | `8.18.8` |
+| **Supported Spring Data ES** | `5.0.x - 5.3.x` |
+| **Brings Transitively** | `5.3.13` |
+| **Elasticsearch Java Client** | `8.13.4` (transitive from Spring Data ES) |
 | **Metalastic Core** | `1.0.0+` |
 | **Metalastic Processor** | `1.0.0+` |
 
 ## Installation
+
+### With BOM (Recommended)
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    // Import BOM
+    implementation(platform("com.ekino.oss:metalastic-bom:1.0.0"))
+
+    // Core Metalastic (generates metamodels)
+    implementation("com.ekino.oss:metalastic-core")
+    ksp("com.ekino.oss:metalastic-processor")
+
+    // DSL module for Spring Data ES 5.0-5.3
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0")
+}
+```
+
+### Without BOM
 
 ```kotlin
 // build.gradle.kts
@@ -27,11 +47,17 @@ dependencies {
     implementation("com.ekino.oss:metalastic-core:1.0.0")
     ksp("com.ekino.oss:metalastic-processor:1.0.0")
 
-    // DSL module for Spring Data ES 5.5.x (latest)
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0")
+    // DSL module for Spring Data ES 5.0-5.3
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")
+}
+```
 
-    // Your Spring Data Elasticsearch dependency
-    implementation("org.springframework.data:spring-data-elasticsearch:5.5.+")
+**Note**: This artifact brings Spring Data Elasticsearch 5.3.13 as a transitive dependency. If you're using an older version (5.0-5.2), you can override it:
+
+```kotlin
+dependencies {
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.0:1.0")
+    implementation("org.springframework.data:spring-data-elasticsearch:5.0.12")  // Override
 }
 ```
 
@@ -66,7 +92,7 @@ val query = BoolQuery.of {
 - **Full-text queries**: `match`, `multiMatch`, `matchPhrase`, `matchPhrasePrefix`
 - **Term-level queries**: `term`, `terms`, `termsSet`, `wildcard`, `prefix`, `regexp`
 - **Boolean queries**: `bool`, `shouldAtLeastOneOf`, `disMax`
-- **Range queries**: `range`, `greaterThan`, `lowerThan`, `mustBeBetween` (with UntypedRangeQuery support)
+- **Range queries**: `range`, `greaterThan`, `lowerThan`, `mustBeBetween`
 - **Nested queries**: `nested` with path-aware builders
 - **Specialized queries**: `fuzzy`, `exist`, `geoDistance`, `moreLikeThis`
 
@@ -96,13 +122,12 @@ boolQueryDsl {
 - ✅ Automatic value conversion for dates, enums, and primitives
 - ✅ Nested query support with path validation
 - ✅ Operator overloading for intuitive query composition
-- ✅ Latest Elasticsearch Java client (8.18+) with UntypedRangeQuery support
 
 ## Requirements
 
 - **Java**: 21 or higher
 - **Kotlin**: 2.2.20 or higher
-- **Spring Data Elasticsearch**: 5.5.x (latest)
+- **Spring Data Elasticsearch**: 5.0.x (tested with 5.0.12)
 - **Gradle**: 8.x or higher
 
 ## Documentation
@@ -114,12 +139,12 @@ For complete documentation, examples, and architecture details, see:
 
 ## Upgrade Path
 
-If you're using an older Spring Data Elasticsearch version, use the corresponding DSL variant:
-- Spring Data ES 5.0.x → `metalastic-elasticsearch-dsl-5.0:1.0`
+If you're using a newer Spring Data Elasticsearch version, use the corresponding DSL variant:
 - Spring Data ES 5.1.x → `metalastic-elasticsearch-dsl-5.1:1.0`
 - Spring Data ES 5.2.x → `metalastic-elasticsearch-dsl-5.2:1.0`
 - Spring Data ES 5.3.x → `metalastic-elasticsearch-dsl-5.3:1.0`
 - Spring Data ES 5.4.x → `metalastic-elasticsearch-dsl-5.4:1.0`
+- Spring Data ES 5.5.x → `metalastic-elasticsearch-dsl-5.5:1.0`
 
 ## License
 

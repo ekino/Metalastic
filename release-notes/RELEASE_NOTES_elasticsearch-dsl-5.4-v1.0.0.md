@@ -1,24 +1,44 @@
-# Metalastic Elasticsearch DSL v1.0 for Spring Data ES 5.4.x
+# Metalastic Elasticsearch DSL v1.0 for Spring Data ES 5.4-5.5
 
 **Release Date:** TBD
 
 ## Overview
 
-First release of the Metalastic Elasticsearch DSL module for **Spring Data Elasticsearch 5.4.x**.
+First release of the Metalastic Elasticsearch DSL module for **Spring Data Elasticsearch 5.4.x through 5.5.x**.
 
-This module provides type-safe, fluent query builders using generated metamodels from the Metalastic processor.
+This module provides type-safe, fluent query builders using generated metamodels from the Metalastic processor. It uses the elasticsearch-java 8.15+ UntypedRangeQuery API.
 
 ## Version Compatibility
 
 | Component | Version |
 |-----------|---------|
 | **DSL Module** | `1.0` |
-| **Spring Data Elasticsearch** | `5.4.+` |
-| **Elasticsearch Java Client** | `8.15.5` |
+| **Supported Spring Data ES** | `5.4.x - 5.5.x` |
+| **Brings Transitively** | `5.5.6` |
+| **Elasticsearch Java Client** | `8.18.8` (transitive from Spring Data ES) |
 | **Metalastic Core** | `1.0.0+` |
 | **Metalastic Processor** | `1.0.0+` |
 
 ## Installation
+
+### With BOM (Recommended)
+
+```kotlin
+// build.gradle.kts
+dependencies {
+    // Import BOM
+    implementation(platform("com.ekino.oss:metalastic-bom:1.0.0"))
+
+    // Core Metalastic (generates metamodels)
+    implementation("com.ekino.oss:metalastic-core")
+    ksp("com.ekino.oss:metalastic-processor")
+
+    // DSL module for Spring Data ES 5.4-5.5
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4")
+}
+```
+
+### Without BOM
 
 ```kotlin
 // build.gradle.kts
@@ -27,11 +47,17 @@ dependencies {
     implementation("com.ekino.oss:metalastic-core:1.0.0")
     ksp("com.ekino.oss:metalastic-processor:1.0.0")
 
-    // DSL module for Spring Data ES 5.4.x
+    // DSL module for Spring Data ES 5.4-5.5
     implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")
+}
+```
 
-    // Your Spring Data Elasticsearch dependency
-    implementation("org.springframework.data:spring-data-elasticsearch:5.4.+")
+**Note**: This artifact brings Spring Data Elasticsearch 5.5.6 as a transitive dependency. If you're using version 5.4, you can override it:
+
+```kotlin
+dependencies {
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.4:1.0")
+    implementation("org.springframework.data:spring-data-elasticsearch:5.4.11")  // Override
 }
 ```
 

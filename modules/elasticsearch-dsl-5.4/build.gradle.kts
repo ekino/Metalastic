@@ -1,35 +1,17 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
-// Elasticsearch DSL module for Spring Data ES 5.4.x
+// Elasticsearch DSL module for Spring Data ES 5.4-5.5
 
-val springDataEsVersion = "5.4.11" // Latest 5.4.x release
-val elasticsearchJavaVersion = "8.15.5"
+val springDataEsVersion = "5.5.6" // Latest in 5.4-5.5 range
 
-// Read version from parent shared module
-evaluationDependsOn(":modules:elasticsearch-dsl-shared-8.15")
-
-version = project(":modules:elasticsearch-dsl-shared-8.15").version
-
-kotlin {
-  sourceSets {
-    main { kotlin.srcDir("../elasticsearch-dsl-shared-8.15/src/main/kotlin") }
-    test { kotlin.srcDir("../elasticsearch-dsl-shared-8.15/src/test/kotlin") }
-  }
-}
-
-configurations.all {
-  resolutionStrategy.force("co.elastic.clients:elasticsearch-java:$elasticsearchJavaVersion")
-}
+version = "1.0"
 
 dependencies {
   // Core Metalastic module for Field types
   api(project(":modules:core"))
 
-  // Spring Data Elasticsearch 5.4.x
+  // Spring Data Elasticsearch (transitive, brings elasticsearch-java)
   api("org.springframework.data:spring-data-elasticsearch:$springDataEsVersion")
-
-  // Force elasticsearch-java version to match Spring Data ES 5.4.x
-  implementation("co.elastic.clients:elasticsearch-java:$elasticsearchJavaVersion")!!
 
   // Google Guava for Range support
   api("com.google.guava:guava:33.5.0-jre")

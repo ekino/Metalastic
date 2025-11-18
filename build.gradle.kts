@@ -51,13 +51,15 @@ subprojects {
         return@subprojects
     }
 
+    // BOM module has its own special setup (java-platform), skip all standard configuration
+    if (project.name == "bom") {
+        return@subprojects
+    }
+
     // Skip publishing for test module - it's only for integration testing
     // gradle-plugin has its own special publication setup
-    // elasticsearch-dsl-shared-* are just source code (not published, only version-specific variants)
     val shouldPublish = project.name != "test" &&
-                        project.name != "gradle-plugin" &&
-                        project.name != "elasticsearch-dsl-shared-8.5" &&
-                        project.name != "elasticsearch-dsl-shared-8.15"
+                        project.name != "gradle-plugin"
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
