@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 // DSL version for all 8.15-based variants (5.4, 5.5)
 version = "1.0"
 
-val springDataEsVersion = "5.5.5" // For compilation/testing only
+val springDataEsVersion = "5.5.6" // For compilation/testing only
 val elasticsearchJavaVersion = "8.18.8"
 
 configurations.all {

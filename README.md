@@ -11,7 +11,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple)](https://kotlinlang.org/)
-[![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.4-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
+[![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-5.5.6-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
 ## Table of Contents
 
@@ -1362,7 +1362,7 @@ The processor uses **runtime field type detection**, automatically supporting:
 | **elasticsearch-dsl-5.2:1.0.0** | 5.2.12 | 8.11.1 | shared-8.5 (classic API) |
 | **elasticsearch-dsl-5.3:1.0.0** | 5.3.13 | 8.13.4 | shared-8.5 (classic API) |
 | **elasticsearch-dsl-5.4:1.0.0** | 5.4.11 | 8.15.5 | shared-8.15 (UntypedRangeQuery) |
-| **elasticsearch-dsl-5.5:1.0.0** | 5.5.5 | 8.18.8 | shared-8.15 (UntypedRangeQuery) |
+| **elasticsearch-dsl-5.5:1.0.0** | 5.5.6 | 8.18.8 | shared-8.15 (UntypedRangeQuery) |
 
 ### Feature Matrix by Module
 

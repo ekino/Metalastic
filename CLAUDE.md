@@ -52,7 +52,7 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **Language**: Kotlin 2.2.20
 - **Java Version**: Java 21
 - **Build Tool**: Gradle with Kotlin DSL
-- **Spring Data Elasticsearch**: 5.5.4
+- **Spring Data Elasticsearch**: 5.5.6
 - **Annotation Processing**: KSP 2.2.20-2.0.3
 - **Code Generation**: KotlinPoet 2.2.0
 - **Testing**: Kotest v5.9.1 (ShouldSpec format)

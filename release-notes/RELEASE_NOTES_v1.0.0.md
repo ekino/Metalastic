@@ -212,7 +212,7 @@ dependencies {
 - **Kotlin**: 2.2.21
 - **Java**: 21
 - **KSP**: 2.3.2
-- **Spring Data Elasticsearch**: 5.5.4 (core/processor), version-specific (DSL modules)
+- **Spring Data Elasticsearch**: 5.5.6 (core/processor), version-specific (DSL modules)
 - **KotlinPoet**: 2.2.0
 - **Testing**: Kotest 5.9.1
 
