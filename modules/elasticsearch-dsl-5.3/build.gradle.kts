@@ -7,7 +7,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 val springDataEsVersion = "5.3.13" // Latest in 5.0-5.3 range
 
-version = "1.0"
+// Version inherited from root project (set from git tags)
 
 dependencies {
   // Core Metalastic module for Field types
