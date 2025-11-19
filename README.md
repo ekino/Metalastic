@@ -131,12 +131,12 @@ If you prefer not to use the plugin, you can configure manually:
 ```kotlin
 // build.gradle.kts
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "2.3.2"
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:3.0.0")
-    ksp("com.ekino.oss:metalastic-processor:3.0.0")
+    implementation("com.ekino.oss:metalastic-core:1.0.0")
+    ksp("com.ekino.oss:metalastic-processor:1.0.0")
 }
 
 ksp {
