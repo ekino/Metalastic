@@ -11,8 +11,9 @@ dependencies {
         api(project(":modules:core"))
         api(project(":modules:processor"))
         api(project(":modules:gradle-plugin"))
-        api(project(":modules:elasticsearch-dsl-5.3"))
         api(project(":modules:elasticsearch-dsl"))
+        api(project(":modules:elasticsearch-dsl-5.5"))
+        api(project(":modules:elasticsearch-dsl-5.3"))
     }
 }
 

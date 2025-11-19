@@ -18,7 +18,7 @@ Metalastic provides a complete solution for type-safe Elasticsearch development:
 
 ## What's Included
 
-This release includes **6 artifacts** published to Maven Central:
+This release includes **7 artifacts** published to Maven Central:
 
 | Artifact | Version | Description |
 |----------|---------|-------------|
@@ -26,7 +26,8 @@ This release includes **6 artifacts** published to Maven Central:
 | `metalastic-processor` | `1.0.0` | KSP annotation processor for code generation |
 | `metalastic-gradle-plugin` | `1.0.0` | Type-safe Gradle plugin for configuration |
 | `metalastic-bom` | `1.0.0` | Bill of Materials for version alignment |
-| `metalastic-elasticsearch-dsl` | `1.0.0` | Query DSL for Spring Data ES 5.4-5.5 (rolling) |
+| `metalastic-elasticsearch-dsl` | `1.0.0` | Query DSL for Spring Data ES 6.0.x (rolling) |
+| `metalastic-elasticsearch-dsl-5.5` | `1.0.0` | Query DSL for Spring Data ES 5.4-5.5 (frozen) |
 | `metalastic-elasticsearch-dsl-5.3` | `1.0.0` | Query DSL for Spring Data ES 5.0-5.3 (frozen) |
 
 ## New Features
@@ -59,9 +60,14 @@ Supports all Spring Data Elasticsearch field types:
 
 #### Type-Safe Query Building
 
-Two artifact variants support different Spring Data Elasticsearch versions:
+Three artifact variants support different Spring Data Elasticsearch versions:
 
 **Rolling Artifact** (`metalastic-elasticsearch-dsl`):
+- Supports: **Spring Data ES 6.0.x**
+- Brings transitively: Spring Data ES **6.0.0**
+- Uses: elasticsearch-java 8.18+
+
+**Frozen Artifact** (`metalastic-elasticsearch-dsl-5.5`):
 - Supports: **Spring Data ES 5.4.x - 5.5.x**
 - Brings transitively: Spring Data ES **5.5.6**
 - Uses: elasticsearch-java 8.15+ **UntypedRangeQuery** API
@@ -120,7 +126,9 @@ dependencies {
     // Core and processor are added automatically by the plugin
 
     // Optional: Choose DSL variant based on your Spring Data ES version
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl")       // For 5.4-5.5
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl")       // For 6.0.x
+    // OR
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5")  // For 5.4-5.5
     // OR
     implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3")  // For 5.0-5.3
 }
@@ -162,7 +170,9 @@ dependencies {
     ksp("com.ekino.oss:metalastic-processor")
 
     // Optional: DSL module (choose variant)
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl")       // 5.4-5.5
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl")       // 6.0.x
+    // OR
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5")  // 5.4-5.5
     // OR
     implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3")  // 5.0-5.3
 }
@@ -288,14 +298,20 @@ val nestedQuery = NestedQuery.of {
 
 | Metalastic DSL Artifact | Spring Data ES Versions | Transitive Version | Elasticsearch Java Client |
 |------------------------|------------------------|-------------------|--------------------------|
-| `metalastic-elasticsearch-dsl` | **5.4.x - 5.5.x** | **5.5.6** | 8.15+ (UntypedRangeQuery) |
+| `metalastic-elasticsearch-dsl` | **6.0.x** | **6.0.0** | 8.18+ |
+| `metalastic-elasticsearch-dsl-5.5` | **5.4.x - 5.5.x** | **5.5.6** | 8.15+ (UntypedRangeQuery) |
 | `metalastic-elasticsearch-dsl-5.3` | **5.0.x - 5.3.x** | **5.3.13** | 8.5-8.13 |
 
 ### Choosing the Right DSL Artifact
 
-**For Spring Data ES 5.4 or 5.5**:
+**For Spring Data ES 6.0**:
 ```kotlin
 implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0")
+```
+
+**For Spring Data ES 5.4 or 5.5**:
+```kotlin
+implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0")
 ```
 
 **For Spring Data ES 5.0, 5.1, 5.2, or 5.3**:
@@ -412,7 +428,8 @@ ksp("com.ekino.oss:metalastic-processor:1.0.0")
 implementation(platform("com.ekino.oss:metalastic-bom:1.0.0"))
 
 // DSL modules (choose one based on Spring Data ES version)
-implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0")       // 5.4-5.5
+implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0")       // 6.0.x
+implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0")  // 5.4-5.5
 implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0")  // 5.0-5.3
 
 // Gradle plugin

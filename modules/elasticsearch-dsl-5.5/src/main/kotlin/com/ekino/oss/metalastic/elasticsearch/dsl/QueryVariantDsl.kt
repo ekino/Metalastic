@@ -1792,11 +1792,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   ) {
     terms
       ?.takeUnless { it.isEmpty() }
-      ?.also {
-        +TermsSetQuery.of {
-          it.field(path()).terms(terms.mapNotNull { t -> t.toFieldValue() }).apply(block)
-        }
-      }
+      ?.also { +TermsSetQuery.of { it.field(path()).terms(terms.toList()).apply(block) } }
   }
 
   /**

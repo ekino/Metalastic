@@ -5,7 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 private val logger = KotlinLogging.logger {}
 
 internal object VersionCheck {
-  private val SUPPORTED_MAJOR_MINORS = setOf("6.0")
+  private val SUPPORTED_MAJOR_MINORS = setOf("5.4", "5.5")
 
   init {
     checkVersion()
@@ -26,9 +26,10 @@ internal object VersionCheck {
                         | ⚠️  Spring Data Elasticsearch Version Mismatch Detected
                         |═══════════════════════════════════════════════════════════════════════════════
                         | Detected version: $version
-                        | Supported versions: 6.0.x
+                        | Supported versions: 5.4.x - 5.5.x
                         |
-                        | You are using: metalastic-elasticsearch-dsl (rolling release)
+                        | You are using: metalastic-elasticsearch-dsl-5.5 (frozen)
+                        | For latest Spring Data ES 6.x please use: metalastic-elasticsearch-dsl
                         | For Spring Data ES 5.0-5.3 please use: metalastic-elasticsearch-dsl-5.3
                         |═══════════════════════════════════════════════════════════════════════════════
                         |
