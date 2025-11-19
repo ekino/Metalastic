@@ -1,6 +1,6 @@
 # Tag Management and Publishing Guide
 
-This document explains how to manage releases and publish Metalastic to Maven Central using GitHub Actions.
+This document explains how to manage releases and publish Metalastic to Maven Central and Gradle Plugin Portal using GitHub Actions.
 
 ## Table of Contents
 
@@ -12,69 +12,68 @@ This document explains how to manage releases and publish Metalastic to Maven Ce
 
 ## Overview
 
-Metalastic uses **GitHub Actions** to automatically publish artifacts when git tags are pushed. The project supports two versioning strategies:
+Metalastic uses **unified versioning** with automatic publishing via GitHub Actions. All 6 artifacts share the same version and are released together atomically.
 
-1. **Core Modules** (`core`, `processor`) - Published to Maven Central
-2. **Gradle Plugin** (`gradle-plugin`) - Published to Gradle Plugin Portal
-3. **Elasticsearch DSL Modules** - Published to Maven Central
+**Single tag publishes everything**:
+- `com.ekino.oss:metalastic-core`
+- `com.ekino.oss:metalastic-processor`
+- `com.ekino.oss:metalastic-bom`
+- `com.ekino.oss:metalastic-elasticsearch-dsl` (rolling, Spring Data ES 5.4-5.5)
+- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3` (frozen, Spring Data ES 5.0-5.3)
+- `com.ekino.oss.metalastic` Gradle plugin
 
-Core modules are published to Maven Central under the `com.ekino.oss` group ID. The Gradle plugin is published to the Gradle Plugin Portal with plugin ID `com.ekino.oss.metalastic`.
+**Benefits**:
+- ✅ Guaranteed compatibility across all artifacts
+- ✅ Simple version management for users
+- ✅ Single GitHub release (no clutter)
+- ✅ Industry-standard practice (Spring Boot, Ktor, etc.)
 
 ## Versioning Strategy
 
-### Core Modules Versioning
+### Unified Semantic Versioning
 
 **Format**: `v{MAJOR}.{MINOR}.{PATCH}`
 
+All modules follow semantic versioning at the **project level**:
+- **MAJOR** (X.0.0): Breaking change in **any** module
+- **MINOR** (x.Y.0): New feature in **any** module (backward compatible)
+- **PATCH** (x.y.Z): Bug fix in **any** module (backward compatible)
+
 **Examples**:
 - `v1.0.0` - First official release
-- `v1.1.0` - Minor feature addition
-- `v1.0.1` - Patch/bugfix
-- `v2.0.0` - Breaking changes
+- `v1.0.1` - Patch release (e.g., DSL bug fix)
+- `v1.1.0` - Minor release (e.g., new field type in core)
+- `v2.0.0` - Major release (breaking change in any module)
 
-**Publishes to Maven Central**:
+### Published Artifacts
+
+**Single tag** `v1.0.0` publishes to:
+
+**Maven Central** (`com.ekino.oss`):
 ```
-com.ekino.oss:metalastic-core:1.0.0
-com.ekino.oss:metalastic-processor:1.0.0
+metalastic-core:1.0.0
+metalastic-processor:1.0.0
+metalastic-bom:1.0.0
+metalastic-elasticsearch-dsl:1.0.0        # Rolling (5.4-5.5)
+metalastic-elasticsearch-dsl-5.3:1.0.0    # Frozen (5.0-5.3)
 ```
 
-**Publishes to Gradle Plugin Portal**:
+**Gradle Plugin Portal**:
 ```
 Plugin ID: com.ekino.oss.metalastic
 Version: 1.0.0
-URL: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 ```
 
-### Elasticsearch DSL Modules Versioning
+### Elasticsearch DSL Variants
 
-**Multi-version support**: 2 artifacts based on Spring Data ES API compatibility
+Two DSL artifacts support different Spring Data Elasticsearch versions:
 
-**Format**: `elasticsearch-dsl-{min-version}-v{DSL_VERSION}`
+| Artifact | Strategy | Spring Data ES | Transitive Version |
+|----------|----------|----------------|-------------------|
+| `elasticsearch-dsl` | Rolling | 5.4.x - 5.5.x | 5.5.6 |
+| `elasticsearch-dsl-5.3` | Frozen | 5.0.x - 5.3.x | 5.3.13 |
 
-**Examples**:
-- `elasticsearch-dsl-5.3-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.0.x - 5.3.x
-- `elasticsearch-dsl-v1.0.0` - DSL v1.0.0 for Spring Data ES 5.4.x - 5.5.x
-
-**Publishes** (per tag):
-```
-# Tag elasticsearch-dsl-5.3-v1.0.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0
-(Supports Spring Data ES 5.0-5.3, brings 5.3.13 transitively)
-
-# Tag elasticsearch-dsl-v1.0.0 publishes:
-com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0
-(Supports Spring Data ES 5.4-5.5, brings 5.5.6 transitively)
-```
-
-**Rationale**: Rolling release strategy provides a "latest" artifact that tracks newest Spring Data ES versions, while frozen artifacts provide stability.
-
-**Rolling Release Strategy:**
-- `elasticsearch-dsl` (no suffix) = Rolling artifact, tracks latest Spring Data ES 5.x
-- `elasticsearch-dsl-5.3` (with suffix) = Frozen artifact, locked to 5.0-5.3 range
-- When breaking changes occur in Spring Data ES (e.g., 5.6), we:
-  1. Create new frozen artifact for previous range (e.g., `elasticsearch-dsl-5.5`)
-  2. Update rolling artifact to support latest versions
-- Consumers choose: Rolling for latest, Frozen for stability
+**Both artifacts** share the same Metalastic version (e.g., 1.0.0) and are released together.
 
 ## Release Process
 
@@ -88,6 +87,7 @@ com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0
 2. **All tests passing**
    ```bash
    ./gradlew clean build
+   ./gradlew check
    ```
 
 3. **Up to date with remote**
@@ -95,134 +95,122 @@ com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0
    git pull origin master
    ```
 
-### Releasing Core Modules
+4. **Release notes prepared**
+   ```bash
+   # Ensure release-notes/RELEASE_NOTES_v1.0.0.md exists
+   ls release-notes/RELEASE_NOTES_v1.0.0.md
+   ```
 
-1. **Create and push the tag**
+### Unified Release Process
+
+**One tag publishes all 6 artifacts**:
+
+1. **Prepare release notes**
+   ```bash
+   # Create comprehensive release notes
+   # File: release-notes/RELEASE_NOTES_v1.0.0.md
+   # See template below and existing release notes for reference
+   ```
+
+2. **Commit release notes**
+   ```bash
+   git add release-notes/RELEASE_NOTES_v1.0.0.md
+   git commit -m "docs: add release notes for v1.0.0"
+   git push origin master
+   ```
+
+3. **Create and push tag**
    ```bash
    git tag v1.0.0
    git push origin v1.0.0
    ```
 
-2. **Monitor GitHub Actions**
+4. **Monitor GitHub Actions**
    - Go to: https://github.com/ekino/Metalastic/actions
    - Watch the "Publish Release" workflow
    - Verify all steps complete successfully
 
-3. **Verify publication**
+5. **Verify publication** (15-30 minutes)
    - **Maven Central**: https://central.sonatype.com/namespace/com.ekino.oss
      - Search for: `com.ekino.oss:metalastic-core:1.0.0`
-     - Artifacts typically appear within 15-30 minutes
+     - Verify all 5 Maven artifacts appear
    - **Gradle Plugin Portal**: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
      - Search for plugin version: `1.0.0`
      - Initial submission requires manual approval (1-2 business days)
      - Subsequent releases typically auto-approved
+   - **GitHub Release**: https://github.com/ekino/Metalastic/releases/tag/v1.0.0
+     - Verify release created automatically with correct release notes
 
-4. **Create GitHub Release**
-   - Go to: https://github.com/ekino/Metalastic/releases
-   - Click "Create a new release"
-   - Select the tag you just created
-   - Add release notes from `release-notes/RELEASE_NOTES_v1.0.0.md`
-   - Publish the release
+### Example Release Scenarios
 
-### Releasing Elasticsearch DSL Modules
-
-**Option A: Batch release via GitHub Actions** (recommended)
-
-Use the automated workflow to release multiple DSL variants with built-in validation:
-
-1. **Navigate to GitHub Actions**
-   - Go to: https://github.com/ekino/Metalastic/actions
-   - Select: "Release DSL Modules (Batch)"
-   - Click: "Run workflow"
-
-2. **Configure the release**
-   - **Branch**: `master` (or your release branch)
-   - **DSL version**: e.g., `1.0.0`, `1.1.0`, `2.0.0`
-   - **Variants**: Choose one of:
-     - `all` - All 6 variants (5.0 through 5.5)
-     - `5.0-5.3` - Only versions using shared-8.5 codebase
-     - `5.4-5.5` - Only versions using shared-8.15 codebase
-     - `custom` - Specify exact variants (e.g., `5.4,5.5`)
-   - **Dry run**: ✅ Check this first (validation only)
-
-3. **Validate with dry-run**
-   - Click "Run workflow"
-   - Wait for workflow to complete
-   - Review the job summary:
-     - Version format validation
-     - Duplicate tag detection
-     - Build verification results
-     - Release notes status
-     - Maven coordinates preview
-
-4. **Create tags (if validation passes)**
-   - Run workflow again with same settings
-   - **Dry run**: ❌ Uncheck (to actually create tags)
-   - Tags will be created and pushed automatically
-
-5. **Monitor publication**
-   - Each tag triggers the "Publish Release" workflow
-   - Monitor both workflows (for `all` variants)
-   - Verify GitHub Releases are created automatically
-
-**Quick release scenarios**:
-
-```yaml
-# Release all variants with version 1.0.0
-Variants: all
-DSL version: 1.0.0
-Creates: elasticsearch-dsl-5.3-v1.0.0, elasticsearch-dsl-v1.0.0
-
-# Hot-fix for rolling artifact only
-Variants: custom
-Custom variants: latest
-DSL version: 1.0.1
-Creates: elasticsearch-dsl-v1.0.1
-
-# Hot-fix for frozen artifact only
-Variants: custom
-Custom variants: 5.3
-DSL version: 1.0.1
-Creates: elasticsearch-dsl-5.3-v1.0.1
-```
-
-**Option B: Release specific DSL artifact** (manual)
-
-1. **Choose which DSL artifact to release**
-   - `5.3` - Frozen for Spring Data ES 5.0-5.3
-   - Rolling (no suffix) - Latest Spring Data ES 5.x (currently 5.4-5.5)
-
-2. **Create and push the tag**
-   ```bash
-   # Example: Release rolling DSL v1.0.0
-   git tag elasticsearch-dsl-v1.0.0
-   git push origin elasticsearch-dsl-v1.0.0
-
-   # OR release frozen DSL v1.0.0
-   git tag elasticsearch-dsl-5.3-v1.0.0
-   git push origin elasticsearch-dsl-5.3-v1.0.0
-   ```
-
-3. **Monitor and verify** (same as core modules)
-
-**Option C: Release both DSL artifacts together** (manual)
-
-When releasing a new DSL version, release both artifacts with the same DSL version:
-
+#### Scenario 1: Bug Fix in DSL Module
 ```bash
-# Tag both artifacts with DSL v1.0.0
-git tag elasticsearch-dsl-5.3-v1.0.0
-git tag elasticsearch-dsl-v1.0.0
+# Version: 1.0.0 → 1.0.1
+# Change: Fixed BoolQuery issue in DSL module
 
-# Push tags
-git push origin elasticsearch-dsl-5.3-v1.0.0 elasticsearch-dsl-v1.0.0
+# Create release notes
+vim release-notes/RELEASE_NOTES_v1.0.1.md
+# Content: "Bug fix in elasticsearch-dsl module only"
+
+# Commit and tag
+git add release-notes/RELEASE_NOTES_v1.0.1.md
+git commit -m "docs: add release notes for v1.0.1"
+git tag v1.0.1
+git push origin master v1.0.1
+
+# Result: All 6 artifacts published at 1.0.1
 ```
 
-This publishes:
-- `com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0` (Spring Data ES 5.0-5.3)
-- `com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0` (Spring Data ES 5.4-5.5)
+#### Scenario 2: New Feature in Core
+```bash
+# Version: 1.0.0 → 1.1.0
+# Change: Added GeoPoint field support in core
 
-**Note**: Option A (batch via GitHub Actions) is recommended as it includes validation, prevents errors, and provides a clear audit trail.
+# Create release notes
+vim release-notes/RELEASE_NOTES_v1.1.0.md
+# Content: "New feature in core & processor modules"
+
+# Commit and tag
+git add release-notes/RELEASE_NOTES_v1.1.0.md
+git commit -m "docs: add release notes for v1.1.0"
+git tag v1.1.0
+git push origin master v1.1.0
+
+# Result: All 6 artifacts published at 1.1.0
+```
+
+#### Scenario 3: Breaking Change
+```bash
+# Version: 1.0.0 → 2.0.0
+# Change: Renamed DSL method (breaking change)
+
+# Create release notes with migration guide
+vim release-notes/RELEASE_NOTES_v2.0.0.md
+# Content: Breaking changes section + migration guide
+
+# Commit and tag
+git add release-notes/RELEASE_NOTES_v2.0.0.md
+git commit -m "docs: add release notes for v2.0.0"
+git tag v2.0.0
+git push origin master v2.0.0
+
+# Result: All 6 artifacts published at 2.0.0
+```
+
+### Release Notes Template
+
+**File**: `release-notes/RELEASE_NOTES_v{VERSION}.md`
+
+Use the existing `RELEASE_NOTES_v1.0.0.md` as a reference template.
+
+**Key sections**:
+- Overview
+- Breaking Changes (if any)
+- New Features (by module: Core, DSL, Gradle Plugin)
+- Bug Fixes (by module)
+- Installation instructions with BOM
+- Spring Data ES compatibility matrix
+- Maven coordinates summary
 
 ### Publishing SNAPSHOTs
 
@@ -260,15 +248,21 @@ SNAPSHOTs are automatically published on every commit to `master` via the "Manua
 **File**: `.github/workflows/publish.yml`
 
 **Triggers**:
-- Tag push matching `v*` or `elasticsearch-dsl-*-v*`
+- Tag push matching `v*`
 
 **Actions**:
-1. Detects tag type (core modules vs DSL)
-2. Builds artifacts
-3. Signs with GPG
-4. Publishes to Maven Central (core, processor, elasticsearch-dsl-*)
-5. Publishes gradle-plugin to Gradle Plugin Portal (core releases only)
-6. Creates GitHub Release automatically
+1. Detects version from tag (e.g., `v1.0.0` → `1.0.0`)
+2. Builds all modules
+3. Runs tests
+4. Signs artifacts with GPG
+5. Publishes **all 5 artifacts** to Maven Central:
+   - metalastic-core
+   - metalastic-processor
+   - metalastic-bom
+   - metalastic-elasticsearch-dsl
+   - metalastic-elasticsearch-dsl-5.3
+6. Publishes gradle-plugin to Gradle Plugin Portal
+7. Creates GitHub Release automatically with release notes
 
 **Required Secrets** (configured in GitHub repository settings):
 
@@ -293,45 +287,12 @@ _Gradle Plugin Portal secrets:_
 - Publishes SNAPSHOT versions
 - Useful for testing publication process
 
-### Batch DSL Release Workflow
-
-**File**: `.github/workflows/release-dsl-batch.yml`
-
-**Triggers**:
-- Manual workflow dispatch (GitHub UI only)
-
-**Actions**:
-1. Validates version format (semantic versioning)
-2. Checks for duplicate tags
-3. Builds and tests selected DSL module variants
-4. Checks for release notes files (warns if missing)
-5. Creates and pushes tags (if not dry-run mode)
-6. Generates detailed job summary
-
-**Configuration Options**:
-- **DSL version**: The version to release (e.g., `1.0.0`, `1.1.0`)
-- **Variants**: Which Spring Data ES versions to release
-  - `all` - All 6 variants (5.0-5.5)
-  - `5.0-5.3` - Only shared-8.5 based versions
-  - `5.4-5.5` - Only shared-8.15 based versions
-  - `custom` - Specify exact variants
-- **Custom variants**: Comma-separated list when using `custom` mode
-- **Dry run**: Validate without creating tags (recommended first step)
-
-**Benefits**:
-- Atomic tag creation (all-or-nothing)
-- Pre-flight validation prevents common errors
-- Build verification ensures modules compile
-- Release notes status checking
-- Detailed job summary with Maven coordinates
-- Safe testing with dry-run mode
-
 ## Troubleshooting
 
 ### Tag Push Doesn't Trigger Workflow
 
 **Check**:
-1. Tag format matches `v*` or `elasticsearch-dsl-*-v*`
+1. Tag format matches `v*` (e.g., `v1.0.0`)
 2. Tag was pushed to GitHub: `git ls-remote --tags origin`
 3. Workflow file exists and is valid: `.github/workflows/publish.yml`
 
@@ -453,6 +414,30 @@ gradle.publish.secret=<your-api-secret>
 - Email notification to registered account
 - Plugin Portal: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 
+### Release Notes Missing
+
+**Symptoms**: GitHub Release created but no custom release notes
+
+**Cause**: Missing `release-notes/RELEASE_NOTES_v{VERSION}.md` file
+
+**Result**: GitHub auto-generates release notes from commits
+
+**Fix**: Create release notes file before tagging
+
+### Multiple Artifacts Failed to Publish
+
+**Symptoms**: Some Maven artifacts published, others failed
+
+**Investigation**:
+1. Check GitHub Actions logs for specific error
+2. Look for signing errors or network issues
+3. Verify all module builds succeeded
+
+**Fix**:
+- Delete failed tag: `git push origin :refs/tags/v1.0.0`
+- Fix underlying issue
+- Create and push tag again
+
 ## Best Practices
 
 ### Before Releasing
@@ -460,61 +445,51 @@ gradle.publish.secret=<your-api-secret>
 - [ ] All tests pass: `./gradlew clean build`
 - [ ] Code formatted: `./gradlew spotlessApply`
 - [ ] Quality checks pass: `./gradlew check`
-- [ ] Documentation updated
-- [ ] RELEASE_NOTES.md created
-- [ ] CLAUDE.md version references updated
+- [ ] Documentation updated (README, CLAUDE.md if needed)
+- [ ] Release notes created: `release-notes/RELEASE_NOTES_v{VERSION}.md`
+- [ ] Release notes comprehensive (covers all module changes)
+- [ ] Version number follows semantic versioning
 
 ### Version Numbering
 
-**Use semantic versioning for core modules**:
-- MAJOR: Breaking changes to public API
-- MINOR: New features, backward compatible
-- PATCH: Bug fixes, backward compatible
+**Use semantic versioning at project level**:
+- **MAJOR**: Breaking changes in **any** public API
+- **MINOR**: New features in **any** module, backward compatible
+- **PATCH**: Bug fixes in **any** module, backward compatible
 
-**Elasticsearch DSL module**:
-- Match Spring Data Elasticsearch version consumer uses
-- Increment DSL version for non-breaking improvements
-- Create new major DSL version for breaking changes
+**Examples**:
+- DSL bug fix only → PATCH (1.0.0 → 1.0.1)
+- Core new feature → MINOR (1.0.0 → 1.1.0)
+- Processor breaking change → MAJOR (1.0.0 → 2.0.0)
 
-### Release Notes
+### Release Notes Content
 
-Create `release-notes/RELEASE_NOTES_v{VERSION}.md` for each release:
+**Essential sections**:
+1. **Overview** - What's in this release
+2. **Breaking Changes** - Always include (use "None" if applicable)
+3. **New Features** - By module (Core, DSL, Gradle Plugin)
+4. **Bug Fixes** - By module
+5. **Installation** - With BOM examples
+6. **Spring Data ES Compatibility** - Matrix showing which DSL artifact to use
+7. **Maven Coordinates** - Complete summary
 
-```markdown
-# Metalastic v1.0.0
+**Clarity for users**:
+- If only one module changed, state it clearly
+- If change is breaking, provide migration guide
+- Always show which Spring Data ES versions are supported
 
-**Release Date:** 2025-01-15
+### Communication
 
-## Highlights
-
-- First official Maven Central release
-- Type-safe metamodel generation
-- Query DSL support
-
-## Changes
-
-### Added
-- Feature X
-
-### Fixed
-- Bug Y
-
-### Changed
-- Improvement Z
-
-## Maven Coordinates
-
-\`\`\`kotlin
-dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.0.0")
-    ksp("com.ekino.oss:metalastic-processor:1.0.0")
-}
-\`\`\`
-```
+After successful release:
+- [ ] Announce in GitHub Discussions
+- [ ] Update main README badges if needed
+- [ ] Social media announcement (if applicable)
+- [ ] Update documentation website (if applicable)
 
 ## Additional Resources
 
 - **Maven Central**: https://central.sonatype.com/namespace/com.ekino.oss
+- **Gradle Plugin Portal**: https://plugins.gradle.org/plugin/com.ekino.oss.metalastic
 - **GitHub Repository**: https://github.com/ekino/Metalastic
 - **GitHub Actions**: https://github.com/ekino/Metalastic/actions
 - **Issues**: https://github.com/ekino/Metalastic/issues
@@ -525,3 +500,7 @@ For questions or issues:
 1. Check this guide's troubleshooting section
 2. Search existing issues: https://github.com/ekino/Metalastic/issues
 3. Create new issue with details about your problem
+
+---
+
+**Note**: This guide reflects the **unified versioning strategy** adopted for v1.0.0+. All artifacts share the same version and are released together atomically.
