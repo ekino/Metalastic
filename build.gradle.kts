@@ -11,12 +11,12 @@ allprojects {
     version = when {
         // CI environment - GitHub Actions
         System.getenv("GITHUB_ACTIONS") != null -> {
-            // Use GITHUB_REF_NAME for tag-based releases
+            // Use GITHUB_REF_NAME for tag-based releases (unified versioning: only v* tags)
             val tag = System.getenv("GITHUB_REF_NAME")?.takeIf {
-                it.startsWith("v") || it.startsWith("elasticsearch-dsl-")
+                it.startsWith("v")
             }
 
-            tag?.removePrefix("v") // v1.2.3 -> 1.2.3
+            tag?.removePrefix("v") // v1.0.0 -> 1.0.0
                 ?: // Use git describe to match CI pipeline versioning exactly
                 runCatching {
                     val gitDescribe = providers.exec {

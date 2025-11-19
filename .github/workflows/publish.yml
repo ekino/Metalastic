@@ -3,9 +3,7 @@ name: Publish Release
 on:
   push:
     tags:
-      - 'v*'                      # Core modules: v1.0.0
-      - 'elasticsearch-dsl-*-v*'  # DSL frozen modules: elasticsearch-dsl-5.3-v1.0.0
-      - 'elasticsearch-dsl-v*'    # DSL rolling module: elasticsearch-dsl-v1.0.0
+      - 'v*'  # Unified release: v1.0.0 publishes all artifacts
 
 permissions:
   contents: write
@@ -46,34 +44,20 @@ jobs:
         id: version
         run: |
           TAG_NAME="${GITHUB_REF#refs/tags/}"
+          VERSION="${TAG_NAME#v}"
+
           echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
+          echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
 
-          # Determine artifact version
-          if [[ "$TAG_NAME" =~ ^v[0-9] ]]; then
-            # Core release: v1.0.0 → 1.0.0
-            VERSION="${TAG_NAME#v}"
-            echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "release_type=core" >> $GITHUB_OUTPUT
-          elif [[ "$TAG_NAME" =~ ^elasticsearch-dsl-v ]]; then
-            # DSL rolling release: elasticsearch-dsl-v1.0.0 → 1.0.0
-            VERSION="${TAG_NAME#elasticsearch-dsl-v}"
-            echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "dsl_variant=rolling" >> $GITHUB_OUTPUT
-            echo "release_type=dsl" >> $GITHUB_OUTPUT
-          elif [[ "$TAG_NAME" =~ ^elasticsearch-dsl-[0-9]+\.[0-9]+-v ]]; then
-            # DSL frozen release: elasticsearch-dsl-5.3-v1.0.0 → 1.0.0
-            VERSION="${TAG_NAME##*-v}"
-            DSL_VERSION="${TAG_NAME#elasticsearch-dsl-}"
-            DSL_VERSION="${DSL_VERSION%-v*}"
-            echo "artifact_version=$VERSION" >> $GITHUB_OUTPUT
-            echo "dsl_variant=$DSL_VERSION" >> $GITHUB_OUTPUT
-            echo "release_type=dsl" >> $GITHUB_OUTPUT
-          else
-            echo "Unknown tag format: $TAG_NAME"
-            exit 1
-          fi
-
-          echo "📦 Publishing version: $VERSION (type: $RELEASE_TYPE)"
+          echo "📦 Publishing version: $VERSION"
+          echo "📦 All 7 artifacts will be published:"
+          echo "  - metalastic-core:$VERSION"
+          echo "  - metalastic-processor:$VERSION"
+          echo "  - metalastic-bom:$VERSION"
+          echo "  - metalastic-elasticsearch-dsl:$VERSION"
+          echo "  - metalastic-elasticsearch-dsl-5.5:$VERSION"
+          echo "  - metalastic-elasticsearch-dsl-5.3:$VERSION"
+          echo "  - metalastic-gradle-plugin:$VERSION"
 
       - name: Make gradlew executable
         run: chmod +x ./gradlew
@@ -95,7 +79,6 @@ jobs:
           ./gradlew publish --no-daemon --stacktrace
 
       - name: Publish gradle-plugin to Gradle Plugin Portal
-        if: steps.version.outputs.release_type == 'core'
         env:
           GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
           GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
