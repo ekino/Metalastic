@@ -2,15 +2,6 @@ name: Manual Publish (Snapshot)
 
 on:
   workflow_dispatch:
-    inputs:
-      module:
-        description: 'Module to publish (all, elasticsearch-dsl)'
-        required: true
-        default: 'all'
-        type: choice
-        options:
-          - all
-          - elasticsearch-dsl
 
 permissions:
   contents: read
@@ -63,17 +54,46 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
-      - name: Publish snapshot to Maven Central
+      - name: Publish all modules as snapshot to Maven Central
         env:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
           ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKey }}
           ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.ORG_GRADLE_PROJECT_signingInMemoryKeyPassword }}
         run: |
-          if [ "${{ github.event.inputs.module }}" == "all" ]; then
-            echo "📦 Publishing all modules as snapshot to Maven Central"
-            ./gradlew publish --no-daemon --stacktrace
-          elif [ "${{ github.event.inputs.module }}" == "elasticsearch-dsl" ]; then
-            echo "📦 Publishing elasticsearch-dsl module only to Maven Central"
-            ./gradlew :modules:elasticsearch-dsl:publish --no-daemon --stacktrace
-          fi
+          echo "📦 Publishing all modules as snapshot to Maven Central"
+          echo "Version: ${{ steps.version.outputs.snapshot_version }}"
+          ./gradlew publish --no-daemon --stacktrace
+
+      - name: Summary
+        run: |
+          echo "## ✅ Snapshot Published" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: \`${{ steps.version.outputs.snapshot_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Published Modules" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All modules published to Maven Central:" >> $GITHUB_STEP_SUMMARY
+          echo "- \`metalastic-core:${{ steps.version.outputs.snapshot_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`metalastic-processor:${{ steps.version.outputs.snapshot_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`metalastic-bom:${{ steps.version.outputs.snapshot_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`metalastic-elasticsearch-dsl:${{ steps.version.outputs.snapshot_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- \`metalastic-elasticsearch-dsl-5.3:${{ steps.version.outputs.snapshot_version }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Usage" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`kotlin" >> $GITHUB_STEP_SUMMARY
+          echo "repositories {" >> $GITHUB_STEP_SUMMARY
+          echo "    mavenCentral()" >> $GITHUB_STEP_SUMMARY
+          echo "    maven { url = uri(\"https://s01.oss.sonatype.org/content/repositories/snapshots/\") }" >> $GITHUB_STEP_SUMMARY
+          echo "}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "dependencies {" >> $GITHUB_STEP_SUMMARY
+          echo "    implementation(platform(\"com.ekino.oss:metalastic-bom:${{ steps.version.outputs.snapshot_version }}\"))" >> $GITHUB_STEP_SUMMARY
+          echo "    implementation(\"com.ekino.oss:metalastic-core\")" >> $GITHUB_STEP_SUMMARY
+          echo "    ksp(\"com.ekino.oss:metalastic-processor\")" >> $GITHUB_STEP_SUMMARY
+          echo "    implementation(\"com.ekino.oss:metalastic-elasticsearch-dsl\")" >> $GITHUB_STEP_SUMMARY
+          echo "}" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Note**: Snapshots may take 5-10 minutes to appear in the snapshot repository." >> $GITHUB_STEP_SUMMARY
