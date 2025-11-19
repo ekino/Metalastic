@@ -30,6 +30,7 @@ internal object VersionCheck {
                         |
                         | You are using: metalastic-elasticsearch-dsl (rolling release)
                         | For Spring Data ES 5.0-5.3 please use: metalastic-elasticsearch-dsl-5.3
+                        | For Spring Data ES 5.4-5.5 please use: metalastic-elasticsearch-dsl-5.5
                         |═══════════════════════════════════════════════════════════════════════════════
                         |
             """
