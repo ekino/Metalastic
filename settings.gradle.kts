@@ -12,5 +12,6 @@ include(
     ":modules:elasticsearch-dsl",
     ":modules:elasticsearch-dsl-5.5",
     ":modules:elasticsearch-dsl-5.3",
-    ":modules:test"
+    ":modules:test",
+    ":modules:documentation-web"
 )

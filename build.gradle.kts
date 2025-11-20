@@ -1,5 +1,8 @@
 plugins {
     alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.kotlin.compose) apply false
+    alias(libs.plugins.compose) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.detekt) apply false
@@ -40,6 +43,7 @@ allprojects {
 
     repositories {
         mavenCentral()
+        google()
     }
 
 }
@@ -53,6 +57,11 @@ subprojects {
 
     // BOM module has its own special setup (java-platform), skip all standard configuration
     if (project.name == "bom") {
+        return@subprojects
+    }
+
+    // documentation-web uses Kotlin Multiplatform, not JVM - skip standard configuration
+    if (project.name == "documentation-web") {
         return@subprojects
     }
 
