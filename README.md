@@ -23,7 +23,7 @@
 
 ## What is Metalastic?
 
-Metalastic is a **compile-time code generator** that transforms your Spring Data Elasticsearch `@Document` classes into type-safe metamodels. Inspired by QueryDSL for SQL databases, it eliminates string-based field names and provides full IDE support for building Elasticsearch queries.
+Metalastic is a **compile-time code generator** that transforms your Spring Data Elasticsearch `@Document` classes into type-safe metamodels. It eliminates string-based field names and provides full IDE support for building Elasticsearch queries.
 
 ## Why Use Metalastic?
 

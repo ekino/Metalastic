@@ -168,7 +168,7 @@ See [Understanding Metamodels](/guide/understanding-metamodels.html#how-generati
 ```kotlin [Gradle Plugin (Recommended)]
 plugins {
     id("com.google.devtools.ksp") version "2.3.2"
-    id("com.ekino.oss.metalastic") version "1.0.0"
+    id("com.ekino.oss.metalastic") version "1.0.1"
 }
 
 metalastic {
@@ -185,8 +185,8 @@ plugins {
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.0.0")
-    ksp("com.ekino.oss:metalastic-processor:1.0.0")
+    implementation("com.ekino.oss:metalastic-core:1.0.1")
+    ksp("com.ekino.oss:metalastic-processor:1.0.1")
 }
 
 ksp {
@@ -207,7 +207,7 @@ Use generated metamodels with any query builder:
 
 ```kotlin
 dependencies {
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.1")
 }
 ```
 

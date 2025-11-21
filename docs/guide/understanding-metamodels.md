@@ -31,8 +31,8 @@ class MetaProduct<T : Any?>(
     parent: ObjectField<*>? = null,
     name: String = "",
     nested: Boolean = false,
-    fieldType: KType = typeOf<Product>(),
-) : Document<T>(parent, name, nested, fieldType) {
+    fieldType: KType,
+) : Document<T>(parent = parent, name = name, nested = nested, fieldType = fieldType) {
 
     @JvmField
     val id: KeywordField<String> = keyword("id")
@@ -43,14 +43,22 @@ class MetaProduct<T : Any?>(
     @JvmField
     val price: DoubleField<Double> = double("price")
 
-    override fun indexName(): String = "products"
+    override fun indexName(): String = INDEX_NAME
 
     companion object {
+        const val INDEX_NAME: String = "products"
+
         @JvmField
-        val product: MetaProduct<Product> = MetaProduct()
+        val product: MetaProduct<Product> = MetaProduct(fieldType = typeOf<Product>())
     }
 }
 ```
+
+**Key details:**
+- `fieldType` parameter has **no default value** - must be provided
+- Companion object includes `INDEX_NAME` constant
+- Singleton instance: `product` is created with explicit `fieldType = typeOf<Product>()`
+- When used as a nested field in another document (e.g., `val products: List<Product>`), the parent document provides the fieldType: `MetaProduct(this, "products", false, typeOf<List<Product>>())`
 
 ## How Generation Works
 
