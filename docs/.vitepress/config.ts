@@ -26,20 +26,22 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Quick Start', link: '/guide/getting-started' },
-          { text: 'Configuration', link: '/guide/configuration' }
+          { text: 'Configuration', link: '/guide/configuration' },
+          { text: 'Understanding Metamodels', link: '/guide/understanding-metamodels' }
         ]
       },
       {
-        text: 'Core Concepts',
+        text: 'Reference',
+        collapsed: false,
         items: [
-          { text: 'Field Types', link: '/guide/field-types' },
-          { text: 'Query DSL', link: '/guide/query-dsl' }
+          { text: 'Field Types', link: '/guide/field-types-reference' },
+          { text: 'Query DSL', link: '/guide/query-dsl-guide' }
         ]
       },
       {
-        text: 'Resources',
+        text: 'Examples',
         items: [
-          { text: 'Examples', link: '/guide/examples' }
+          { text: 'Complete Examples', link: '/guide/examples' }
         ]
       }
     ],
