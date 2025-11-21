@@ -1,3 +1,7 @@
+<script setup>
+import { data as v } from '../.vitepress/versions.data'
+</script>
+
 # Configuration
 
 Configure Metalastic using the Gradle plugin DSL.
@@ -90,14 +94,14 @@ metalastic {
 
 If not using the Gradle plugin:
 
-```kotlin
+```kotlin-vue
 plugins {
-    id("com.google.devtools.ksp") version "2.3.2"
+    id("com.google.devtools.ksp") version "{{ v.ksp }}"
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.0.1")
-    ksp("com.ekino.oss:metalastic-processor:1.0.1")
+    implementation("com.ekino.oss:metalastic-core:{{ v.metalastic }}")
+    ksp("com.ekino.oss:metalastic-processor:{{ v.metalastic }}")
 }
 
 ksp {

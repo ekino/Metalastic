@@ -1,10 +1,14 @@
+<script setup>
+import { data as v } from '../.vitepress/versions.data'
+</script>
+
 # Getting Started
 
 Get Metalastic running in your project in 5 minutes.
 
 ## Prerequisites
 
-- Kotlin 2.2.0+
+- Kotlin {{ v.kotlin }}+
 - Gradle 8.0+
 - Spring Data Elasticsearch project
 
@@ -12,10 +16,10 @@ Get Metalastic running in your project in 5 minutes.
 
 ::: code-group
 
-```kotlin [Gradle Plugin (Recommended)]
+```kotlin-vue [Gradle Plugin (Recommended)]
 plugins {
-    id("com.google.devtools.ksp") version "2.3.2"
-    id("com.ekino.oss.metalastic") version "1.0.1"
+    id("com.google.devtools.ksp") version "{{ v.ksp }}"
+    id("com.ekino.oss.metalastic") version "{{ v.metalastic }}"
 }
 
 metalastic {
@@ -27,14 +31,14 @@ metalastic {
 }
 ```
 
-```kotlin [Direct Dependencies]
+```kotlin-vue [Direct Dependencies]
 plugins {
-    id("com.google.devtools.ksp") version "2.3.2"
+    id("com.google.devtools.ksp") version "{{ v.ksp }}"
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.0.1")
-    ksp("com.ekino.oss:metalastic-processor:1.0.1")
+    implementation("com.ekino.oss:metalastic-core:{{ v.metalastic }}")
+    ksp("com.ekino.oss:metalastic-processor:{{ v.metalastic }}")
 }
 
 ksp {

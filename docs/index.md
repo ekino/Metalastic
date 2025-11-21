@@ -42,6 +42,10 @@ features:
     details: Kotlin-first design with @JvmField annotations for seamless Java interoperability. Works with both languages equally well.
 ---
 
+<script setup>
+import { data as v } from './.vitepress/versions.data'
+</script>
+
 ## The Problem
 
 Elasticsearch queries using Spring Data rely on string-based field names:
@@ -165,10 +169,10 @@ See [Understanding Metamodels](/guide/understanding-metamodels.html#how-generati
 
 ::: code-group
 
-```kotlin [Gradle Plugin (Recommended)]
+```kotlin-vue [Gradle Plugin (Recommended)]
 plugins {
-    id("com.google.devtools.ksp") version "2.3.2"
-    id("com.ekino.oss.metalastic") version "1.0.1"
+    id("com.google.devtools.ksp") version "{{ v.ksp }}"
+    id("com.ekino.oss.metalastic") version "{{ v.metalastic }}"
 }
 
 metalastic {
@@ -179,14 +183,14 @@ metalastic {
 }
 ```
 
-```kotlin [Direct Dependencies]
+```kotlin-vue [Direct Dependencies]
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "{{ v.ksp }}"
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.0.1")
-    ksp("com.ekino.oss:metalastic-processor:1.0.1")
+    implementation("com.ekino.oss:metalastic-core:{{ v.metalastic }}")
+    ksp("com.ekino.oss:metalastic-processor:{{ v.metalastic }}")
 }
 
 ksp {
@@ -205,9 +209,9 @@ Use generated metamodels with any query builder:
 
 ### Query DSL: Enhanced Type Safety (Optional)
 
-```kotlin
+```kotlin-vue
 dependencies {
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.1")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:{{ v.dsl.rolling }}")
 }
 ```
 

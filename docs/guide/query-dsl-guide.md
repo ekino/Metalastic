@@ -1,3 +1,7 @@
+<script setup>
+import { data as v } from '../.vitepress/versions.data'
+</script>
+
 # Query DSL Guide
 
 Build type-safe Elasticsearch queries using generated metamodels. The Metalastic Query DSL provides a fluent API inspired by QueryDSL for SQL databases, with compile-time safety and IDE auto-completion.
@@ -17,18 +21,18 @@ The Query DSL module is an optional add-on that works with generated metamodels 
 
 Add the DSL module to your dependencies:
 
-```kotlin
+```kotlin-vue
 dependencies {
     // Core modules (required)
-    implementation("com.ekino.oss:metalastic-core:1.0.1")
-    ksp("com.ekino.oss:metalastic-processor:1.0.1")
+    implementation("com.ekino.oss:metalastic-core:{{ v.metalastic }}")
+    ksp("com.ekino.oss:metalastic-processor:{{ v.metalastic }}")
 
     // Query DSL module (optional) - choose based on your Spring Data ES version
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.1")  // 6.0.x (rolling)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:{{ v.dsl.rolling }}")  // 6.0.x (rolling)
     // OR
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.1")  // 5.4-5.5 (frozen)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:{{ v.dsl.frozen55 }}")  // 5.4-5.5 (frozen)
     // OR
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.1")  // 5.0-5.3 (frozen)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:{{ v.dsl.frozen53 }}")  // 5.0-5.3 (frozen)
 }
 ```
 
@@ -38,9 +42,9 @@ The DSL module uses a rolling release strategy with frozen artifacts for stabili
 
 | Artifact | Strategy | Supported Spring Data ES | Brings Transitively |
 |----------|----------|--------------------------|---------------------|
-| `metalastic-elasticsearch-dsl` | **Rolling** | 6.0.x (currently) | Spring Data ES 6.0.0 |
-| `metalastic-elasticsearch-dsl-5.5` | **Frozen** | 5.4.x - 5.5.x | Spring Data ES 5.5.6 |
-| `metalastic-elasticsearch-dsl-5.3` | **Frozen** | 5.0.x - 5.3.x | Spring Data ES 5.3.13 |
+| `metalastic-elasticsearch-dsl` | **Rolling** | 6.0.x (currently) | Spring Data ES {{ v.springDataES.v60 }} |
+| `metalastic-elasticsearch-dsl-5.5` | **Frozen** | 5.4.x - 5.5.x | Spring Data ES {{ v.springDataES.v55 }} |
+| `metalastic-elasticsearch-dsl-5.3` | **Frozen** | 5.0.x - 5.3.x | Spring Data ES {{ v.springDataES.v53 }} |
 
 **Rolling Release**: The base artifact (`elasticsearch-dsl`) tracks the latest Spring Data ES versions. When breaking changes occur (like the 6.0 release), we freeze the previous version and update the rolling artifact.
 
