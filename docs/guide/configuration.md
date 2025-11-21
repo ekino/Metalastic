@@ -96,8 +96,8 @@ plugins {
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.0.0")
-    ksp("com.ekino.oss:metalastic-processor:1.0.0")
+    implementation("com.ekino.oss:metalastic-core:1.0.1")
+    ksp("com.ekino.oss:metalastic-processor:1.0.1")
 }
 
 ksp {

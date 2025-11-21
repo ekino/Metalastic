@@ -20,15 +20,15 @@ Add the DSL module to your dependencies:
 ```kotlin
 dependencies {
     // Core modules (required)
-    implementation("com.ekino.oss:metalastic-core:1.0.0")
-    ksp("com.ekino.oss:metalastic-processor:1.0.0")
+    implementation("com.ekino.oss:metalastic-core:1.0.1")
+    ksp("com.ekino.oss:metalastic-processor:1.0.1")
 
     // Query DSL module (optional) - choose based on your Spring Data ES version
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.0")  // 6.0.x (rolling)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.0.1")  // 6.0.x (rolling)
     // OR
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.0")  // 5.4-5.5 (frozen)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.0.1")  // 5.4-5.5 (frozen)
     // OR
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.0")  // 5.0-5.3 (frozen)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.0.1")  // 5.0-5.3 (frozen)
 }
 ```
 
