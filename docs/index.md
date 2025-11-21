@@ -147,24 +147,17 @@ val query = BoolQuery.of {
 
 ## How It Works
 
-Metalastic uses a **three-phase KSP annotation processor**:
+Metalastic uses a **KSP annotation processor** that runs at compile time:
 
-### Phase 1: COLLECTING
-- Discovers all `@Document` annotated classes
-- Parses `@Field` annotations and builds dependency graph
-- Resolves circular references and field relationships
+1. **Discovers** `@Document` annotated classes
+2. **Generates** type-safe Meta-classes with field definitions
+3. **Provides** instant IDE support with autocomplete
 
-### Phase 2: BUILDING
-- Generates KotlinPoet TypeSpec objects for Meta-classes
-- Creates centralized Metamodels registry
-- Handles nested objects, MultiField, and terminal types
+Files are generated to `build/generated/ksp/` and appear automatically in your IDE.
 
-### Phase 3: WRITING
-- Writes generated files to `build/generated/ksp/`
-- Optimizes imports and resolves conflicts
-- Generates optional debug reports
-
-**Result:** Type-safe metamodels appear instantly in your IDE, ready to use!
+::: tip Learn More
+See [Understanding Metamodels](/guide/understanding-metamodels.html#how-generation-works) for the complete architecture, three-phase processing details, and type system explanation.
+:::
 
 ## Two-Part Architecture
 
