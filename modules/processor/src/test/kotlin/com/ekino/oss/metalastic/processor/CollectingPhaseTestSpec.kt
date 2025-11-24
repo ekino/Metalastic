@@ -230,7 +230,7 @@ class CollectingPhaseTestSpec :
 
       // WithoutAnnotatedField and SomeInnerClass are inner classes of JavaAddress (external
       // class)
-      // They should be in objectFields as they get their own Q-class files
+      // They should be in objectFields as they get their own Meta-class files
       val withoutAnnotatedFieldModel =
         graph.objectModels().find { it.qClassName == "WithoutAnnotatedField" }
       withoutAnnotatedFieldModel.shouldNotBeNull()

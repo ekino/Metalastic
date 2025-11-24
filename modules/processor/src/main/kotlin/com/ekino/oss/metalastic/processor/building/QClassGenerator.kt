@@ -38,7 +38,7 @@ import java.util.Date
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 
-/** Pure Q-class TypeSpec generation. */
+/** Pure Meta-class TypeSpec generation. */
 class QClassGenerator(
   private val rootModel: MetalasticGraph.MetaClassModel,
   private val options: ProcessorOptions,
@@ -468,7 +468,7 @@ class QClassGenerator(
   private fun generateCompanionObject(document: MetalasticGraph.DocumentClass): TypeSpec {
     val companionBuilder = TypeSpec.companionObjectBuilder()
 
-    // Build the ClassName for the Q-class
+    // Build the ClassName for the Meta-class
     val qClassName = document.toClassName()
     // Use the source class type for the generic parameter
     val sourceTypeName =

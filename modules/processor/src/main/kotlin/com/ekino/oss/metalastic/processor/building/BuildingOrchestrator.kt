@@ -51,7 +51,7 @@ class BuildingOrchestrator(
     val result = GenerationResult(qClasses = generatedFiles, metamodels = metamodelsFile)
 
     reporter.debug {
-      "BUILDING phase completed: ${generatedFiles.size} Q-classes + Metamodels generated"
+      "BUILDING phase completed: ${generatedFiles.size} Meta-classes + Metamodels generated"
     }
     return result
   }

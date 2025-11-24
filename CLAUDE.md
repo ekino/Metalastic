@@ -519,24 +519,24 @@ metalastic {
     metamodels {
         // Global defaults (all source sets)
         packageName = "com.example.search"
-        className = "Metamodels"
+        registryClassName = "Metamodels"
         classPrefix = "Meta"  // Default
 
         // Source set specific overrides
         main {
             packageName = "com.example.search.main"
-            className = "MainMetamodels"
+            registryClassName = "MainMetamodels"
         }
 
         test {
             packageName = "com.example.search.test"
-            className = "TestMetamodels"
+            registryClassName = "TestMetamodels"
         }
 
         // Custom source sets
         sourceSet("integration") {
             packageName = "com.example.search.integration"
-            className = "IntegrationMetamodels"
+            registryClassName = "IntegrationMetamodels"
         }
     }
 
@@ -583,12 +583,12 @@ dependencies {
 ksp {
     // Global configuration
     arg("metamodels.package", "com.example.search")
-    arg("metamodels.className", "Metamodels")
+    arg("metamodels.registryClassName", "Metamodels")
     arg("metamodels.classPrefix", "Meta")
 
     // Source set specific
     arg("metamodels.main.package", "com.example.search.main")
-    arg("metamodels.main.className", "MainMetamodels")
+    arg("metamodels.main.registryClassName", "MainMetamodels")
 
     // Features
     arg("metalastic.generateJavaCompatibility", "true")
@@ -809,7 +809,7 @@ See [PROCESSOR_ARCHITECTURE.md](PROCESSOR_ARCHITECTURE.md) for complete architec
 - Three-phase processor: COLLECTING → BUILDING → WRITING
 - Graph-based model building
 - Terminal objects for circular refs and unmodellable types
-- Default prefix is `Meta` (not `Q`)
+- Default prefix is `Meta`
 - Document class (not Index class)
 
 ## Additional Documentation

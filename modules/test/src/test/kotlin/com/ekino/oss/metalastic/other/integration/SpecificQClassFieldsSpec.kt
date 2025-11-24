@@ -12,7 +12,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 class SpecificQClassFieldsSpec :
   ShouldSpec({
     should("generate MetaTestActivity for interface nested fields") {
-      // Verify that activities field uses specific MetaTestActivity Q-class
+      // Verify that activities field uses specific MetaTestActivity Meta-class
       val activitiesField = MetaNestedTestDocument.nestedTestDocument.activities
 
       activitiesField shouldNotBe null
@@ -20,15 +20,15 @@ class SpecificQClassFieldsSpec :
     }
 
     should("generate MetaTestMetadata for interface object fields") {
-      // Verify that metadata field uses specific MetaTestMetadata Q-class
+      // Verify that metadata field uses specific MetaTestMetadata Meta-class
       val metadataField = MetaNestedTestDocument.nestedTestDocument.metadata
 
       metadataField shouldNotBe null
       metadataField.shouldBeInstanceOf<MetaTestMetadata<TestMetadata?>>()
     }
 
-    should("still generate proper Q-classes for classes with Field annotations") {
-      // Verify that operation field still generates proper Q-class
+    should("still generate proper Meta-classes for classes with Field annotations") {
+      // Verify that operation field still generates proper Meta-class
       val operationField = MetaNestedTestDocument.nestedTestDocument.operation
 
       operationField shouldNotBe null
@@ -46,8 +46,8 @@ class SpecificQClassFieldsSpec :
         "operation.states.id"
     }
 
-    should("generate compilable and type-safe code with specific Q-classes") {
-      // This test verifies that the generated code compiles with specific Q-classes
+    should("generate compilable and type-safe code with specific Meta-classes") {
+      // This test verifies that the generated code compiles with specific Meta-classes
       // instead of generic Unknown fields - providing better type safety
 
       val document = MetaNestedTestDocument.nestedTestDocument
@@ -59,7 +59,7 @@ class SpecificQClassFieldsSpec :
       val activities = document.activities // MetaTestActivity
       val metadata = document.metadata // MetaTestMetadata
 
-      // Verify we can access nested fields through the proper Q-class
+      // Verify we can access nested fields through the proper Meta-class
       val operationActive = document.operation.active
       val stateId = document.operation.states.id
 
@@ -71,7 +71,7 @@ class SpecificQClassFieldsSpec :
       operationActive shouldNotBe null
       stateId shouldNotBe null
 
-      // Verify the specific Q-classes provide proper type information
+      // Verify the specific Meta-classes provide proper type information
       activities.shouldBeInstanceOf<MetaTestActivity<List<TestActivity>>>()
       metadata.shouldBeInstanceOf<MetaTestMetadata<TestMetadata?>>()
     }

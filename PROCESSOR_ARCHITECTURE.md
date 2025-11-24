@@ -21,7 +21,7 @@
   - [Discovery Process](#discovery-process)
 - [Phase 2: BUILDING](#phase-2-building)
   - [BuildingOrchestrator](#buildingorchestrator)
-  - [QClassGenerator](#qclassgenerator)
+  - [MetaClassGenerator](#metaclassgenerator)
   - [MetamodelsGenerator](#metamodelsgenerator)
 - [Phase 3: WRITING](#phase-3-writing)
   - [File Generation](#file-generation)
@@ -47,7 +47,7 @@
 
 ## Overview
 
-The Metalastic processor is a KSP (Kotlin Symbol Processing) annotation processor that generates type-safe metamodel classes for Elasticsearch documents. It transforms Spring Data Elasticsearch `@Document` annotated classes into QueryDSL-style metamodel classes with full type safety and path traversal support.
+The Metalastic processor is a KSP (Kotlin Symbol Processing) annotation processor that generates type-safe metamodel classes for Elasticsearch documents. It transforms Spring Data Elasticsearch `@Document` annotated classes into metamodel classes with full type safety and path traversal support.
 
 ### Key Capabilities
 
@@ -168,7 +168,7 @@ The processor follows a clean three-phase architecture orchestrated by `Metalast
 │                     PHASE 2: BUILDING                       │
 │                                                             │
 │  BuildingOrchestrator                                       │
-│  ├─ Generate QClass FileSpecs (KotlinPoet)                 │
+│  ├─ Generate MetaClass FileSpecs (KotlinPoet)                 │
 │  ├─ Generate Metamodels FileSpec                           │
 │  ├─ Handle SelfReferencingObject                           │
 │  ├─ Handle UnModellableObject                              │
@@ -913,7 +913,7 @@ val parentField: SelfReferencingObject<MetaCategory> = category.parent
 
 1. During graph building, track processing stack
 2. If type is already in stack, mark as circular reference
-3. In code generation, use `SelfReferencingObject<T>` instead of `QT`
+3. In code generation, use `SelfReferencingObject<T>` instead of `MetaT`
 
 ### UnModellable Objects
 
@@ -992,7 +992,7 @@ private Long longCode;
 **Generated Code:**
 
 ```kotlin
-class QDocument(...) : Index(...) {
+class MetaDocument(...) : Index(...) {
     // Main field
     @JvmField
     val longCode: LongField<Long> = longField<Long>("longCode")
@@ -1075,41 +1075,41 @@ val nickname: TextField<String?> = textField<String?>("nickname")
 
 The processor supports 30+ Elasticsearch field types:
 
-| Spring Data ES FieldType | Generated Field Class | Kotlin Type |
-|---------------------------|----------------------|-------------|
-| `FieldType.Keyword` | `KeywordField<String>` | String |
-| `FieldType.Text` | `TextField<String>` | String |
-| `FieldType.Long` | `LongField<Long>` | Long |
-| `FieldType.Integer` | `IntegerField<Int>` | Int |
-| `FieldType.Short` | `ShortField<Short>` | Short |
-| `FieldType.Byte` | `ByteField<Byte>` | Byte |
-| `FieldType.Double` | `DoubleField<Double>` | Double |
-| `FieldType.Float` | `FloatField<Float>` | Float |
-| `FieldType.Half_Float` | `HalfFloatField<Float>` | Float |
-| `FieldType.Scaled_Float` | `ScaledFloatField<Double>` | Double |
-| `FieldType.Boolean` | `BooleanField<Boolean>` | Boolean |
-| `FieldType.Date` | `DateField<Date>` | java.util.Date |
-| `FieldType.Date_Nanos` | `DateNanosField<Instant>` | java.time.Instant |
-| `FieldType.Binary` | `BinaryField<ByteArray>` | ByteArray |
-| `FieldType.Ip` | `IpField<String>` | String |
-| `FieldType.Murmur3` | `Murmur3Field<String>` | String |
-| `FieldType.Token_Count` | `TokenCountField<Int>` | Int |
-| `FieldType.Percolator` | `PercolatorField<String>` | String |
-| `FieldType.Flattened` | `FlattenedField<Map<String, Any>>` | Map |
-| `FieldType.Search_As_You_Type` | `SearchAsYouTypeField<String>` | String |
-| `FieldType.Rank_Feature` | `RankFeatureField<Double>` | Double |
+| Spring Data ES FieldType | Generated Field Class                    | Kotlin Type |
+|---------------------------|------------------------------------------|-------------|
+| `FieldType.Keyword` | `KeywordField<String>`                   | String |
+| `FieldType.Text` | `TextField<String>`                      | String |
+| `FieldType.Long` | `LongField<Long>`                        | Long |
+| `FieldType.Integer` | `IntegerField<Int>`                      | Int |
+| `FieldType.Short` | `ShortField<Short>`                      | Short |
+| `FieldType.Byte` | `ByteField<Byte>`                        | Byte |
+| `FieldType.Double` | `DoubleField<Double>`                    | Double |
+| `FieldType.Float` | `FloatField<Float>`                      | Float |
+| `FieldType.Half_Float` | `HalfFloatField<Float>`                  | Float |
+| `FieldType.Scaled_Float` | `ScaledFloatField<Double>`               | Double |
+| `FieldType.Boolean` | `BooleanField<Boolean>`                  | Boolean |
+| `FieldType.Date` | `DateField<Date>`                        | java.util.Date |
+| `FieldType.Date_Nanos` | `DateNanosField<Instant>`                | java.time.Instant |
+| `FieldType.Binary` | `BinaryField<ByteArray>`                 | ByteArray |
+| `FieldType.Ip` | `IpField<String>`                        | String |
+| `FieldType.Murmur3` | `Murmur3Field<String>`                   | String |
+| `FieldType.Token_Count` | `TokenCountField<Int>`                   | Int |
+| `FieldType.Percolator` | `PercolatorField<String>`                | String |
+| `FieldType.Flattened` | `FlattenedField<Map<String, Any>>`       | Map |
+| `FieldType.Search_As_You_Type` | `SearchAsYouTypeField<String>`           | String |
+| `FieldType.Rank_Feature` | `RankFeatureField<Double>`               | Double |
 | `FieldType.Rank_Features` | `RankFeaturesField<Map<String, Double>>` | Map |
-| `FieldType.Wildcard` | `WildcardField<String>` | String |
-| `FieldType.Dense_Vector` | `DenseVectorField<FloatArray>` | FloatArray |
-| `FieldType.Sparse_Vector` | `SparseVectorField<Map<String, Float>>` | Map |
-| `FieldType.Completion` | `CompletionField<String>` | String |
-| `FieldType.Geo_Point` | `GeoPointField` | GeoPoint |
-| `FieldType.Geo_Shape` | `GeoShapeField` | GeoShape |
-| `FieldType.Point` | `PointField` | Point |
-| `FieldType.Shape` | `ShapeField` | Shape |
-| `FieldType.Object` | `Q{TypeName}` | (generated class) |
-| `FieldType.Nested` | `Q{TypeName}` | (generated class) |
-| `FieldType.Auto` | (runtime detection) | (inferred) |
+| `FieldType.Wildcard` | `WildcardField<String>`                  | String |
+| `FieldType.Dense_Vector` | `DenseVectorField<FloatArray>`           | FloatArray |
+| `FieldType.Sparse_Vector` | `SparseVectorField<Map<String, Float>>`  | Map |
+| `FieldType.Completion` | `CompletionField<String>`                | String |
+| `FieldType.Geo_Point` | `GeoPointField`                          | GeoPoint |
+| `FieldType.Geo_Shape` | `GeoShapeField`                          | GeoShape |
+| `FieldType.Point` | `PointField`                             | Point |
+| `FieldType.Shape` | `ShapeField`                             | Shape |
+| `FieldType.Object` | `Meta{TypeName}`                         | (generated class) |
+| `FieldType.Nested` | `Meta{TypeName}`                         | (generated class) |
+| `FieldType.Auto` | (runtime detection)                      | (inferred) |
 
 ### Runtime Type Detection
 

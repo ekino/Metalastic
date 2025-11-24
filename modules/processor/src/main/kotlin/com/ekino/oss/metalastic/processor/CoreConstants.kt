@@ -71,9 +71,23 @@ object CoreConstants {
 
     object Metamodels {
       const val FALLBACK_METAMODELS_PACKAGE = "com.ekino.oss.metalastic"
-      const val PACKAGE_OVERRIDE = "metamodels.package"
-      const val CLASS_NAME = "metamodels.className"
-      const val CLASS_PREFIX = "metamodels.classPrefix"
+
+      // Key components for composition
+      private const val KEY_PREFIX = "metamodels"
+      private const val PACKAGE_SUFFIX = "package"
+      private const val REGISTRY_CLASS_NAME_SUFFIX = "registryClassName"
+      private const val CLASS_PREFIX_SUFFIX = "classPrefix"
+
+      // Global KSP argument keys (composed)
+      const val PACKAGE_OVERRIDE = "$KEY_PREFIX.$PACKAGE_SUFFIX"
+      const val REGISTRY_CLASS_NAME = "$KEY_PREFIX.$REGISTRY_CLASS_NAME_SUFFIX"
+      const val CLASS_PREFIX = "$KEY_PREFIX.$CLASS_PREFIX_SUFFIX"
+
+      // Source-set specific key components (public for ProcessorOptions)
+      const val SOURCE_SET_KEY_PREFIX = "$KEY_PREFIX."
+      const val SOURCE_SET_PACKAGE_SUFFIX = ".$PACKAGE_SUFFIX"
+      const val SOURCE_SET_REGISTRY_CLASS_NAME_SUFFIX = ".$REGISTRY_CLASS_NAME_SUFFIX"
+      const val SOURCE_SET_CLASS_PREFIX_SUFFIX = ".$CLASS_PREFIX_SUFFIX"
     }
   }
 }

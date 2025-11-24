@@ -15,7 +15,7 @@ class BooleanGetterMethodTest :
   ShouldSpec({
     context("Boolean getter method processing") {
       should("break") { MetaIndexPerson.indexPerson }
-      should("generate Q-class fields from boolean isXxx() getter methods") {
+      should("generate Meta-class fields from boolean isXxx() getter methods") {
         // Get all declared fields - @JvmField makes properties accessible as Java fields
         val publicFields =
           MetaBooleanTestItem::class.java.declaredFields.filter { field ->
@@ -24,7 +24,7 @@ class BooleanGetterMethodTest :
               !field.name.contains("\$") // Exclude synthetic fields
           }
 
-        // Verify that BooleanTestItem interface annotated methods are processed into Q-class
+        // Verify that BooleanTestItem interface annotated methods are processed into Meta-class
         // properties
         publicFields.size shouldBe 4
 
@@ -64,8 +64,8 @@ class BooleanGetterMethodTest :
         fieldNames.contains("hidden\$delegate") shouldBe false
       }
 
-      should("integrate boolean fields in document Q-classes") {
-        // Verify the document Q-class properly references the boolean item Q-class
+      should("integrate boolean fields in document Meta-classes") {
+        // Verify the document Meta-class properly references the boolean item Meta-class
         MetaBooleanGetterTestDocument.booleanGetterTestDocument.booleanItems::class
           .java
           .simpleName shouldBe "MetaBooleanTestItem"

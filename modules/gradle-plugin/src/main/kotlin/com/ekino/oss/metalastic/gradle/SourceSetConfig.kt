@@ -18,9 +18,14 @@ abstract class SourceSetConfig {
   /** Package name for this source set's metamodels */
   abstract val packageName: Property<String>
 
-  /** Class name for this source set's metamodels */
-  abstract val className: Property<String>
+  /**
+   * Name of the centralized Metamodels registry class for this source set. Does NOT affect
+   * individual Meta* class names - use [classPrefix] for those.
+   */
+  abstract val registryClassName: Property<String>
 
-  /** Class prefix for this source set's generated Q-classes */
+  /**
+   * Class prefix for this source set's generated metamodel classes (e.g., "Meta" for MetaProduct)
+   */
   abstract val classPrefix: Property<String>
 }

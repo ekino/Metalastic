@@ -27,7 +27,7 @@ fun CodeGenerator.writeGeneratedFiles(
 ): WritingResult {
   var filesWritten = 0
   val writingTime = measureTime {
-    // Step 1: Write all Q-class files (documents + object fields)
+    // Step 1: Write all Meta-class files (documents + object fields)
     generationResult.qClasses.forEach { qClassFile ->
       writeQClassFile(qClassFile, elasticsearchGraph)
       filesWritten++
@@ -46,13 +46,13 @@ fun CodeGenerator.writeGeneratedFiles(
   return WritingResult(filesWritten = filesWritten, writingTimeMs = writingTime.inWholeMilliseconds)
 }
 
-/** Writes a Q-class FileSpec to disk using the CodeGenerator. */
+/** Writes a Meta-class FileSpec to disk using the CodeGenerator. */
 private fun CodeGenerator.writeQClassFile(
   qClassFile: FileSpec,
   elasticsearchGraph: MetalasticGraph,
 ) {
   // Use all document sources for dependency tracking since we can't know which specific document
-  // generated this Q-class (could be document Q-class or object field Q-class)
+  // generated this Meta-class (could be a document Meta-class or object field Meta-class)
   val sources =
     elasticsearchGraph
       .models()
@@ -81,10 +81,10 @@ private fun CodeGenerator.writeQClassFile(
         writer.write(fileContent.replace("public ", ""))
       }
 
-      reporter.debug { "Generated Q-class: ${qClassFile.packageName}.${qClassFile.name}" }
+      reporter.debug { "Generated Meta-class: ${qClassFile.packageName}.${qClassFile.name}" }
     }
     .onFailure { e ->
-      reporter.exception(e) { "Failed to write Q-class ${qClassFile.name}: ${e.message}" }
+      reporter.exception(e) { "Failed to write Meta-class ${qClassFile.name}: ${e.message}" }
       throw e
     }
 }

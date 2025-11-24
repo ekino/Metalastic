@@ -17,13 +17,13 @@ import io.kotest.matchers.types.shouldBeInstanceOf
  * Tests for name collision resolution in nested classes.
  *
  * This test verifies that when multiple classes have the same name but exist at different nesting
- * levels, the annotation processor correctly generates separate Q-classes and references them
+ * levels, the annotation processor correctly generates separate Meta-classes and references them
  * appropriately.
  */
 class NameCollisionSpec :
   ShouldSpec({
     context("Name collision resolution") {
-      should("generate separate Q-classes for each NameCollision class") {
+      should("generate separate Meta-classes for each NameCollision class") {
         // Verify that both NameCollision classes exist
         MetaExampleDocument.NameCollision::class shouldNotBe null
         MetaExampleDocument.NestedObject.NameCollision::class shouldNotBe null

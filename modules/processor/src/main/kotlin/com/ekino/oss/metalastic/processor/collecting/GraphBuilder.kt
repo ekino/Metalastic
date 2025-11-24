@@ -30,9 +30,9 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
   }
 
   /**
-   * Resolves the class prefix to use for Q-class generation. This method performs early resolution
-   * of the classPrefix configuration by detecting the source set from the first document class and
-   * applying configuration overrides if available.
+   * Resolves the class prefix to use for Meta-class generation. This method performs early
+   * resolution of the classPrefix configuration by detecting the source set from the first document
+   * class and applying configuration overrides if available.
    */
   private fun resolveClassPrefix(firstDocumentClass: KSClassDeclaration): String {
     val sourceSet =

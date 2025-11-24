@@ -10,7 +10,7 @@ import io.kotest.matchers.shouldBe
 
 class RealWorldPathSpec :
   ShouldSpec({
-    should("have proper path information for generated Q-classes") {
+    should("have proper path information for generated Meta-classes") {
       // Test simple field paths
       MetaJavaTestDocument.javaTestDocument.title.path() shouldBe "title"
 
