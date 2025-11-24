@@ -24,9 +24,9 @@ import com.squareup.kotlinpoet.asClassName
  *
  * Responsibilities:
  * - Generate the Metamodels object with entries() function
- * - Handle Q-class naming conflicts with fully qualified names
+ * - Handle Meta-class naming conflicts with fully qualified names
  * - Apply proper Java interoperability annotations
- * - Generate type-safe sequence of Q-class instances
+ * - Generate type-safe sequence of Meta-class instances
  * - Handle import optimization for conflicted vs non-conflicted classes
  */
 class MetamodelsBuilder(val graph: MetalasticGraph, val options: ProcessorOptions) {
@@ -55,13 +55,13 @@ class MetamodelsBuilder(val graph: MetalasticGraph, val options: ProcessorOption
 
     val fileSpec = fileSpecBuilder.build()
 
-    reporter.debug { "Generated Metamodels with ${documents.size} Q-class entries" }
+    reporter.debug { "Generated Metamodels with ${documents.size} Meta-class entries" }
     return fileSpec
   }
 
   /**
-   * Builds the entries() function that returns a sequence of all Q-class instances. Handles naming
-   * conflicts by using fully qualified names for conflicted classes.
+   * Builds the entries() function that returns a sequence of all Meta-class instances. Handles
+   * naming conflicts by using fully qualified names for conflicted classes.
    */
   private fun buildEntriesFunction(documents: List<MetalasticGraph.DocumentClass>): FunSpec {
     val wildcardDocumentType =
@@ -80,7 +80,7 @@ class MetamodelsBuilder(val graph: MetalasticGraph, val options: ProcessorOption
 
   /**
    * Builds the code block for the entries() function. Uses fully qualified names for conflicted
-   * Q-classes, simple names for others.
+   * Meta-classes, simple names for others.
    */
   private fun buildEntriesCodeBlock(documents: List<MetalasticGraph.DocumentClass>): CodeBlock {
     val codeBuilder = CodeBlock.builder()

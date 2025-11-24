@@ -22,14 +22,28 @@ abstract class MetamodelsConfiguration @Inject constructor(private val objects: 
   abstract val packageName: Property<String>
 
   /**
-   * Global default class name for metamodels (default:
-   * [PluginConstants.Metamodels.DEFAULT_CLASS_NAME])
+   * Name of the centralized Metamodels registry class (default:
+   * [PluginConstants.Metamodels.DEFAULT_CLASS_NAME]).
+   *
+   * Controls the name of the registry class containing all metamodel entries. Does NOT affect
+   * individual document metamodel classes - use [classPrefix] for those.
+   *
+   * Example:
+   * ```
+   * registryClassName = "MainMetamodels"  // Generates: object MainMetamodels { ... }
+   * ```
    */
-  abstract val className: Property<String>
+  abstract val registryClassName: Property<String>
 
   /**
-   * Global default class prefix for generated Q-classes (default:
-   * [PluginConstants.Metamodels.DEFAULT_CLASS_PREFIX])
+   * Global default class prefix for generated metamodel classes (default:
+   * [PluginConstants.Metamodels.DEFAULT_CLASS_PREFIX]).
+   *
+   * Example:
+   * ```
+   * classPrefix = "Meta"   // Generates: MetaProduct, MetaCategory, etc.
+   * classPrefix = "Models" // Generates: ModelsProduct, ModelsCategory, etc.
+   * ```
    */
   abstract val classPrefix: Property<String>
 
@@ -68,7 +82,7 @@ abstract class MetamodelsConfiguration @Inject constructor(private val objects: 
   init {
     // Set up defaults
     packageName.convention(PluginConstants.Metamodels.DEFAULT_PACKAGE)
-    className.convention(PluginConstants.Metamodels.DEFAULT_CLASS_NAME)
+    registryClassName.convention(PluginConstants.Metamodels.DEFAULT_CLASS_NAME)
     classPrefix.convention(PluginConstants.Metamodels.DEFAULT_CLASS_PREFIX)
   }
 
@@ -121,12 +135,17 @@ abstract class MetamodelsConfiguration @Inject constructor(private val objects: 
 /** Configuration for a specific source set's metamodel generation. */
 abstract class SourceSetConfiguration {
 
-  /** Package name for this source set's metamodels */
+  /** Package name for this source set's metamodels registry */
   abstract val packageName: Property<String>
 
-  /** Class name for this source set's metamodels */
-  abstract val className: Property<String>
+  /**
+   * Name of the centralized Metamodels registry class for this source set. Does NOT affect
+   * individual Meta* class names - use [classPrefix] for those.
+   */
+  abstract val registryClassName: Property<String>
 
-  /** Class prefix for this source set's generated Q-classes */
+  /**
+   * Class prefix for this source set's generated metamodel classes (e.g., "Meta" for MetaProduct)
+   */
   abstract val classPrefix: Property<String>
 }

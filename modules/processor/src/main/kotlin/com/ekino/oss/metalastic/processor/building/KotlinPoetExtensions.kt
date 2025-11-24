@@ -9,7 +9,7 @@ import com.squareup.kotlinpoet.TypeSpec
 import jakarta.annotation.Generated
 import java.time.OffsetDateTime
 
-/** Creates the @Generated annotation for Q-classes. */
+/** Creates the @Generated annotation for Meta-classes. */
 fun TypeSpec.Builder.addGeneratedAnnotation() = apply {
   val currentTime = OffsetDateTime.now().toString()
   addAnnotation(

@@ -41,7 +41,7 @@ private fun createMetamodelsConfiguration(
 ): MetamodelsConfiguration {
   return MetamodelsConfiguration(
     packageOverride = kspOptions[Metamodels.PACKAGE_OVERRIDE],
-    classNameOverride = kspOptions[Metamodels.CLASS_NAME],
+    classNameOverride = kspOptions[Metamodels.REGISTRY_CLASS_NAME],
     classPrefixOverride = kspOptions[Metamodels.CLASS_PREFIX],
     sourceSetPackageOverrides = extractSourceSetPackageOverrides(kspOptions),
     sourceSetClassNameOverrides = extractSourceSetClassNameOverrides(kspOptions),
@@ -52,10 +52,15 @@ private fun createMetamodelsConfiguration(
 /** Extract source set specific package overrides from KSP options. */
 private fun extractSourceSetPackageOverrides(kspOptions: Map<String, String>): Map<String, String> {
   return kspOptions
-    .filterKeys { it.startsWith("metamodels.") && it.endsWith(".package") }
+    .filterKeys {
+      it.startsWith(Metamodels.SOURCE_SET_KEY_PREFIX) &&
+        it.endsWith(Metamodels.SOURCE_SET_PACKAGE_SUFFIX)
+    }
     .mapKeys { (key, _) ->
       // Extract sourceSet from "metamodels.{sourceSet}.package"
-      key.removePrefix("metamodels.").removeSuffix(".package")
+      key
+        .removePrefix(Metamodels.SOURCE_SET_KEY_PREFIX)
+        .removeSuffix(Metamodels.SOURCE_SET_PACKAGE_SUFFIX)
     }
 }
 
@@ -64,10 +69,15 @@ private fun extractSourceSetClassNameOverrides(
   kspOptions: Map<String, String>
 ): Map<String, String> {
   return kspOptions
-    .filterKeys { it.startsWith("metamodels.") && it.endsWith(".className") }
+    .filterKeys {
+      it.startsWith(Metamodels.SOURCE_SET_KEY_PREFIX) &&
+        it.endsWith(Metamodels.SOURCE_SET_REGISTRY_CLASS_NAME_SUFFIX)
+    }
     .mapKeys { (key, _) ->
-      // Extract sourceSet from "metamodels.{sourceSet}.className"
-      key.removePrefix("metamodels.").removeSuffix(".className")
+      // Extract sourceSet from "metamodels.{sourceSet}.registryClassName"
+      key
+        .removePrefix(Metamodels.SOURCE_SET_KEY_PREFIX)
+        .removeSuffix(Metamodels.SOURCE_SET_REGISTRY_CLASS_NAME_SUFFIX)
     }
 }
 
@@ -76,9 +86,14 @@ private fun extractSourceSetClassPrefixOverrides(
   kspOptions: Map<String, String>
 ): Map<String, String> {
   return kspOptions
-    .filterKeys { it.startsWith("metamodels.") && it.endsWith(".classPrefix") }
+    .filterKeys {
+      it.startsWith(Metamodels.SOURCE_SET_KEY_PREFIX) &&
+        it.endsWith(Metamodels.SOURCE_SET_CLASS_PREFIX_SUFFIX)
+    }
     .mapKeys { (key, _) ->
       // Extract sourceSet from "metamodels.{sourceSet}.classPrefix"
-      key.removePrefix("metamodels.").removeSuffix(".classPrefix")
+      key
+        .removePrefix(Metamodels.SOURCE_SET_KEY_PREFIX)
+        .removeSuffix(Metamodels.SOURCE_SET_CLASS_PREFIX_SUFFIX)
     }
 }

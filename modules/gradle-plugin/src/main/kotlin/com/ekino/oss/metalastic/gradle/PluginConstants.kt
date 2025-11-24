@@ -24,13 +24,13 @@ object PluginConstants {
 
     // KSP argument keys
     const val KSP_ARG_PACKAGE = "metamodels.package"
-    const val KSP_ARG_CLASS_NAME = "metamodels.className"
+    const val KSP_ARG_REGISTRY_CLASS_NAME = "metamodels.registryClassName"
     const val KSP_ARG_CLASS_PREFIX = "metamodels.classPrefix"
 
     // Source set specific KSP argument keys
     fun kspArgPackage(sourceSet: String) = "metamodels.$sourceSet.package"
 
-    fun kspArgClassName(sourceSet: String) = "metamodels.$sourceSet.className"
+    fun kspArgRegistryClassName(sourceSet: String) = "metamodels.$sourceSet.registryClassName"
 
     fun kspArgClassPrefix(sourceSet: String) = "metamodels.$sourceSet.classPrefix"
   }

@@ -107,8 +107,8 @@ class MetalasticPlugin : Plugin<Project> {
       }
 
     val className =
-      if (config.className.isPresent) {
-        config.className.get()
+      if (config.registryClassName.isPresent) {
+        config.registryClassName.get()
       } else {
         defaultClassName
       }
@@ -127,7 +127,7 @@ class MetalasticPlugin : Plugin<Project> {
     }
 
     if (className != null) {
-      val argKey = PluginConstants.Metamodels.kspArgClassName(sourceSetName)
+      val argKey = PluginConstants.Metamodels.kspArgRegistryClassName(sourceSetName)
       argMethod.invoke(kspExtension, argKey, className)
       project.logger.info("Metalastic: Set KSP arg $argKey = $className")
     }
@@ -161,8 +161,8 @@ class MetalasticPlugin : Plugin<Project> {
         } else globalDefaults.packageName
 
       val className =
-        if (sourceSetConfig.className.isPresent) {
-          sourceSetConfig.className.get()
+        if (sourceSetConfig.registryClassName.isPresent) {
+          sourceSetConfig.registryClassName.get()
         } else globalDefaults.className
 
       val classPrefix =
@@ -177,7 +177,7 @@ class MetalasticPlugin : Plugin<Project> {
       }
 
       if (className != null) {
-        val argKey = PluginConstants.Metamodels.kspArgClassName(sourceSetName)
+        val argKey = PluginConstants.Metamodels.kspArgRegistryClassName(sourceSetName)
         argMethod.invoke(kspExtension, argKey, className)
         project.logger.info("Metalastic: Set KSP arg $argKey = $className")
       }
@@ -205,11 +205,11 @@ class MetalasticPlugin : Plugin<Project> {
         metamodels.packageName.get(),
       )
     }
-    if (metamodels.className.isPresent) {
+    if (metamodels.registryClassName.isPresent) {
       argMethod.invoke(
         kspExtension,
-        PluginConstants.Metamodels.KSP_ARG_CLASS_NAME,
-        metamodels.className.get(),
+        PluginConstants.Metamodels.KSP_ARG_REGISTRY_CLASS_NAME,
+        metamodels.registryClassName.get(),
       )
     }
     if (metamodels.classPrefix.isPresent) {
@@ -231,7 +231,7 @@ class MetalasticPlugin : Plugin<Project> {
         if (metamodels.packageName.isPresent) metamodels.packageName.get()
         else "${project.group}.metamodels",
       defaultClassName =
-        if (metamodels.className.isPresent) metamodels.className.get()
+        if (metamodels.registryClassName.isPresent) metamodels.registryClassName.get()
         else PluginConstants.Metamodels.DEFAULT_CLASS_NAME,
       defaultClassPrefix =
         if (metamodels.classPrefix.isPresent) metamodels.classPrefix.get()
@@ -296,7 +296,8 @@ class MetalasticPlugin : Plugin<Project> {
       metamodels.customSourceSets,
       GlobalDefaults(
         packageName = if (metamodels.packageName.isPresent) metamodels.packageName.get() else null,
-        className = if (metamodels.className.isPresent) metamodels.className.get() else null,
+        className =
+          if (metamodels.registryClassName.isPresent) metamodels.registryClassName.get() else null,
         classPrefix = if (metamodels.classPrefix.isPresent) metamodels.classPrefix.get() else null,
       ),
     )

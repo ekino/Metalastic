@@ -17,11 +17,11 @@ import kotlin.reflect.typeOf
  * Tests for interface getter method support in Metalastic annotation processor.
  *
  * This test verifies that interfaces with @Field annotated getter methods are correctly processed
- * and included in generated Q-classes.
+ * and included in generated Meta-classes.
  */
 class InterfaceGetterMethodTest :
   ShouldSpec({
-    should("generate Q-class fields from interface getter methods") {
+    should("generate Meta-class fields from interface getter methods") {
       // Get all declared fields - @JvmField makes properties accessible as Java fields
       val publicFields =
         MetaTestItem::class.java.declaredFields.filter { field ->
@@ -30,7 +30,7 @@ class InterfaceGetterMethodTest :
             !field.name.contains("\$") // Exclude synthetic fields
         }
 
-      // Verify that TestItem interface getter methods are processed into Q-class properties
+      // Verify that TestItem interface getter methods are processed into Meta-class properties
       publicFields.size shouldBe 4
 
       // Extract property names from field names
@@ -48,8 +48,8 @@ class InterfaceGetterMethodTest :
       testItem.active.shouldBeInstanceOf<BooleanField<Boolean>>()
     }
 
-    should("integrate interface fields in document Q-classes") {
-      // Verify that the document Q-class correctly references the interface Q-class
+    should("integrate interface fields in document Meta-classes") {
+      // Verify that the document Meta-class correctly references the interface Meta-class
       MetaGetterMethodTestDocument.getterMethodTestDocument.items::class.java.simpleName shouldBe
         "MetaTestItem"
     }

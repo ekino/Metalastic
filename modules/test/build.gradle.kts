@@ -34,11 +34,11 @@ metalastic {
   metamodels {
     main {
       packageName = "com.example.search.metamodels"
-      className = "MainMetamodels"
+      registryClassName = "MainMetamodels"
     }
     test {
       packageName = "com.example.test.metamodels"
-      className = "TestMetamodels"
+      registryClassName = "TestMetamodels"
     }
     packageName = "com.example.metamodels"
   }
@@ -57,9 +57,9 @@ metalastic {
 ksp {
   //  arg("metamodels.classPrefix", "Meta") // Global
   arg("metamodels.main.package", "com.example.search.metamodels")
-  arg("metamodels.main.className", "MainMetamodels")
+  arg("metamodels.main.registryClassName", "MainMetamodels")
   arg("metamodels.test.package", "com.example.test.metamodels")
-  arg("metamodels.test.className", "TestMetamodels")
+  arg("metamodels.test.registryClassName", "TestMetamodels")
   arg("metamodels.package", "com.example.metamodels")
   arg("metalastic.generateJavaCompatibility", "true")
   arg("metalastic.reportingPath", "build/reports/metalastic/processor-report.md")
