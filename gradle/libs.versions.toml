@@ -1,20 +1,20 @@
 [versions]
 # Kotlin and JVM
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 
 # KSP and Code Generation
-ksp = "2.3.3"
+ksp = "2.3.4"
 kotlinpoet = "2.2.0"
 
 # Spring Data Elasticsearch
-spring-data-elasticsearch = "5.5.6"
+spring-data-elasticsearch = "6.0.1"
 
 #annotations
 jakarta-annotation-api = "3.0.0"
 
 # Code Quality
 spotless = "8.1.0"
-detekt = "1.23.8"
+detekt = "2.0.0-alpha.1"
 ktfmt = "0.58"
 
 # Publishing
@@ -71,6 +71,6 @@ kotest-extended = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-pro
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
+detekt = { id = "dev.detekt", version.ref = "detekt" }
 gradle-maven-publish-plugin = { id = "com.vanniktech.maven.publish", version.ref = "gradle-maven-publish-plugin" }
 gradle-plugin-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-plugin-publish" }

@@ -63,7 +63,7 @@ subprojects {
 
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.diffplug.spotless")
-    apply(plugin = "io.gitlab.arturbosch.detekt")
+    apply(plugin = "dev.detekt")
 
     if (shouldPublish) {
         apply(plugin = "com.vanniktech.maven.publish")
@@ -81,10 +81,12 @@ subprojects {
         useJUnitPlatform()
     }
 
-    configure<io.gitlab.arturbosch.detekt.extensions.DetektExtension> {
-        buildUponDefaultConfig = true
-        allRules = false
-        config.setFrom(rootProject.file("detekt.yml"))
+    pluginManager.withPlugin("dev.detekt") {
+        extensions.configure<dev.detekt.gradle.extensions.DetektExtension>("detekt") {
+            buildUponDefaultConfig.set(true)
+            allRules.set(false)
+            config.setFrom(rootProject.file("detekt.yml"))
+        }
     }
 
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
