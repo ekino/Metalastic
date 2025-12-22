@@ -52,11 +52,11 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 ## Technology Stack
 
 ### Core & Processor
-- **Language**: Kotlin 2.2.20
+- **Language**: Kotlin 2.3.0
 - **Java Version**: Java 21
 - **Build Tool**: Gradle with Kotlin DSL
-- **Spring Data Elasticsearch**: 5.5.6
-- **Annotation Processing**: KSP 2.2.20-2.0.3
+- **Spring Data Elasticsearch**: 6.0.1
+- **Annotation Processing**: KSP 2.3.4
 - **Code Generation**: KotlinPoet 2.2.0
 - **Testing**: Kotest v5.9.1 (ShouldSpec format)
 
@@ -507,7 +507,7 @@ The DSL module includes type-safe value converters for:
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "2.3.4"
     id("com.ekino.oss.metalastic") version "1.1.0"
 }
 
@@ -568,7 +568,7 @@ dependencies {
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "2.3.4"
 }
 
 repositories {
@@ -638,7 +638,7 @@ dependencies {
 **Gradle Plugin (Gradle Plugin Portal):**
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.2.20-2.0.3"
+    id("com.google.devtools.ksp") version "2.3.4"
     id("com.ekino.oss.metalastic") version "1.1.0"
 }
 ```

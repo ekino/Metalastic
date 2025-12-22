@@ -1,12 +1,12 @@
 complexity:
   TooManyFunctions:
-    thresholdInClasses: 50
+    allowedFunctionsPerClass: 50
   LongMethod:
-    threshold: 80
+    allowedLines: 80
   LongParameterList:
-    functionThreshold: 7
+    allowedFunctionParameters: 7
   LargeClass:
-    threshold: 1000
+    allowedLines: 2000
 style:
   MaxLineLength:
     maxLineLength: 160

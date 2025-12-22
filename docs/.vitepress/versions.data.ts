@@ -3,8 +3,8 @@ export default {
     return {
       // Core versions
       metalastic: '1.1.0',
-      ksp: '2.3.3',
-      kotlin: '2.2.21',
+      ksp: '2.3.4',
+      kotlin: '2.3.0',
 
       // DSL versions
       dsl: {
@@ -15,7 +15,7 @@ export default {
 
       // Spring Data ES versions (brought transitively by DSL artifacts)
       springDataES: {
-        v60: '6.0.0',
+        v60: '6.0.1',
         v55: '5.5.6',
         v53: '5.3.13'
       }

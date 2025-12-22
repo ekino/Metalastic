@@ -123,6 +123,8 @@ object KspTestUtils {
       symbolProcessorProviders = providers
       inheritClassPath = true
       messageOutputStream = System.out
+      // kotlin-compile-testing 1.6.0 uses Kotlin 1.9.24 which only supports up to JVM 21
+      jvmTarget = "21"
 
       //            // Add Spring Data Elasticsearch to classpath
       //            Document::class.java.protectionDomain.codeSource?.location?.toURI()?.let { uri

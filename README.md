@@ -7,11 +7,11 @@
 </div>
 
 [![GitHub Actions](https://github.com/ekino/Metalastic/workflows/Build%20and%20Test/badge.svg)](https://github.com/ekino/Metalastic/actions)
-[![Maven Central](https://img.shields.io/maven-central/v/com.ekino.oss/metalastic-core)](https://central.sonatype.com/search?q=g:com.ekino.oss.metalastic)
+[![Maven Central](https://img.shields.io/maven-central/v/com.ekino.oss/metalastic-core)](https://central.sonatype.com/search?q=com.ekino.oss.metalastic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.2.21-purple)](https://kotlinlang.org/)
-[![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-6.0.0-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-purple)](https://kotlinlang.org/)
+[![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-6.0.1-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
 ---
 
@@ -43,8 +43,8 @@ Metalastic is a **compile-time code generator** that transforms your Spring Data
 ```kotlin
 // build.gradle.kts
 plugins {
-    kotlin("jvm") version "2.2.21"
-    id("com.google.devtools.ksp") version "2.3.2"
+    kotlin("jvm") version "2.3.0"
+    id("com.google.devtools.ksp") version "2.3.4"
     id("com.ekino.oss.metalastic") version "1.1.0"
 }
 
@@ -150,7 +150,7 @@ val query = BoolQuery.of {
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.3.2"
+    id("com.google.devtools.ksp") version "2.3.4"
     id("com.ekino.oss.metalastic") version "1.1.0"
 }
 ```
