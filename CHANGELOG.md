@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-22
+
+### Changed
+
+- **Dependencies:** Kotlin 2.2.20 → 2.3.0
+- **Dependencies:** KSP 2.2.20-2.0.3 → 2.3.4 (new independent versioning)
+- **Dependencies:** Spring Data Elasticsearch 6.0.0 → 6.0.1
+- **Dependencies:** detekt 1.23.8 → 2.0.0-alpha.1
+  - Plugin ID changed from `io.gitlab.arturbosch.detekt` to `dev.detekt`
+- **Documentation:** Updated all version references to 1.2.0
+
 ## [1.1.0] - 2025-11-24
 
 ### Breaking Changes
@@ -77,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/ekino/Metalastic/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ekino/Metalastic/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/ekino/Metalastic/releases/tag/v1.0.0
