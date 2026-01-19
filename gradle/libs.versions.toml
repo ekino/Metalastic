@@ -18,7 +18,7 @@ detekt = "2.0.0-alpha.1"
 ktfmt = "0.58"
 
 # Publishing
-gradle-maven-publish-plugin = "0.35.0"
+gradle-maven-publish-plugin = "0.36.0"
 gradle-plugin-publish = "2.0.0"
 
 # Testing
