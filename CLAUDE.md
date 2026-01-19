@@ -818,4 +818,4 @@ See [PROCESSOR_ARCHITECTURE.md](PROCESSOR_ARCHITECTURE.md) for complete architec
 - [TAG_MANAGEMENT.md](TAG_MANAGEMENT.md) - Publishing and tag management guide
 - [PUBLISHING.md](PUBLISHING.md) - Consumer usage guide
 
-- remember to create PR , do not push to master  branch unless requested
+- remember to create PR, do not push to main branch unless requested

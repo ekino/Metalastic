@@ -92,7 +92,7 @@ Two DSL artifacts support different Spring Data Elasticsearch versions:
 
 3. **Up to date with remote**
    ```bash
-   git pull origin master
+   git pull origin main
    ```
 
 4. **Release notes prepared**
@@ -116,7 +116,7 @@ Two DSL artifacts support different Spring Data Elasticsearch versions:
    ```bash
    git add release-notes/RELEASE_NOTES_v1.0.0.md
    git commit -m "docs: add release notes for v1.0.0"
-   git push origin master
+   git push origin main
    ```
 
 3. **Create and push tag**
@@ -156,7 +156,7 @@ vim release-notes/RELEASE_NOTES_v1.0.1.md
 git add release-notes/RELEASE_NOTES_v1.0.1.md
 git commit -m "docs: add release notes for v1.0.1"
 git tag v1.0.1
-git push origin master v1.0.1
+git push origin main v1.0.1
 
 # Result: All 6 artifacts published at 1.0.1
 ```
@@ -174,7 +174,7 @@ vim release-notes/RELEASE_NOTES_v1.1.0.md
 git add release-notes/RELEASE_NOTES_v1.1.0.md
 git commit -m "docs: add release notes for v1.1.0"
 git tag v1.1.0
-git push origin master v1.1.0
+git push origin main v1.1.0
 
 # Result: All 6 artifacts published at 1.1.0
 ```
@@ -192,7 +192,7 @@ vim release-notes/RELEASE_NOTES_v2.0.0.md
 git add release-notes/RELEASE_NOTES_v2.0.0.md
 git commit -m "docs: add release notes for v2.0.0"
 git tag v2.0.0
-git push origin master v2.0.0
+git push origin main v2.0.0
 
 # Result: All 6 artifacts published at 2.0.0
 ```
@@ -214,7 +214,7 @@ Use the existing `RELEASE_NOTES_v1.0.0.md` as a reference template.
 
 ### Publishing SNAPSHOTs
 
-SNAPSHOTs are automatically published on every commit to `master` via the "Manual Publish" workflow.
+SNAPSHOTs are automatically published on every commit to `main` via the "Manual Publish" workflow.
 
 **Manual SNAPSHOT publish**:
 ```bash
