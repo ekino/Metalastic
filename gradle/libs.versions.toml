@@ -13,9 +13,8 @@ spring-data-elasticsearch = "6.0.1"
 jakarta-annotation-api = "3.0.0"
 
 # Code Quality
-spotless = "8.1.0"
+spotless = "8.2.0"
 detekt = "2.0.0-alpha.1"
-ktfmt = "0.58"
 
 # Publishing
 gradle-maven-publish-plugin = "0.36.0"
@@ -40,7 +39,6 @@ spring-data-elasticsearch = { module = "org.springframework.data:spring-data-ela
 
 # KSP and Code Generation
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
-ksp-gradlePlugin = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 

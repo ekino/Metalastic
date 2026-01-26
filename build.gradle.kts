@@ -93,7 +93,7 @@ subprojects {
         kotlin {
             target("**/*.kt")
             targetExclude("**/build/generated/**")
-            ktfmt(libs.versions.ktfmt.get()).googleStyle()
+            ktfmt().googleStyle()
             trimTrailingWhitespace()
             endWithNewline()
         }
