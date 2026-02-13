@@ -1,6 +1,6 @@
 [versions]
 # Kotlin and JVM
-kotlin = "2.3.0"
+kotlin = "2.3.10"
 
 # KSP and Code Generation
 ksp = "2.3.5"
