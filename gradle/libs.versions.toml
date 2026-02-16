@@ -24,7 +24,7 @@ gradle-plugin-publish = "2.0.0"
 mockk = "1.14.9"
 kotlin-compile-testing = "1.6.0"
 kotest = "5.9.1"
-junit-jupiter = "6.0.2"
+junit-jupiter = "6.0.3"
 
 # Logging
 kotlin-logging = "7.0.14"
