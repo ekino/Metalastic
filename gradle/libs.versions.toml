@@ -3,7 +3,7 @@
 kotlin = "2.3.10"
 
 # KSP and Code Generation
-ksp = "2.3.5"
+ksp = "2.3.6"
 kotlinpoet = "2.2.0"
 
 # Spring Data Elasticsearch
