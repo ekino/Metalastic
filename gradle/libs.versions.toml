@@ -27,7 +27,7 @@ kotest = "5.9.1"
 junit-jupiter = "6.0.3"
 
 # Logging
-kotlin-logging = "7.0.14"
+kotlin-logging = "8.0.01"
 
 [libraries]
 # Kotlin
