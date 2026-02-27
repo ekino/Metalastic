@@ -10,7 +10,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/com.ekino.oss/metalastic-core)](https://central.sonatype.com/search?q=com.ekino.oss.metalastic)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Java 21](https://img.shields.io/badge/Java-21-orange)](https://openjdk.java.net/projects/jdk/21/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.0-purple)](https://kotlinlang.org/)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.3.10-purple)](https://kotlinlang.org/)
 [![Spring Data ES](https://img.shields.io/badge/Spring%20Data%20ES-6.0.1-green)](https://docs.spring.io/spring-data/elasticsearch/docs/current/reference/html/)
 
 ---
@@ -43,9 +43,9 @@ Metalastic is a **compile-time code generator** that transforms your Spring Data
 ```kotlin
 // build.gradle.kts
 plugins {
-    kotlin("jvm") version "2.3.0"
-    id("com.google.devtools.ksp") version "2.3.4"
-    id("com.ekino.oss.metalastic") version "1.2.1"
+    kotlin("jvm") version "2.3.10"
+    id("com.google.devtools.ksp") version "2.3.6"
+    id("com.ekino.oss.metalastic") version "1.2.2"
 }
 
 repositories {
@@ -150,8 +150,8 @@ val query = BoolQuery.of {
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.3.4"
-    id("com.ekino.oss.metalastic") version "1.2.1"
+    id("com.google.devtools.ksp") version "2.3.6"
+    id("com.ekino.oss.metalastic") version "1.2.2"
 }
 ```
 
@@ -159,11 +159,11 @@ plugins {
 
 ```kotlin
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.2.1")
-    ksp("com.ekino.oss:metalastic-processor:1.2.1")
+    implementation("com.ekino.oss:metalastic-core:1.2.2")
+    ksp("com.ekino.oss:metalastic-processor:1.2.2")
 
     // Optional: Query DSL module
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.2.1")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.2.2")
 }
 ```
 
@@ -173,9 +173,9 @@ dependencies {
 
 | Spring Data ES | Elasticsearch | Metalastic Core | Query DSL Artifact |
 |----------------|---------------|-----------------|-------------------|
-| 6.0.x | 8.18.x | ✅ 1.2.1 | `metalastic-elasticsearch-dsl:1.2.1` |
-| 5.4.x - 5.5.x | 8.15.x - 8.18.x | ✅ 1.2.1 | `metalastic-elasticsearch-dsl-5.5:1.2.1` |
-| 5.0.x - 5.3.x | 8.5.x - 8.13.x | ✅ 1.2.1 | `metalastic-elasticsearch-dsl-5.3:1.2.1` |
+| 6.0.x | 8.18.x | ✅ 1.2.2 | `metalastic-elasticsearch-dsl:1.2.2` |
+| 5.4.x - 5.5.x | 8.15.x - 8.18.x | ✅ 1.2.2 | `metalastic-elasticsearch-dsl-5.5:1.2.2` |
+| 5.0.x - 5.3.x | 8.5.x - 8.13.x | ✅ 1.2.2 | `metalastic-elasticsearch-dsl-5.3:1.2.2` |
 
 **[Full compatibility matrix →](https://ekino.github.io/Metalastic/#compatibility)**
 

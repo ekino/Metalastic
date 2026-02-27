@@ -160,32 +160,42 @@ Show the user a summary:
 
 Ask the user to confirm before committing. If they want changes, go back and apply them.
 
-## Step 8 — Commit, Tag, and Push
+## Step 8 — Create Pull Request
 
-1. **Stage** only the specific modified files (list them explicitly, no `git add .`):
+1. **Create a release branch**:
+   ```
+   git checkout -b release/v{NEW_VERSION}
+   ```
+
+2. **Stage** only the specific modified files (list them explicitly, no `git add .`):
    ```
    git add release-notes/RELEASE_NOTES_v{NEW_VERSION}.md CHANGELOG.md README.md docs/.vitepress/versions.data.ts gradle.properties build.gradle.kts CLAUDE.md
    ```
 
-2. **Commit**:
+3. **Commit**:
    ```
    git commit -m "chore: prepare v{NEW_VERSION} release"
    ```
 
-3. **Tag**:
+4. **Push branch and create PR**:
    ```
+   git push -u origin release/v{NEW_VERSION}
+   ```
+   Then create a PR targeting `main` using `gh pr create` with a summary of all changes.
+
+5. **Display post-merge instructions**:
+   After the PR is merged, the user needs to tag and push to trigger the release pipeline:
+   ```
+   git checkout main
+   git pull
    git tag v{NEW_VERSION}
+   git push origin v{NEW_VERSION}
    ```
 
-4. **Push** (ask for final confirmation before this step — it's irreversible):
-   ```
-   git push origin {CURRENT_BRANCH} && git push origin v{NEW_VERSION}
-   ```
-
-5. **Display success message**:
-   - Monitor GitHub Actions: `https://github.com/ekino/Metalastic/actions`
-   - Verify Maven Central (15-30 min): `https://central.sonatype.com/search?q=com.ekino.oss`
-   - Verify Gradle Plugin Portal: `https://plugins.gradle.org/plugin/com.ekino.oss.metalastic`
+   Then monitor:
+   - GitHub Actions: `https://github.com/ekino/Metalastic/actions`
+   - Maven Central (15-30 min): `https://central.sonatype.com/search?q=com.ekino.oss`
+   - Gradle Plugin Portal: `https://plugins.gradle.org/plugin/com.ekino.oss.metalastic`
    - GitHub Release: `https://github.com/ekino/Metalastic/releases/tag/v{NEW_VERSION}`
 
 ## Error Handling
@@ -194,7 +204,4 @@ Ask the user to confirm before committing. If they want changes, go back and app
 - **Not on main/master branch** → Warn and ask user whether to continue
 - **Dirty working directory** → Warn, show dirty files, offer to continue
 - **Build failure** → Stop, show error, suggest fixing and re-running
-- **Push failure** → Note that commit and tag are local only. Suggest:
-  - `git reset HEAD~1` to undo the commit
-  - `git tag -d v{NEW_VERSION}` to remove the local tag
-  - Fix the issue and re-run `/release {NEW_VERSION}`
+- **Push failure** → Note that commit is local only. Suggest fixing the issue and re-running `/release {NEW_VERSION}`
