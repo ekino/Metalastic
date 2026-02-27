@@ -4,10 +4,11 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-.claude/*
+.claude/settings.local.json
 
 ### IntelliJ IDEA ###
 .idea/*
+!.idea/icon.png
 *.iws
 *.iml
 *.ipr
@@ -43,4 +44,3 @@ bin/
 ### Mac OS ###
 .DS_Store
 /ignore/
-/.claude/
