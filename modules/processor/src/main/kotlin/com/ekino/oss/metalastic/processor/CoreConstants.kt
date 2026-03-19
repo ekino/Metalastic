@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.processor
 
 import com.ekino.oss.metalastic.core.Document
@@ -19,12 +18,12 @@ object CoreConstants {
   const val MULTIFIELD_POSTFIX = "MultiField"
 
   object MetaModelClass {
-    val SIMPLE_NAME = Metamodel::class.simpleName!!
+    val SIMPLE_NAME = requireNotNull(Metamodel::class.simpleName)
     val NAME_PROPERTY = PropertyConst("name")
   }
 
   object ObjectFieldClass {
-    val SIMPLE_NAME = ObjectField::class.simpleName!!
+    val SIMPLE_NAME = requireNotNull(ObjectField::class.simpleName)
     val NAME_PROPERTY = MetaModelClass.NAME_PROPERTY
     val PARENT_PROPERTY = PropertyConst("parent")
     val NESTED_PROPERTY = PropertyConst("nested")
@@ -32,23 +31,23 @@ object CoreConstants {
   }
 
   object DocumentClass {
-    val SIMPLE_NAME = Document::class.simpleName!!
+    val SIMPLE_NAME = requireNotNull(Document::class.simpleName)
     const val INDEX_NAME_FUNCTION = "indexName"
     const val INDEX_NAME_CONSTANT = "INDEX_NAME"
   }
 
   object MultiFieldClass {
-    val SIMPLE_NAME = MultiField::class.simpleName!!
+    val SIMPLE_NAME = requireNotNull(MultiField::class.simpleName)
     val PARENT_PROPERTY = ObjectFieldClass.PARENT_PROPERTY
     const val MAIN_FIELD_PROPERTY = "mainFieldName"
   }
 
   object UnModellableObjectClass {
-    val SIMPLE_NAME = UnModellableObject::class.simpleName!!
+    val SIMPLE_NAME = requireNotNull(UnModellableObject::class.simpleName)
   }
 
   object SelfReferencingObjectClass {
-    val SIMPLE_NAME = SelfReferencingObject::class.simpleName!!
+    val SIMPLE_NAME = requireNotNull(SelfReferencingObject::class.simpleName)
   }
 
   object Metamodels {

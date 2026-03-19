@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.processor.model
 
 import com.google.devtools.ksp.getAnnotationsByType
@@ -23,8 +22,8 @@ class MetalasticGraph {
 
   fun getModel(classDeclaration: KSClassDeclaration?): MetaClassModel? =
     classDeclaration?.let {
-      models.find {
-        it.sourceClassDeclaration.qualifiedName?.asString() ==
+      models.find { model ->
+        model.sourceClassDeclaration.qualifiedName?.asString() ==
           classDeclaration.qualifiedName?.asString()
       }
     }
@@ -107,7 +106,8 @@ class MetalasticGraph {
     val fullyQualifiedName: String
       get() =
         when (val parent = parentModel) {
-          null -> "${sourceClassDeclaration.qualifiedName!!.getQualifier()}.$qClassName"
+          null ->
+            "${requireNotNull(sourceClassDeclaration.qualifiedName).getQualifier()}.$qClassName"
           else -> "${parent.fullyQualifiedName}.$qClassName"
         }
 

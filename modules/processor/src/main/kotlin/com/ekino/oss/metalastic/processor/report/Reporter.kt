@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.processor.report
 
 import com.ekino.oss.metalastic.processor.CoreConstants
@@ -33,7 +32,6 @@ data class LoggedMessage(
   val level: ReporterLevel,
   val message: String,
   val timestamp: LocalDateTime,
-  val phase: ProcessingPhase? = null,
 )
 
 /** A report section representing one compilation run */
@@ -87,7 +85,6 @@ interface Reporter {
 class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogger) : Reporter {
 
   private val loggedMessages = mutableListOf<LoggedMessage>()
-  private var currentPhase: ProcessingPhase? = null
   private var reportWritten: Boolean = false // Prevent duplicate reports
 
   private val reportPath: Path? =
@@ -126,7 +123,7 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
 
     return runCatching {
         // Create parent directories if they don't exist
-        Files.createDirectories(reportPath!!.parent)
+        Files.createDirectories(requireNotNull(reportPath).parent)
 
         // Generate new report content
         val newReportContent = generateCurrentReport()
@@ -147,25 +144,19 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
 
   private fun logMessage(level: ReporterLevel, message: String) {
     loggedMessages.add(
-      LoggedMessage(
-        level = level,
-        message = message,
-        timestamp = LocalDateTime.now(),
-        phase = currentPhase,
-      )
+      LoggedMessage(level = level, message = message, timestamp = LocalDateTime.now())
     )
   }
 
   /** Format a logged message for display */
   private fun formatLogMessage(logMsg: LoggedMessage): String {
     val timestamp = logMsg.timestamp.format(DateTimeFormatter.ofPattern("HH:mm:ss.SSS"))
-    val phaseInfo = logMsg.phase?.let { "[${it.name}] " } ?: ""
     val levelIcon =
       when (logMsg.level) {
         ReporterLevel.DEBUG -> "🔍"
         ReporterLevel.EXCEPTION -> "❌"
       }
-    return "[$timestamp] $phaseInfo$levelIcon ${logMsg.level}: ${logMsg.message}"
+    return "[$timestamp] $levelIcon ${logMsg.level}: ${logMsg.message}"
   }
 
   /** Generate content for the current compilation report */

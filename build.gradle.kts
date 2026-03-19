@@ -80,7 +80,9 @@ subprojects {
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
     }
-
+    tasks.named("check") {
+        dependsOn(tasks.named("detektMain"))
+    }
     pluginManager.withPlugin("dev.detekt") {
         extensions.configure<dev.detekt.gradle.extensions.DetektExtension>("detekt") {
             buildUponDefaultConfig.set(true)
@@ -90,9 +92,18 @@ subprojects {
     }
 
     configure<com.diffplug.gradle.spotless.SpotlessExtension> {
+        val licenseHeaderText =
+            """
+            |/*
+            | * Copyright (c) 2025 ekino (https://www.ekino.com/)
+            | */
+            """
+                .trimMargin()
+
         kotlin {
             target("**/*.kt")
             targetExclude("**/build/generated/**")
+            licenseHeader(licenseHeaderText)
             ktfmt().googleStyle()
             trimTrailingWhitespace()
             endWithNewline()

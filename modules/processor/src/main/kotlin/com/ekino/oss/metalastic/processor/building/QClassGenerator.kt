@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.processor.building
 
 import com.ekino.oss.metalastic.processor.CoreConstants
@@ -47,7 +46,7 @@ class QClassGenerator(
     rootModel.sourceClassDeclaration.typeParameters.toTypeParameterResolver()
 
   companion object {
-    val SYMBOL_PROCESSOR_FQN = MetalasticSymbolProcessor::class.qualifiedName!!
+    val SYMBOL_PROCESSOR_FQN = requireNotNull(MetalasticSymbolProcessor::class.qualifiedName)
     val documentClass =
       ClassName(CoreConstants.CORE_PACKAGE, CoreConstants.DocumentClass.SIMPLE_NAME)
     val objectFieldClass =
@@ -235,7 +234,7 @@ class QClassGenerator(
 
   /** Generates a regular object field property with a target model. */
   private fun generateRegularObjectField(field: ObjectFieldModel): PropertySpec {
-    val qClassName = field.targetModel!!.toClassName()
+    val qClassName = requireNotNull(field.targetModel).toClassName()
     val sourceTypeName = field.type.toSafeTypeName(typeParameterResolver)
 
     val parameterizedTypeName = qClassName.parameterizedBy(sourceTypeName)
@@ -659,7 +658,7 @@ class QClassGenerator(
     val propertyName = field.sourceDeclaration.simpleName.asString()
     val elasticsearchType = field.fieldType.name
 
-    val description2 = description?.let { "\n$it\n" } ?: ""
+    val description2 = description?.let { "\n$it\n" }.orEmpty()
     return """
         | $description2
         |**Original Property:**

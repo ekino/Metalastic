@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.processor.options
 
 import com.ekino.oss.metalastic.processor.CoreConstants

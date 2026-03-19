@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import com.google.common.collect.BoundType
@@ -55,7 +54,6 @@ value class StartBound<T : Comparable<T>>(val range: Range<T>) {
  * * lower bound is closed (inclusive) `[`
  * * upper bound depends on the operator used (`..` for closed, `..<` for open)
  */
-@VariantDsl
 fun <T : Comparable<T>> T?.fromInclusive() =
   when (this) {
     null -> StartBound(Range.all())
@@ -67,7 +65,6 @@ fun <T : Comparable<T>> T?.fromInclusive() =
  * * lower bound is open (exclusive) `(`
  * * upper bound depends on the operator used (`..` for closed, `..<` for open)
  */
-@VariantDsl
 fun <T : Comparable<T>> T?.fromExclusive() =
   when (this) {
     null -> StartBound(Range.all())
