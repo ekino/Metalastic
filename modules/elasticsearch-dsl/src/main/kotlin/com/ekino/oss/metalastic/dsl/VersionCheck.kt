@@ -1,3 +1,6 @@
+/*
+ * Copyright (c) 2025 ekino (https://www.ekino.com/)
+ */
 package com.ekino.oss.metalastic.dsl
 
 import io.github.oshai.kotlinlogging.KotlinLogging

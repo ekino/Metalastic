@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.processor.collecting
 
 import com.ekino.oss.metalastic.processor.CoreConstants
@@ -79,14 +78,10 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
 
     generateSequence { classesToExplore.removeFirstOrNull() }
       .forEach { symbol ->
-        when (symbol) {
-          is KSClassDeclaration -> {
-            symbol
-              .getAllProperties()
-              .filter { it.hasFieldTypeObjectOrNested() }
-              .forEach { it.extractPotentialQClass()?.addToFoundQClasses() }
-          }
-        }
+        symbol
+          .getAllProperties()
+          .filter { it.hasFieldTypeObjectOrNested() }
+          .forEach { it.extractPotentialQClass()?.addToFoundQClasses() }
       }
     reporter.debug {
       val classList = foundQClasses.values.map { it.fullyQualifiedName() }.sorted()

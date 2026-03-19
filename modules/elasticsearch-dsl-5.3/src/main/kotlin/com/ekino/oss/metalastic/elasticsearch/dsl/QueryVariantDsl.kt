@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 package com.ekino.oss.metalastic.elasticsearch.dsl
 
 import co.elastic.clients.elasticsearch._types.DistanceUnit
@@ -91,7 +90,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * - [BoolQueryDsl.should]
    * - [BoolQueryDsl.filter]
    */
-  @VariantDsl
   fun bool(block: BoolQueryDsl.() -> Unit) {
     val boolQuery = BoolQuery.Builder().apply { BoolQueryDsl(this).apply(block) }.build()
     if (!boolQuery.isEmpty()) {
@@ -119,7 +117,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * [see Using&nbsp;
    * minimum_should_match](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-bool-query#bool-min-should-match)
    */
-  @VariantDsl
   fun <T> shouldAtLeastOneOf(values: Collection<T>?, block: QueryVariantDsl.(T) -> Unit) {
     values
       ?.takeUnless { it.isEmpty() }
@@ -138,20 +135,18 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Disjunction max query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-dis-max-query)
    */
-  @VariantDsl
   fun disMax(disMax: DisMaxQuery.Builder.() -> Unit = {}, block: QueryVariantDsl.() -> Unit) {
     val queryVariants = mutableListOf<QueryVariant>()
     QueryVariantDsl { queryVariants += it }.apply(block)
     queryVariants
       .takeUnless { it.isEmpty() }
-      ?.also { +DisMaxQuery.of { it.apply(disMax).queries(queryVariants.map(::Query)) } }
+      ?.also { +DisMaxQuery.of { b -> b.apply(disMax).queries(queryVariants.map(::Query)) } }
   }
 
   /**
    * creates
    * [Combined fields query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-combined-fields-query)
    */
-  @VariantDsl
   fun Collection<Metamodel<*>>.combinedFields(
     value: String?,
     block: CombinedFieldsQuery.Builder.() -> Unit = {},
@@ -159,23 +154,21 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
     value
       .takeUnless { it.isNullOrBlank() }
       ?.also {
-        +CombinedFieldsQuery.of { it.fields(map(Metamodel<*>::path)).query(value).apply(block) }
+        +CombinedFieldsQuery.of { b -> b.fields(map(Metamodel<*>::path)).query(value).apply(block) }
       }
   }
 
   /** creates `Common terms query` */
-  @VariantDsl
   fun Metamodel<*>.commonTerms(value: String?, block: CommonTermsQuery.Builder.() -> Unit = {}) {
     value
       .takeUnless { it.isNullOrBlank() }
-      ?.also { +CommonTermsQuery.of { it.field(path()).query(value).apply(block) } }
+      ?.also { +CommonTermsQuery.of { b -> b.field(path()).query(value).apply(block) } }
   }
 
   /**
    * creates
    * [Exists query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-exists-query)
    */
-  @VariantDsl
   fun Metamodel<*>.exist() {
     +ExistsQuery.of { it.field(path()) }
   }
@@ -184,22 +177,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Fuzzy query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-fuzzy-query)
    */
-  @VariantDsl infix fun Metamodel<*>.fuzzy(value: FieldValue?) = fuzzy(value) {}
+  infix fun Metamodel<*>.fuzzy(value: FieldValue?) = fuzzy(value) {}
 
   /**
    * creates
    * [Fuzzy query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-fuzzy-query)
    */
-  @VariantDsl
   fun Metamodel<*>.fuzzy(value: FieldValue?, block: FuzzyQuery.Builder.() -> Unit = {}) {
-    value?.also { +FuzzyQuery.of { it.field(path()).value(value).apply(block) } }
+    value?.also { +FuzzyQuery.of { b -> b.field(path()).value(value).apply(block) } }
   }
 
   /**
    * creates
    * [Geo-distance query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-geo-distance-query)
    */
-  @VariantDsl
   fun Metamodel<*>.geoDistance(
     latitude: Double,
     longitude: Double,
@@ -220,16 +211,14 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [IDs query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-ids-query)
    */
-  @VariantDsl
   fun idsQuery(ids: List<String>?) {
-    ids?.takeUnless { it.isEmpty() }?.also { +IdsQuery.of { it.values(ids) } }
+    ids?.takeUnless { it.isEmpty() }?.also { +IdsQuery.of { b -> b.values(ids) } }
   }
 
   /**
    * creates
    * [Match all query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-all-query)
    */
-  @VariantDsl
   fun matchAll() {
     +MatchAllQuery.Builder().build()
   }
@@ -238,7 +227,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match none query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-all-query#query-dsl-match-none-query)
    */
-  @VariantDsl
   fun matchNone() {
     +MatchNoneQuery.Builder().build()
   }
@@ -247,37 +235,35 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match phrase prefix query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query-phrase-prefix)
    */
-  @VariantDsl infix fun Metamodel<*>.matchPhrasePrefix(value: String?) = matchPhrasePrefix(value) {}
+  infix fun Metamodel<*>.matchPhrasePrefix(value: String?) = matchPhrasePrefix(value) {}
 
   /**
    * creates
    * [Match phrase prefix query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query-phrase-prefix)
    */
-  @VariantDsl
   fun Metamodel<*>.matchPhrasePrefix(
     value: String?,
     block: MatchPhrasePrefixQuery.Builder.() -> Unit = {},
   ) {
     value
       .takeUnless { it.isNullOrBlank() }
-      ?.also { +MatchPhrasePrefixQuery.of { it.field(path()).query(value).apply(block) } }
+      ?.also { +MatchPhrasePrefixQuery.of { b -> b.field(path()).query(value).apply(block) } }
   }
 
   /**
    * creates
    * [Match phrase query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query-phrase)
    */
-  @VariantDsl infix fun <T : Any> Metamodel<T>.matchPhrase(value: String?) = matchPhrase(value) {}
+  infix fun <T : Any> Metamodel<T>.matchPhrase(value: String?) = matchPhrase(value) {}
 
   /**
    * creates
    * [Match phrase query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query-phrase)
    */
-  @VariantDsl
   fun Metamodel<*>.matchPhrase(value: String?, block: MatchPhraseQuery.Builder.() -> Unit = {}) {
     value
       .takeUnless { it.isNullOrBlank() }
-      ?.also { +MatchPhraseQuery.of { it.field(path()).query(value).apply(block) } }
+      ?.also { +MatchPhraseQuery.of { b -> b.field(path()).query(value).apply(block) } }
   }
 
   // MATCH QUERIES - Infix operators
@@ -286,85 +272,85 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<*>.match(value: FieldValue?) = match(value) {}
+  infix fun Metamodel<*>.match(value: FieldValue?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<String>.match(value: String?) = match(value) {}
+  infix fun Metamodel<String>.match(value: String?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<Int>.match(value: Int?) = match(value) {}
+  infix fun Metamodel<Int>.match(value: Int?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<Long>.match(value: Long?) = match(value) {}
+  infix fun Metamodel<Long>.match(value: Long?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<Float>.match(value: Float?) = match(value) {}
+  infix fun Metamodel<Float>.match(value: Float?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<Double>.match(value: Double?) = match(value) {}
+  infix fun Metamodel<Double>.match(value: Double?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun Metamodel<Boolean>.match(value: Boolean?) = match(value) {}
+  infix fun Metamodel<Boolean>.match(value: Boolean?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun <T : Enum<T>> Metamodel<T>.match(value: Enum<T>?) = match(value) {}
+  infix fun <T : Enum<T>> Metamodel<T>.match(value: Enum<T>?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun DateField<Instant>.match(value: Instant?) = match(value) {}
+  infix fun DateField<Instant>.match(value: Instant?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun DateField<LocalDate>.match(value: LocalDate?) = match(value) {}
+  infix fun DateField<LocalDate>.match(value: LocalDate?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun DateField<LocalDateTime>.match(value: LocalDateTime?) = match(value) {}
+  infix fun DateField<LocalDateTime>.match(value: LocalDateTime?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun DateField<ZonedDateTime>.match(value: ZonedDateTime?) = match(value) {}
+  infix fun DateField<ZonedDateTime>.match(value: ZonedDateTime?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun DateField<OffsetDateTime>.match(value: OffsetDateTime?) = match(value) {}
+  infix fun DateField<OffsetDateTime>.match(value: OffsetDateTime?) = match(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl infix fun DateField<Date>.match(value: Date?) = match(value) {}
+  infix fun DateField<Date>.match(value: Date?) = match(value) {}
 
   // MATCH QUERIES - Full functions with block parameter
 
@@ -372,7 +358,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<*>.match(value: FieldValue?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -380,7 +365,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<String>.match(value: String?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -388,7 +372,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<Int>.match(value: Int?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -396,7 +379,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<Long>.match(value: Long?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -404,7 +386,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<Float>.match(value: Float?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -412,7 +393,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<Double>.match(value: Double?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -420,7 +400,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<Boolean>.match(value: Boolean?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -428,7 +407,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<T>.match(value: Enum<T>?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -436,7 +414,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<Instant>.match(value: Instant?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -444,7 +421,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<LocalDate>.match(value: LocalDate?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -452,7 +428,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<LocalDateTime>.match(
     value: LocalDateTime?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -462,7 +437,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<ZonedDateTime>.match(
     value: ZonedDateTime?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -472,7 +446,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<OffsetDateTime>.match(
     value: OffsetDateTime?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -482,7 +455,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<Date>.match(value: Date?, block: MatchQuery.Builder.() -> Unit = {}) =
     matchUnchecked(value, block)
 
@@ -501,7 +473,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<*>>.containsMatch(value: FieldValue?) =
     matchUnchecked(value) {}
 
@@ -509,7 +480,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<String>>.containsMatch(value: String?) =
     matchUnchecked(value) {}
 
@@ -517,28 +487,24 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Int>>.containsMatch(value: Int?) = matchUnchecked(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Long>>.containsMatch(value: Long?) = matchUnchecked(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Float>>.containsMatch(value: Float?) = matchUnchecked(value) {}
 
   /**
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Double>>.containsMatch(value: Double?) =
     matchUnchecked(value) {}
 
@@ -546,7 +512,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Boolean>>.containsMatch(value: Boolean?) =
     matchUnchecked(value) {}
 
@@ -554,7 +519,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun <T : Enum<T>> Metamodel<out Collection<T>>.containsMatch(value: Enum<T>?) =
     matchUnchecked(value) {}
 
@@ -562,7 +526,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<Instant>>.containsMatch(value: Instant?) =
     containsMatch(value) {}
 
@@ -570,7 +533,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<LocalDate>>.containsMatch(value: LocalDate?) =
     containsMatch(value) {}
 
@@ -578,7 +540,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<LocalDateTime>>.containsMatch(value: LocalDateTime?) =
     containsMatch(value) {}
 
@@ -586,7 +547,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<ZonedDateTime>>.containsMatch(value: ZonedDateTime?) =
     containsMatch(value) {}
 
@@ -594,7 +554,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<OffsetDateTime>>.containsMatch(value: OffsetDateTime?) =
     containsMatch(value) {}
 
@@ -602,7 +561,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<Date>>.containsMatch(value: Date?) = containsMatch(value) {}
 
   // MATCH QUERIES FOR COLLECTIONS - Full functions with block parameter
@@ -611,7 +569,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<*>>.containsMatch(
     value: FieldValue?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -621,7 +578,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<String>>.containsMatch(
     value: String?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -631,7 +587,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Int>>.containsMatch(
     value: Int?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -641,7 +596,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Long>>.containsMatch(
     value: Long?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -651,7 +605,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Float>>.containsMatch(
     value: Float?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -661,7 +614,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Double>>.containsMatch(
     value: Double?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -671,7 +623,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Boolean>>.containsMatch(
     value: Boolean?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -681,7 +632,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsMatch(
     value: Enum<T>?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -691,7 +641,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Instant>>.containsMatch(
     value: Instant?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -701,7 +650,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDate>>.containsMatch(
     value: LocalDate?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -711,7 +659,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDateTime>>.containsMatch(
     value: LocalDateTime?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -721,7 +668,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<out Collection<ZonedDateTime>>.containsMatch(
     value: ZonedDateTime?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -731,7 +677,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<out Collection<OffsetDateTime>>.containsMatch(
     value: OffsetDateTime?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -741,7 +686,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Date>>.containsMatch(
     value: Date?,
     block: MatchQuery.Builder.() -> Unit = {},
@@ -751,7 +695,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [More like this query](https://www.elastic.co/guide/en/elasticsearch/client/java-api/current/java-specialized-queries.html)
    */
-  @VariantDsl
   fun Collection<Metamodel<*>>.moreLikeThis(block: MoreLikeThisQuery.Builder.() -> Unit = {}) {
     +MoreLikeThisQuery.of { it.fields(map(Metamodel<*>::path)).apply(block) }
   }
@@ -760,13 +703,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Multi-match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query)
    */
-  @VariantDsl infix fun Collection<Metamodel<*>>.multiMatch(value: String?) = multiMatch(value) {}
+  infix fun Collection<Metamodel<*>>.multiMatch(value: String?) = multiMatch(value) {}
 
   /**
    * creates
    * [Multi-match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-multi-match-query)
    */
-  @VariantDsl
   fun Collection<Metamodel<*>>.multiMatch(
     value: String?,
     block: MultiMatchQuery.Builder.() -> Unit = {},
@@ -774,7 +716,7 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
     value
       .takeUnless { it.isNullOrBlank() }
       ?.also {
-        +MultiMatchQuery.of { it.fields(map(Metamodel<*>::path)).query(value).apply(block) }
+        +MultiMatchQuery.of { b -> b.fields(map(Metamodel<*>::path)).query(value).apply(block) }
       }
   }
 
@@ -782,7 +724,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Nested query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-nested-query)
    */
-  @VariantDsl
   fun Container<*>.nested(
     setupBlock: NestedQuery.Builder.() -> Unit = {},
     block: BoolQueryDsl.() -> Unit,
@@ -806,24 +747,22 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Prefix query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-prefix-query)
    */
-  @VariantDsl infix fun Metamodel<*>.prefix(value: String?) = prefix(value) {}
+  infix fun Metamodel<*>.prefix(value: String?) = prefix(value) {}
 
   /**
    * creates
    * [Prefix query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-prefix-query)
    */
-  @VariantDsl
   fun Metamodel<*>.prefix(value: String?, block: PrefixQuery.Builder.() -> Unit = {}) {
     value
       .takeUnless { it.isNullOrBlank() }
-      ?.also { +PrefixQuery.of { it.field(path()).value(value).apply(block) } }
+      ?.also { +PrefixQuery.of { b -> b.field(path()).value(value).apply(block) } }
   }
 
   /**
    * creates
    * [Regexp query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-regexp-query)
    */
-  @VariantDsl
   fun Metamodel<*>.regexp(block: RegexpQuery.Builder.() -> Unit = {}) {
     +RegexpQuery.of { it.field(path()).apply(block) }
   }
@@ -834,91 +773,90 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<*>.term(value: FieldValue?) = term(value) {}
+  infix fun Metamodel<*>.term(value: FieldValue?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<String>.term(value: String?) = term(value) {}
+  infix fun Metamodel<String>.term(value: String?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<Int>.term(value: Int?) = term(value) {}
+  infix fun Metamodel<Int>.term(value: Int?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<Long>.term(value: Long?) = term(value) {}
+  infix fun Metamodel<Long>.term(value: Long?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<Float>.term(value: Float?) = term(value) {}
+  infix fun Metamodel<Float>.term(value: Float?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<Double>.term(value: Double?) = term(value) {}
+  infix fun Metamodel<Double>.term(value: Double?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun DateField<Instant>.term(value: Instant?) = term(value) {}
+  infix fun DateField<Instant>.term(value: Instant?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun DateField<LocalDate>.term(value: LocalDate?) = term(value) {}
+  infix fun DateField<LocalDate>.term(value: LocalDate?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun DateField<LocalDateTime>.term(value: LocalDateTime?) = term(value) {}
+  infix fun DateField<LocalDateTime>.term(value: LocalDateTime?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun DateField<ZonedDateTime>.term(value: ZonedDateTime?) = term(value) {}
+  infix fun DateField<ZonedDateTime>.term(value: ZonedDateTime?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun DateField<OffsetDateTime>.term(value: OffsetDateTime?) = term(value) {}
+  infix fun DateField<OffsetDateTime>.term(value: OffsetDateTime?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun DateField<Date>.term(value: Date?) = term(value) {}
+  infix fun DateField<Date>.term(value: Date?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun Metamodel<Boolean>.term(value: Boolean?) = term(value) {}
+  infix fun Metamodel<Boolean>.term(value: Boolean?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl infix fun <T : Enum<T>> Metamodel<T>.term(value: Enum<T>?) = term(value) {}
+  infix fun <T : Enum<T>> Metamodel<T>.term(value: Enum<T>?) = term(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<*>.term(value: FieldValue?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -926,7 +864,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<String>.term(value: String?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -934,7 +871,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<Int>.term(value: Int?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -942,7 +878,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<Long>.term(value: Long?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -950,7 +885,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<Float>.term(value: Float?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -958,7 +892,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<Double>.term(value: Double?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -966,7 +899,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<Instant>.term(value: Instant?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -974,7 +906,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<LocalDate>.term(value: LocalDate?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -982,7 +913,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<LocalDateTime>.term(
     value: LocalDateTime?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -992,7 +922,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<ZonedDateTime>.term(
     value: ZonedDateTime?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1002,7 +931,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<OffsetDateTime>.term(
     value: OffsetDateTime?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1012,7 +940,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<Date>.term(value: Date?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -1020,7 +947,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<Boolean>.term(value: Boolean?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -1028,7 +954,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<T>.term(value: Enum<T>?, block: TermQuery.Builder.() -> Unit = {}) =
     termUnchecked(value, block)
 
@@ -1036,49 +961,42 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<*>>.containsTerm(value: FieldValue?) = termUnchecked(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<String>>.containsTerm(value: String?) = termUnchecked(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Int>>.containsTerm(value: Int?) = termUnchecked(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Long>>.containsTerm(value: Long?) = termUnchecked(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Float>>.containsTerm(value: Float?) = termUnchecked(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Double>>.containsTerm(value: Double?) = termUnchecked(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<Boolean>>.containsTerm(value: Boolean?) =
     termUnchecked(value) {}
 
@@ -1086,7 +1004,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerm(value: Enum<T>?) =
     termUnchecked(value) {}
 
@@ -1094,7 +1011,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<Instant>>.containsTerm(value: Instant?) =
     containsTerm(value) {}
 
@@ -1102,7 +1018,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<LocalDate>>.containsTerm(value: LocalDate?) =
     containsTerm(value) {}
 
@@ -1110,7 +1025,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<LocalDateTime>>.containsTerm(value: LocalDateTime?) =
     containsTerm(value) {}
 
@@ -1118,7 +1032,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<ZonedDateTime>>.containsTerm(value: ZonedDateTime?) =
     containsTerm(value) {}
 
@@ -1126,7 +1039,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<OffsetDateTime>>.containsTerm(value: OffsetDateTime?) =
     containsTerm(value) {}
 
@@ -1134,14 +1046,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   infix fun DateField<out Collection<Date>>.containsTerm(value: Date?) = containsTerm(value) {}
 
   /**
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<*>>.containsTerm(
     value: FieldValue?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1151,7 +1061,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<String>>.containsTerm(
     value: String?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1161,7 +1070,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Int>>.containsTerm(
     value: Int?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1171,7 +1079,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Long>>.containsTerm(
     value: Long?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1181,7 +1088,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Float>>.containsTerm(
     value: Float?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1191,7 +1097,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Double>>.containsTerm(
     value: Double?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1201,7 +1106,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Boolean>>.containsTerm(
     value: Boolean?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1211,7 +1115,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerm(
     value: Enum<T>?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1221,7 +1124,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Instant>>.containsTerm(
     value: Instant?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1231,7 +1133,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDate>>.containsTerm(
     value: LocalDate?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1241,7 +1142,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDateTime>>.containsTerm(
     value: LocalDateTime?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1251,7 +1151,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<out Collection<ZonedDateTime>>.containsTerm(
     value: ZonedDateTime?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1261,7 +1160,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<out Collection<OffsetDateTime>>.containsTerm(
     value: OffsetDateTime?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1271,7 +1169,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Term query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-term-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Date>>.containsTerm(
     value: Date?,
     block: TermQuery.Builder.() -> Unit = {},
@@ -1292,13 +1189,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl fun Metamodel<String>.terms(vararg terms: String) = termsUnchecked(terms.toList()) {}
+  fun Metamodel<String>.terms(vararg terms: String) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<String>.terms(vararg terms: String, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1306,13 +1202,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl fun Metamodel<Int>.terms(vararg terms: Int) = termsUnchecked(terms.toList()) {}
+  fun Metamodel<Int>.terms(vararg terms: Int) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<Int>.terms(vararg terms: Int, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1320,13 +1215,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl fun Metamodel<Long>.terms(vararg terms: Long) = termsUnchecked(terms.toList()) {}
+  fun Metamodel<Long>.terms(vararg terms: Long) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<Long>.terms(vararg terms: Long, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1334,9 +1228,8 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl fun Metamodel<Float>.terms(vararg terms: Float) = termsUnchecked(terms.toList()) {}
+  fun Metamodel<Float>.terms(vararg terms: Float) = termsUnchecked(terms.toList()) {}
 
-  @VariantDsl
   fun Metamodel<Float>.terms(vararg terms: Float, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1344,13 +1237,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl fun Metamodel<Double>.terms(vararg terms: Double) = termsUnchecked(terms.toList()) {}
+  fun Metamodel<Double>.terms(vararg terms: Double) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<Double>.terms(vararg terms: Double, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1358,14 +1250,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<Boolean>.terms(vararg terms: Boolean) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<Boolean>.terms(vararg terms: Boolean, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1373,14 +1263,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<T>.terms(vararg terms: T) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<T>.terms(vararg terms: T, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1388,14 +1276,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<Instant>.terms(vararg terms: Instant) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<Instant>.terms(vararg terms: Instant, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1403,14 +1289,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<LocalDate>.terms(vararg terms: LocalDate) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<LocalDate>.terms(
     vararg terms: LocalDate,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1420,7 +1304,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<LocalDateTime>.terms(vararg terms: LocalDateTime) =
     termsUnchecked(terms.toList()) {}
 
@@ -1428,7 +1311,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<LocalDateTime>.terms(
     vararg terms: LocalDateTime,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1438,7 +1320,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<ZonedDateTime>.terms(vararg terms: ZonedDateTime) =
     termsUnchecked(terms.toList()) {}
 
@@ -1446,7 +1327,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<ZonedDateTime>.terms(
     vararg terms: ZonedDateTime,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1456,7 +1336,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<OffsetDateTime>.terms(vararg terms: OffsetDateTime) =
     termsUnchecked(terms.toList()) {}
 
@@ -1464,7 +1343,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<OffsetDateTime>.terms(
     vararg terms: OffsetDateTime,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1474,13 +1352,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl fun DateField<Date>.terms(vararg terms: Date) = termsUnchecked(terms.toList()) {}
+  fun DateField<Date>.terms(vararg terms: Date) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<Date>.terms(vararg terms: Date, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
 
@@ -1490,14 +1367,12 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   infix fun Metamodel<*>.terms(terms: Collection<FieldValue>?) = termsUnchecked(terms) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<*>.terms(
     terms: Collection<FieldValue>?,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1509,7 +1384,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<String>>.containsTerms(vararg terms: String) =
     termsUnchecked(terms.toList()) {}
 
@@ -1517,7 +1391,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<String>>.containsTerms(
     vararg terms: String,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1527,7 +1400,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Int>>.containsTerms(vararg terms: Int) =
     termsUnchecked(terms.toList()) {}
 
@@ -1535,7 +1407,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Int>>.containsTerms(
     vararg terms: Int,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1545,7 +1416,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Long>>.containsTerms(vararg terms: Long) =
     termsUnchecked(terms.toList()) {}
 
@@ -1553,7 +1423,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Long>>.containsTerms(
     vararg terms: Long,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1563,7 +1432,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Float>>.containsTerms(vararg terms: Float) =
     termsUnchecked(terms.toList()) {}
 
@@ -1571,7 +1439,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Float>>.containsTerms(
     vararg terms: Float,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1581,7 +1448,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Double>>.containsTerms(vararg terms: Double) =
     termsUnchecked(terms.toList()) {}
 
@@ -1589,7 +1455,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Double>>.containsTerms(
     vararg terms: Double,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1599,7 +1464,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Boolean>>.containsTerms(vararg terms: Boolean) =
     termsUnchecked(terms.toList()) {}
 
@@ -1607,7 +1471,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<Boolean>>.containsTerms(
     vararg terms: Boolean,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1617,7 +1480,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(vararg terms: T) =
     termsUnchecked(terms.toList()) {}
 
@@ -1625,7 +1487,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(
     vararg terms: T,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1635,7 +1496,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Instant>>.containsTerms(vararg terms: Instant) =
     termsUnchecked(terms.toList()) {}
 
@@ -1643,7 +1503,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Instant>>.containsTerms(
     vararg terms: Instant,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1653,7 +1512,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDate>>.containsTerms(vararg terms: LocalDate) =
     termsUnchecked(terms.toList()) {}
 
@@ -1661,7 +1519,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDate>>.containsTerms(
     vararg terms: LocalDate,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1671,7 +1528,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDateTime>>.containsTerms(vararg terms: LocalDateTime) =
     termsUnchecked(terms.toList()) {}
 
@@ -1679,7 +1535,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<LocalDateTime>>.containsTerms(
     vararg terms: LocalDateTime,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1689,7 +1544,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<ZonedDateTime>>.containsTerms(vararg terms: ZonedDateTime) =
     termsUnchecked(terms.toList()) {}
 
@@ -1697,7 +1551,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<ZonedDateTime>>.containsTerms(
     vararg terms: ZonedDateTime,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1707,7 +1560,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<OffsetDateTime>>.containsTerms(vararg terms: OffsetDateTime) =
     termsUnchecked(terms.toList()) {}
 
@@ -1715,7 +1567,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<OffsetDateTime>>.containsTerms(
     vararg terms: OffsetDateTime,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1725,7 +1576,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Date>>.containsTerms(vararg terms: Date) =
     termsUnchecked(terms.toList()) {}
 
@@ -1733,7 +1583,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun DateField<out Collection<Date>>.containsTerms(
     vararg terms: Date,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1745,7 +1594,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   infix fun Metamodel<out Collection<*>>.containsTerms(terms: Collection<FieldValue>?) =
     termsUnchecked(terms) {}
 
@@ -1753,7 +1601,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
-  @VariantDsl
   fun Metamodel<out Collection<*>>.containsTerms(
     terms: Collection<FieldValue>?,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1766,9 +1613,8 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
     terms
       ?.takeUnless { it.isEmpty() }
       ?.also {
-        +TermsQuery.of {
-          it
-            .field(path())
+        +TermsQuery.of { b ->
+          b.field(path())
             .terms { tb -> tb.value(terms.mapNotNull { term -> toFieldValue(term) }) }
             .apply(block)
         }
@@ -1779,37 +1625,35 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms set query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-set-query)
    */
-  @VariantDsl infix fun Metamodel<*>.termsSet(terms: Collection<String>?) = termsSet(terms) {}
+  infix fun Metamodel<*>.termsSet(terms: Collection<String>?) = termsSet(terms) {}
 
   /**
    * creates
    * [Terms set query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-set-query)
    */
-  @VariantDsl
   fun Metamodel<*>.termsSet(
     terms: Collection<String>?,
     block: TermsSetQuery.Builder.() -> Unit = {},
   ) {
     terms
       ?.takeUnless { it.isEmpty() }
-      ?.also { +TermsSetQuery.of { it.field(path()).terms(terms.toList()).apply(block) } }
+      ?.also { +TermsSetQuery.of { b -> b.field(path()).terms(terms.toList()).apply(block) } }
   }
 
   /**
    * creates
    * [Wildcard query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-wildcard-query)
    */
-  @VariantDsl infix fun Metamodel<*>.wildCard(value: String?) = wildCard(value) {}
+  infix fun Metamodel<*>.wildCard(value: String?) = wildCard(value) {}
 
   /**
    * creates
    * [Wildcard query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-wildcard-query)
    */
-  @VariantDsl
   fun Metamodel<*>.wildCard(value: String?, block: WildcardQuery.Builder.() -> Unit = {}) {
     value
       .takeUnless { it.isNullOrBlank() }
-      ?.also { +WildcardQuery.of { it.field(path()).value(value).apply(block) } }
+      ?.also { +WildcardQuery.of { b -> b.field(path()).value(value).apply(block) } }
   }
 
   /**
@@ -1832,7 +1676,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Range query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-range-query)
    */
-  @VariantDsl
   infix fun <T : Any> Metamodel<T>.range(range: Range<out Comparable<T>>?) {
     when (range) {
       null -> Unit
@@ -1845,7 +1688,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Range query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-range-query)
    */
-  @VariantDsl
   infix fun <T : Comparable<T>> Metamodel<T>.greaterThanEqualTo(value: T?) {
     value?.also { range(Range.atLeast(it)) }
   }
@@ -1854,7 +1696,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Range query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-range-query)
    */
-  @VariantDsl
   infix fun <T : Comparable<T>> Metamodel<T>.greaterThan(value: T?) {
     value?.also { range(Range.greaterThan(it)) }
   }
@@ -1863,7 +1704,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Range query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-range-query)
    */
-  @VariantDsl
   infix fun <T : Comparable<T>> Metamodel<T>.lowerThanEqualTo(value: T?) {
     value?.also { range(Range.atMost(it)) }
   }
@@ -1872,7 +1712,6 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Range query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-range-query)
    */
-  @VariantDsl
   infix fun <T : Comparable<T>> Metamodel<T>.lowerThan(value: T?) {
     value?.also { range(Range.lessThan(it)) }
   }

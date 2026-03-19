@@ -8,8 +8,13 @@ complexity:
   LargeClass:
     allowedLines: 2000
 style:
+  AbstractClassCanBeConcreteClass:
+    excludes: ['**/core/MultiField.kt', '**/core/ObjectField.kt', '**/gradle/*.kt']
+  AbstractClassCanBeInterface:
+    excludes: ['**/gradle/*.kt']
   MaxLineLength:
     maxLineLength: 160
     excludePackageStatements: true
     excludeImportStatements: true
     excludeCommentStatements: false
+    excludes: ['**/build/generated/**']

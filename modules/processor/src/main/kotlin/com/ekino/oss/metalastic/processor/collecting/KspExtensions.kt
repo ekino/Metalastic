@@ -1,7 +1,6 @@
 /*
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
-
 @file:Suppress("TooManyFunctions")
 
 package com.ekino.oss.metalastic.processor.collecting
@@ -58,7 +57,7 @@ fun KSPropertyDeclaration.hasFieldTypeObjectOrNested() =
     it == FieldType.Object || it == FieldType.Nested
   }
 
-fun KSClassDeclaration.fullyQualifiedName(): String = qualifiedName!!.asString()
+fun KSClassDeclaration.fullyQualifiedName(): String = requireNotNull(qualifiedName).asString()
 
 fun KSFunctionDeclaration.toPropertyName(): String =
   simpleName.asString().let { methodName ->
