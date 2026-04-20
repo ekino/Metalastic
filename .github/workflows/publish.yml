@@ -87,7 +87,7 @@ jobs:
           ./gradlew :modules:gradle-plugin:publishPlugins --no-daemon --stacktrace
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-artifacts-${{ steps.version.outputs.artifact_version }}
           path: |
