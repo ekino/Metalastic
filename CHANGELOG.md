@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.4] - 2026-04-21
+
+### Fixed
+
+- **Java Records:** Record components on `@Document` Java records are now collected as fields. Previously records were detected but the generated `Meta*` class had no fields because KSP2 does not expose record components as properties. The processor now reads `@Field` annotations from the canonical constructor's parameters and pairs them with their accessor functions. Nested record references via `@Field(Object)` and `@Field(Nested)` are also traversed correctly (#84).
+- **Interface Getters:** `@MultiField` on an interface getter method is no longer silently ignored (drive-by fix in #84).
+
+### Changed
+
+- **Dependencies:** KotlinPoet 2.2.0 → 2.3.0
+- **Dependencies:** Spotless 8.3.0 → 8.4.0
+- **Dependencies:** Guava 33.5.0-jre → 33.6.0-jre
+- **Dependencies:** Gradle Wrapper 9.4.0 → 9.4.1
+- **Dependencies:** Gradle Plugin Publish 2.1.0 → 2.1.1
+- **CI:** Added `github-actions` ecosystem to Dependabot; bumped numerous reusable GitHub Actions to current majors.
+
 ## [1.2.3] - 2026-03-19
 
 ### Fixed
@@ -115,7 +131,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.3...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.4...HEAD
+[1.2.4]: https://github.com/ekino/Metalastic/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/ekino/Metalastic/compare/v1.2.2...v1.2.3
 [1.2.2]: https://github.com/ekino/Metalastic/compare/v1.2.1...v1.2.2
 [1.2.0]: https://github.com/ekino/Metalastic/compare/v1.1.0...v1.2.0
