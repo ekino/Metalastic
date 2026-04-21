@@ -2,7 +2,7 @@
  * Copyright (c) 2025 ekino (https://www.ekino.com/)
  */
 
-package com.ekino.oss.metalastic.other.integration;
+package com.example.dataset;
 
 import java.util.List;
 
@@ -12,8 +12,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.InnerField;
 import org.springframework.data.elasticsearch.annotations.MultiField;
 
-@Document(indexName = "document_in_test")
-public record DocumentInTest(
+@Document(indexName = "java_record_document")
+public record JavaRecordDocument(
         @Field(type = FieldType.Keyword) String id,
         @Field(type = FieldType.Text) String title,
         String noField,
@@ -24,7 +24,7 @@ public record DocumentInTest(
                 }
         )
         String code,
-        @Field(type = FieldType.Object) AddressRecord address,
-        @Field(type = FieldType.Nested) List<TagRecord> tags
+        @Field(type = FieldType.Object) JavaRecordAddress address,
+        @Field(type = FieldType.Nested) List<JavaRecordTag> tags
 ) {
 }
