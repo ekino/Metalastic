@@ -11,9 +11,14 @@ import com.ekino.oss.metalastic.processor.model.ObjectFieldModel
 import com.ekino.oss.metalastic.processor.model.SimpleFieldModel
 import com.ekino.oss.metalastic.processor.report.reporter
 import com.google.devtools.ksp.getAnnotationsByType
+import com.google.devtools.ksp.getConstructors
 import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSAnnotation
+import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
+import com.google.devtools.ksp.symbol.KSValueParameter
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField
@@ -44,6 +49,13 @@ fun MetalasticGraph.MetaClassModel.collectFields(): List<FieldModel> {
     }
   }
 
+  // Java records: KSP2 does not expose record components as properties. At the source-model
+  // level KSP surfaces the record-component annotation on the canonical constructor's parameter
+  // (even though @Field's @Target is FIELD/METHOD, not PARAMETER — the annotation only survives
+  // on the constructor parameter symbol before javac-level target filtering). The matching
+  // accessor function then provides the correct return type. Pair them up to build fields.
+  sourceClassDeclaration.collectRecordComponents(this, fields)
+
   // Extract fields from getter methods (for interfaces)
   // Prioritize properties over getters to avoid duplicates
   sourceClassDeclaration
@@ -65,20 +77,55 @@ fun MetalasticGraph.MetaClassModel.collectFields(): List<FieldModel> {
   return fields.values.toList()
 }
 
+private fun KSClassDeclaration.collectRecordComponents(
+  qClassModel: MetalasticGraph.MetaClassModel,
+  fields: MutableMap<String, FieldModel>,
+) {
+  val annotatedParams =
+    getConstructors()
+      .flatMap { it.parameters.asSequence() }
+      .filter { it.hasFieldAnnotation() }
+      .toList()
+  if (annotatedParams.isEmpty()) return
+  val paramNames = annotatedParams.mapNotNullTo(mutableSetOf()) { it.name?.asString() }
+  // Only pair accessors whose name matches a @Field-annotated ctor param — this guards against
+  // inherited zero-arg methods (toString, hashCode, interface defaults) leaking in.
+  val accessorsByName =
+    getAllFunctions()
+      .filter { it.parameters.isEmpty() && it.returnType != null }
+      .filter { it.simpleName.asString() in paramNames }
+      .associateBy { it.simpleName.asString() }
+  annotatedParams.forEach { param ->
+    val paramName = param.name?.asString() ?: return@forEach
+    if (fields.containsKey(paramName)) return@forEach
+    val accessor = accessorsByName[paramName] ?: return@forEach
+    runCatching { accessor.toFieldModel(qClassModel, annotationSource = param) }
+      .onSuccess { fieldModel -> fields.putIfAbsent(fieldModel.name, fieldModel) }
+      .onFailure { e -> reporter.exception(e) { "Failed to process record component $paramName" } }
+  }
+}
+
 /**
  * Creates FieldModel from a @Field annotated property. Includes originalName and proper collection
  * type handling.
+ *
+ * [annotationSource] defaults to the declaration itself but can be overridden for Java records
+ * where annotations live on the canonical constructor parameter rather than on the accessor.
  */
-private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassModel): FieldModel {
+private fun KSDeclaration.toFieldModel(
+  qClassModel: MetalasticGraph.MetaClassModel,
+  annotationSource: KSAnnotated = this,
+): FieldModel {
   val name = simpleName.asString()
-  val potentialQClass = extractPotentialQClass()
-  val annotations = annotations.toList()
-  val isMultiField = getAnnotationsByType(MultiField::class).any()
-  val (elasticsearchFieldName, propertyName) = resolveFieldNames()
+  val potentialQClass =
+    (annotationSource as? KSValueParameter)?.extractPotentialQClass() ?: extractPotentialQClass()
+  val annotations: List<KSAnnotation> = annotationSource.annotations.toList()
+  val isMultiField = annotationSource.getAnnotationsByType(MultiField::class).any()
+  val (elasticsearchFieldName, propertyName) = resolveFieldNames(annotationSource)
 
   // Handle @MultiField properties (extract field type from mainField)
   if (isMultiField) {
-    val multiFieldAnnotation = getAnnotationsByType(MultiField::class).first()
+    val multiFieldAnnotation = annotationSource.getAnnotationsByType(MultiField::class).first()
     // Extract field type from mainField property of @MultiField
     val mainField = multiFieldAnnotation.mainField
     val fieldType = mainField.type
@@ -98,7 +145,7 @@ private fun KSDeclaration.toFieldModel(qClassModel: MetalasticGraph.MetaClassMod
   }
 
   // Handle regular @Field properties
-  val fieldAnnotation = getAnnotationsByType(Field::class).first()
+  val fieldAnnotation = annotationSource.getAnnotationsByType(Field::class).first()
   val fieldType = fieldAnnotation.type
 
   reporter.debug { "Processing property '$name' with @Field(type = $fieldType)" }
@@ -141,25 +188,22 @@ private fun extractInnerFields(multiField: MultiField): List<InnerFieldModel> {
   }
 }
 
-/** Extension function to check if a function has @Field annotation. */
-private fun KSFunctionDeclaration.hasFieldAnnotation(): Boolean = isAnnotationPresent(Field::class)
-
 /** Extension function to check if a function is a getter method. */
 private fun KSFunctionDeclaration.isGetterMethod(): Boolean {
   return parameters.isEmpty() && returnType != null
 }
 
 /** Resolves the Elasticsearch field name and Kotlin property name from a declaration. */
-private fun KSDeclaration.resolveFieldNames(): Pair<String, String> {
+private fun KSDeclaration.resolveFieldNames(annotationSource: KSAnnotated): Pair<String, String> {
   val originalPropertyName = toFieldName()
 
   val annotationName =
     when {
-      isAnnotationPresent(MultiField::class) -> {
-        getAnnotationsByType(MultiField::class).first().mainField.name
+      annotationSource.isAnnotationPresent(MultiField::class) -> {
+        annotationSource.getAnnotationsByType(MultiField::class).first().mainField.name
       }
-      isAnnotationPresent(Field::class) -> {
-        getAnnotationsByType(Field::class).first().name
+      annotationSource.isAnnotationPresent(Field::class) -> {
+        annotationSource.getAnnotationsByType(Field::class).first().name
       }
       else -> ""
     }

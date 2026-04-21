@@ -7,6 +7,7 @@ import com.ekino.oss.metalastic.processor.CoreConstants
 import com.ekino.oss.metalastic.processor.model.MetalasticGraph
 import com.ekino.oss.metalastic.processor.options.ProcessorOptions
 import com.ekino.oss.metalastic.processor.report.reporter
+import com.google.devtools.ksp.getConstructors
 import com.google.devtools.ksp.getVisibility
 import com.google.devtools.ksp.isAnnotationPresent
 import com.google.devtools.ksp.processing.Resolver
@@ -80,6 +81,22 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
       .forEach { symbol ->
         symbol
           .getAllProperties()
+          .filter { it.hasFieldTypeObjectOrNested() }
+          .forEach { it.extractPotentialQClass()?.addToFoundQClasses() }
+
+        // Java record components: @Field targets FIELD/METHOD, so after javac it is not on the
+        // canonical constructor's parameters at runtime — but KSP's source-model exposes it
+        // there (real KSP2) or on the accessor function (compile-testing fallback). Walk both
+        // so records reached through @Field(Object|Nested) still join the graph.
+        symbol
+          .getConstructors()
+          .flatMap { it.parameters.asSequence() }
+          .filter { it.hasFieldTypeObjectOrNested() }
+          .forEach { it.extractPotentialQClass()?.addToFoundQClasses() }
+
+        symbol
+          .getAllFunctions()
+          .filter { it.parameters.isEmpty() && it.returnType != null }
           .filter { it.hasFieldTypeObjectOrNested() }
           .forEach { it.extractPotentialQClass()?.addToFoundQClasses() }
       }

@@ -107,6 +107,21 @@ object TestDataSources {
   fun javaTestDocument(): SourceFile =
     SourceFile.fromPath(File(javaDataSetDirectory, "JavaTestDocument.java"))
 
+  fun javaRecordDocument(): SourceFile =
+    SourceFile.fromPath(File(javaDataSetDirectory, "JavaRecordDocument.java"))
+
+  fun javaRecordAddress(): SourceFile =
+    SourceFile.fromPath(File(javaDataSetDirectory, "JavaRecordAddress.java"))
+
+  fun javaRecordTag(): SourceFile =
+    SourceFile.fromPath(File(javaDataSetDirectory, "JavaRecordTag.java"))
+
+  fun recordWithInterface(): SourceFile =
+    SourceFile.fromPath(File(javaDataSetDirectory, "RecordWithInterface.java"))
+
+  fun identifiableInterface(): SourceFile =
+    SourceFile.fromPath(File(javaDataSetDirectory, "Identifiable.java"))
+
   fun exampleDocument(): SourceFile =
     SourceFile.fromPath(File(javaDataSetDirectory, "ExampleDocument.java"))
 

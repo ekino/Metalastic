@@ -242,6 +242,61 @@ class CollectingPhaseTestSpec :
       javaAddressModel.shouldNotBeNull()
     }
 
+    should("collect record components as fields for Java record @Document") {
+      val graph =
+        ProcessorTestBuilder.withSources(
+            TestDataSources.javaRecordDocument(),
+            TestDataSources.javaRecordAddress(),
+            TestDataSources.javaRecordTag(),
+          )
+          .testMetalasticGraph()
+
+      graph.documentModels() shouldHaveSize 1
+      val recordDocument = graph.documentModels().first()
+      recordDocument.qClassName shouldBe "MetaJavaRecordDocument"
+
+      val fieldsByName = recordDocument.fields.associateBy { it.name }
+      // `noField` has no @Field/@MultiField — must not become a field
+      fieldsByName.keys shouldBe setOf("id", "title", "code", "address", "tags")
+      fieldsByName.getValue("id").fieldType shouldBe FieldType.Keyword
+      fieldsByName.getValue("title").fieldType shouldBe FieldType.Text
+      fieldsByName.getValue("address").fieldType shouldBe FieldType.Object
+      fieldsByName.getValue("tags").fieldType shouldBe FieldType.Nested
+
+      val codeField = fieldsByName.getValue("code")
+      codeField.shouldBeInstanceOf<MultiFieldModel>()
+      codeField.fieldType shouldBe FieldType.Keyword
+      (codeField as MultiFieldModel).innerFields.map { it.suffix } shouldBe listOf("search")
+
+      val addressModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordAddress" }
+      addressModel.shouldNotBeNull()
+      addressModel.fields.map { it.name }.toSet() shouldBe setOf("street", "city")
+
+      val tagModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordTag" }
+      tagModel.shouldNotBeNull()
+      tagModel.fields.map { it.name }.toSet() shouldBe setOf("name", "weight")
+    }
+
+    should("collect record components and interface-getter fields together") {
+      val graph =
+        ProcessorTestBuilder.withSources(
+            TestDataSources.recordWithInterface(),
+            TestDataSources.identifiableInterface(),
+          )
+          .testMetalasticGraph()
+
+      graph.documentModels() shouldHaveSize 1
+      val recordDocument = graph.documentModels().first()
+      recordDocument.qClassName shouldBe "MetaRecordWithInterface"
+
+      // id + description from the record header, displayName from the interface getter
+      val fieldsByName = recordDocument.fields.associateBy { it.name }
+      fieldsByName.keys shouldBe setOf("id", "description", "displayName")
+      fieldsByName.getValue("id").fieldType shouldBe FieldType.Keyword
+      fieldsByName.getValue("description").fieldType shouldBe FieldType.Text
+      fieldsByName.getValue("displayName").fieldType shouldBe FieldType.Keyword
+    }
+
     should("exclude private classes by default") {
       val graph =
         ProcessorTestBuilder.withKotlinSource(

@@ -8,10 +8,13 @@ package com.ekino.oss.metalastic.processor.collecting
 import com.ekino.oss.metalastic.processor.CoreConstants.MethodPrefixes
 import com.google.devtools.ksp.getAnnotationsByType
 import com.google.devtools.ksp.isAnnotationPresent
+import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSDeclaration
 import com.google.devtools.ksp.symbol.KSFunctionDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import com.google.devtools.ksp.symbol.KSType
+import com.google.devtools.ksp.symbol.KSValueParameter
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
 import org.springframework.data.elasticsearch.annotations.MultiField
@@ -49,10 +52,10 @@ fun KSDeclaration.isSupportedCollectionType(): Boolean {
     )
 }
 
-fun KSPropertyDeclaration.hasFieldAnnotation() =
+fun KSAnnotated.hasFieldAnnotation() =
   isAnnotationPresent(Field::class) || isAnnotationPresent(MultiField::class)
 
-fun KSPropertyDeclaration.hasFieldTypeObjectOrNested() =
+fun KSAnnotated.hasFieldTypeObjectOrNested() =
   getAnnotationsByType(Field::class).firstOrNull()?.type.let {
     it == FieldType.Object || it == FieldType.Nested
   }
@@ -84,17 +87,22 @@ fun KSDeclaration.resolveType() =
  * collection types with single generic parameters. Returns null for unsupported types or standard
  * library types.
  */
-fun KSDeclaration.extractPotentialQClass(): KSClassDeclaration? {
-  val resolvedType = resolveType()
-  val declaration = resolvedType.declaration
+fun KSDeclaration.extractPotentialQClass(): KSClassDeclaration? =
+  resolveType().extractPotentialQClass()
+
+fun KSValueParameter.extractPotentialQClass(): KSClassDeclaration? =
+  type.resolve().extractPotentialQClass()
+
+fun KSType.extractPotentialQClass(): KSClassDeclaration? {
+  val declaration = this.declaration
 
   // DON'T short-circuit standard library types here - we need to check collections first!
   val isSupportedCollection = declaration.isSupportedCollectionType()
 
   return when {
     // Single-parameter collection types
-    isSupportedCollection && resolvedType.arguments.size == 1 -> {
-      val firstArg = resolvedType.arguments.first()
+    isSupportedCollection && arguments.size == 1 -> {
+      val firstArg = arguments.first()
       val elementType = firstArg.type?.resolve()
       if (elementType != null) {
         val isStandardLib = elementType.declaration.isStandardLibraryType()
@@ -109,7 +117,7 @@ fun KSDeclaration.extractPotentialQClass(): KSClassDeclaration? {
     }
 
     // Multi-parameter collections (Map<K,V>, etc.) - SKIP
-    isSupportedCollection && resolvedType.arguments.size > 1 -> {
+    isSupportedCollection && arguments.size > 1 -> {
       null
     }
 
@@ -118,7 +126,7 @@ fun KSDeclaration.extractPotentialQClass(): KSClassDeclaration? {
       if (declaration.isStandardLibraryType()) {
         null
       } else {
-        resolvedType
+        this
       }
     }
 
