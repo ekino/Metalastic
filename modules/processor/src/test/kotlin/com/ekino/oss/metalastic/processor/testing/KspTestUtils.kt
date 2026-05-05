@@ -14,9 +14,11 @@ import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
 import com.google.devtools.ksp.processing.SymbolProcessorProvider
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.tschuchort.compiletesting.KotlinCompilation
+import com.tschuchort.compiletesting.Ksp2PrecursorTool
 import com.tschuchort.compiletesting.SourceFile
-import com.tschuchort.compiletesting.kspArgs
+import com.tschuchort.compiletesting.kspProcessorOptions
 import com.tschuchort.compiletesting.symbolProcessorProviders
+import com.tschuchort.compiletesting.useKsp2
 import io.kotest.matchers.shouldNotBe
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
 
@@ -118,23 +120,27 @@ object KspTestUtils {
     providers: List<SymbolProcessorProvider>,
   ): KotlinCompilation {
     return KotlinCompilation().apply {
+      useKsp2()
       this.sources = sources
-      symbolProcessorProviders = providers
+      symbolProcessorProviders = providers.toMutableList()
       inheritClassPath = true
       messageOutputStream = System.out
-      // kotlin-compile-testing 1.6.0 uses Kotlin 1.9.24 which only supports up to JVM 21
+
+      kspProcessorOptions.putAll(options)
+      // Java records and Java 16+ syntax need an explicit JVM target; otherwise javac may fall
+      // back to a target that doesn't understand records and silently strips/fails parsing.
       jvmTarget = "21"
 
-      //            // Add Spring Data Elasticsearch to classpath
-      //            Document::class.java.protectionDomain.codeSource?.location?.toURI()?.let { uri
-      // ->
-      //                val file = java.io.File(uri).absoluteFile
-      //                if (file.exists()) {
-      //                    classpaths += listOf(file)
-      //                }
-      //            }
-
-      kspArgs.putAll(options)
+      // kctfork's Ksp2PrecursorTool defaults source roots to each source file's parent directory.
+      // For files written under their package layout (e.g. <sourcesDir>/com/example/dataset/X.java)
+      // that yields the package directory, not the package root — javac/KSP then can't resolve the
+      // declared package. Override to point at the single sources root instead.
+      val ksp2 = precursorTools["ksp2"] as Ksp2PrecursorTool
+      ksp2.onBuilder = {
+        val sourcesRoot = projectBaseDir.parentFile.resolve("sources").absoluteFile
+        sourceRoots = listOf(sourcesRoot)
+        javaSourceRoots = listOf(sourcesRoot)
+      }
     }
   }
 
