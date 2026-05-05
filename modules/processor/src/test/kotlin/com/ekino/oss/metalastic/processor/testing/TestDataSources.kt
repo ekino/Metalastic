@@ -17,6 +17,28 @@ object TestDataSources {
   val kotlinDataSetDirectory = File("src/test/kotlin/com/example/dataset")
   val javaDataSetDirectory = File("src/test/java/com/example/dataset")
 
+  /**
+   * Loads a source file from disk and re-emits it through [SourceFile.kotlin] / [SourceFile.java]
+   * with a name that includes the package directory layout. The package layout is required so that
+   * javac (and KSP2) finds Java sources under their declared package; the source root override in
+   * [KspTestUtils] points at the temp sources root so all package-qualified files resolve.
+   *
+   * `SourceFile.fromPath` is deprecated upstream as unreliable with KSP.
+   */
+  private val packageRegex = Regex("""^\s*package\s+([\w.]+)\s*;?""", RegexOption.MULTILINE)
+
+  private fun fromPath(file: File): SourceFile {
+    val content = file.readText()
+    val packagePath =
+      packageRegex.find(content)?.groupValues?.get(1)?.replace('.', '/')?.let { "$it/" }.orEmpty()
+    val qualifiedName = "$packagePath${file.name}"
+    return when (file.extension) {
+      "kt" -> SourceFile.kotlin(qualifiedName, content)
+      "java" -> SourceFile.java(qualifiedName, content)
+      else -> error("Unsupported source extension for ${file.path}")
+    }
+  }
+
   /** Simple document with basic field types */
   fun simpleDocumentWithAllFieldTypeExceptObjectAndNested(): SourceFile =
     SourceFile.kotlin(
@@ -85,51 +107,40 @@ object TestDataSources {
     )
 
   /** Complex document with multiple nested levels */
-  fun complexDocument(): SourceFile =
-    SourceFile.fromPath(File(kotlinDataSetDirectory, "ComplexDocument.kt"))
+  fun complexDocument(): SourceFile = fromPath(File(kotlinDataSetDirectory, "ComplexDocument.kt"))
 
   /** Document with inner/nested class also annotated as @Document */
-  fun outerDocument(): SourceFile =
-    SourceFile.fromPath(File(kotlinDataSetDirectory, "OuterDocument.kt"))
+  fun outerDocument(): SourceFile = fromPath(File(kotlinDataSetDirectory, "OuterDocument.kt"))
 
-  fun testDocument(): SourceFile =
-    SourceFile.fromPath(File(kotlinDataSetDirectory, "TestDocument.kt"))
+  fun testDocument(): SourceFile = fromPath(File(kotlinDataSetDirectory, "TestDocument.kt"))
 
-  fun simpleDocument(): SourceFile =
-    SourceFile.fromPath(File(kotlinDataSetDirectory, "SimpleDocument.kt"))
+  fun simpleDocument(): SourceFile = fromPath(File(kotlinDataSetDirectory, "SimpleDocument.kt"))
 
-  fun objectClass(): SourceFile =
-    SourceFile.fromPath(File(kotlinDataSetDirectory, "ObjectClass.kt"))
+  fun objectClass(): SourceFile = fromPath(File(kotlinDataSetDirectory, "ObjectClass.kt"))
 
-  fun otherObjectClass(): SourceFile =
-    SourceFile.fromPath(File(kotlinDataSetDirectory, "OtherObjectClass.kt"))
+  fun otherObjectClass(): SourceFile = fromPath(File(kotlinDataSetDirectory, "OtherObjectClass.kt"))
 
-  fun javaTestDocument(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "JavaTestDocument.java"))
+  fun javaTestDocument(): SourceFile = fromPath(File(javaDataSetDirectory, "JavaTestDocument.java"))
 
   fun javaRecordDocument(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "JavaRecordDocument.java"))
+    fromPath(File(javaDataSetDirectory, "JavaRecordDocument.java"))
 
   fun javaRecordAddress(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "JavaRecordAddress.java"))
+    fromPath(File(javaDataSetDirectory, "JavaRecordAddress.java"))
 
-  fun javaRecordTag(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "JavaRecordTag.java"))
+  fun javaRecordTag(): SourceFile = fromPath(File(javaDataSetDirectory, "JavaRecordTag.java"))
 
   fun recordWithInterface(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "RecordWithInterface.java"))
+    fromPath(File(javaDataSetDirectory, "RecordWithInterface.java"))
 
   fun identifiableInterface(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "Identifiable.java"))
+    fromPath(File(javaDataSetDirectory, "Identifiable.java"))
 
-  fun exampleDocument(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "ExampleDocument.java"))
+  fun exampleDocument(): SourceFile = fromPath(File(javaDataSetDirectory, "ExampleDocument.java"))
 
-  fun nameCollision(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "NameCollision.java"))
+  fun nameCollision(): SourceFile = fromPath(File(javaDataSetDirectory, "NameCollision.java"))
 
-  fun indexPerson(): SourceFile =
-    SourceFile.fromPath(File(javaDataSetDirectory, "IndexPerson.java"))
+  fun indexPerson(): SourceFile = fromPath(File(javaDataSetDirectory, "IndexPerson.java"))
 
   /** Document with Java compatibility (uses Java types) */
   fun javaCompatDocument(): SourceFile =

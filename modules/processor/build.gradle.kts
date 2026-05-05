@@ -21,6 +21,9 @@ dependencies {
   // Testing annotation processing
   testImplementation(libs.kotlin.compile.testing)
   testImplementation(libs.kotlin.compile.testing.ksp)
+  // Needed at compile-time for KSPJvmConfig.Builder used in onBuilder hook;
+  // kctfork declares it only at runtime scope.
+  testImplementation(libs.ksp.common.deps)
   testImplementation(libs.mockk)
 
   // Kotest testing framework

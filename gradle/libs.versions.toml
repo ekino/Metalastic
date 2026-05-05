@@ -22,7 +22,7 @@ gradle-plugin-publish = "2.1.1"
 
 # Testing
 mockk = "1.14.9"
-kotlin-compile-testing = "1.6.0"
+kotlin-compile-testing = "0.12.1"
 kotest = "5.9.1"
 junit-jupiter = "6.0.3"
 
@@ -39,13 +39,14 @@ spring-data-elasticsearch = { module = "org.springframework.data:spring-data-ela
 
 # KSP and Code Generation
 ksp-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+ksp-common-deps = { module = "com.google.devtools.ksp:symbol-processing-common-deps", version.ref = "ksp" }
 kotlinpoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinpoet" }
 kotlinpoet-ksp = { module = "com.squareup:kotlinpoet-ksp", version.ref = "kotlinpoet" }
 
 # Testing
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
-kotlin-compile-testing = { module = "com.github.tschuchortdev:kotlin-compile-testing", version.ref = "kotlin-compile-testing" }
-kotlin-compile-testing-ksp = { module = "com.github.tschuchortdev:kotlin-compile-testing-ksp", version.ref = "kotlin-compile-testing" }
+kotlin-compile-testing = { module = "dev.zacsweers.kctfork:core", version.ref = "kotlin-compile-testing" }
+kotlin-compile-testing-ksp = { module = "dev.zacsweers.kctfork:ksp", version.ref = "kotlin-compile-testing" }
 
 # Kotest
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
