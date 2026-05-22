@@ -98,6 +98,85 @@ class TermLevelQueriesTest :
       }
     }
 
+    context("terms query") {
+      should("work with a Collection of Enum values") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must + { meta.status terms listOf(TestStatus.ACTIVE, TestStatus.PENDING) }
+        }
+
+        val query = Query(builder.build())
+        val json = query.toJsonString()
+
+        json should
+          jsonLenientMatcher(
+            """
+        {
+          "bool": {
+            "must": [
+              {"terms": {"status": ["ACTIVE", "PENDING"]}}
+            ]
+          }
+        }
+      """
+          )
+      }
+
+      should("work with a Collection of Enum values and a block") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.status.terms(listOf(TestStatus.ACTIVE, TestStatus.DRAFT)) {
+                boost(2.0f)
+                queryName("status-filter")
+              }
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+
+        val json = Query(boolQuery).toJsonString()
+        json shouldContain """"terms":{"status":["ACTIVE","DRAFT"]"""
+        json shouldContain """"boost":2.0"""
+        json shouldContain """"_name":"status-filter""""
+      }
+
+      should("skip the query when the enum collection is null") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              val nullList: List<TestStatus>? = null
+              meta.status terms nullList
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
+
+      should("skip the query when the enum collection is empty") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.status terms emptyList<TestStatus>()
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
+    }
+
     context("exist query") {
       should("create exists query for field") {
         val builder = BoolQuery.Builder()
