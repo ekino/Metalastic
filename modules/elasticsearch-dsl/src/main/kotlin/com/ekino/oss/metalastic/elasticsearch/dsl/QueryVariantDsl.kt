@@ -1618,8 +1618,26 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
+  @JvmName("containsTermsEnum")
+  infix fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(terms: Collection<T>?) =
+    termsUnchecked(terms) {}
+
+  /**
+   * creates
+   * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   */
   fun Metamodel<out Collection<*>>.containsTerms(
     terms: Collection<FieldValue>?,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ) = termsUnchecked(terms, block)
+
+  /**
+   * creates
+   * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   */
+  @JvmName("containsTermsEnumWithBlock")
+  fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(
+    terms: Collection<T>?,
     block: TermsQuery.Builder.() -> Unit = {},
   ) = termsUnchecked(terms, block)
 

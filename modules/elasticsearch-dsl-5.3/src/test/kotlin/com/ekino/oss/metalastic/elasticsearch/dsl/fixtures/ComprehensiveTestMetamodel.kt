@@ -51,6 +51,8 @@ object ComprehensiveTestMetamodel : ObjectField<Any>(null, "", false, typeOf<Any
     KeywordField(this, "tags", typeOf<Collection<String>>())
   val scores: IntegerField<Collection<Int>> =
     IntegerField(this, "scores", typeOf<Collection<Int>>())
+  val statuses: KeywordField<Collection<TestStatus>> =
+    KeywordField(this, "statuses", typeOf<Collection<TestStatus>>())
 
   // ===== NESTED FIELD =====
   val reviews: ReviewField = ReviewField(this, "reviews", true)
