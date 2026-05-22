@@ -90,7 +90,7 @@ class MetaReview<T : Any?>(
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
             product.status term ProductStatus.ACTIVE
@@ -103,7 +103,7 @@ val query = BoolQuery.of {
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         filter + {
             product.category term "electronics"
             product.price.range(Range.closed(500.0, 2000.0))
@@ -116,7 +116,7 @@ val query = BoolQuery.of {
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         should + {
             product.title.match("laptop") { boost(2.0f) }
             product.description match "laptop"
@@ -130,21 +130,17 @@ val query = BoolQuery.of {
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
         }
 
         filter + {
-            NestedQuery.of {
-                path(product.reviews)
-                query {
-                    boolQueryDsl {
-                        must + {
-                            product.reviews.rating greaterThan 4.0
-                            product.reviews.verified term true
-                        }
-                    }
+            // Nested fields use the `Container<*>.nested { ... }` DSL helper.
+            product.reviews.nested {
+                must + {
+                    product.reviews.rating greaterThan 4.0
+                    product.reviews.verified term true
                 }
             }
         }
@@ -156,14 +152,12 @@ val query = BoolQuery.of {
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
-            DisMaxQuery.of {
-                shouldAtLeastOneOf {
-                    product.title.match(searchTerm) { boost(3.0f) }
-                    product.description.match(searchTerm) { boost(1.0f) }
-                }
-                tieBreaker(0.3)
+            // Take the best of two field-matches via dis_max
+            disMax({ tieBreaker(0.3) }) {
+                product.title.match(searchTerm) { boost(3.0f) }
+                product.description.match(searchTerm) { boost(1.0f) }
             }
         }
 
@@ -180,16 +174,11 @@ val query = BoolQuery.of {
         }
 
         should + {
-            NestedQuery.of {
-                path(product.reviews)
-                query {
-                    boolQueryDsl {
-                        must + {
-                            product.reviews.rating greaterThan 4.0
-                        }
-                    }
+            // Nested fields use the `Container<*>.nested { ... }` DSL helper.
+            product.reviews.nested({ scoreMode(ChildScoreMode.Avg) }) {
+                must + {
+                    product.reviews.rating greaterThan 4.0
                 }
-                scoreMode(ScoreMode.Avg)
             }
         }
 
@@ -241,9 +230,10 @@ public class Author {
 import com.example.MetaBlogPost.Companion.blogPost
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
-            blogPost.tags term "kotlin"
+            // `tags` is a Collection field — use `containsTerm` for "tags contains 'kotlin'"
+            blogPost.tags containsTerm "kotlin"
         }
 
         filter + {
@@ -262,13 +252,11 @@ val query = BoolQuery.of {
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
-            multiMatch(
-                searchQuery,
-                blogPost.title,
-                blogPost.content
-            ) type MultiMatchType.BestFields
+            listOf(blogPost.title, blogPost.content).multiMatch(searchQuery) {
+                type(TextQueryType.BestFields)
+            }
         }
 
         filter + {
@@ -282,9 +270,10 @@ val query = BoolQuery.of {
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
-            blogPost.tags.terms("kotlin", "elasticsearch", "spring")
+            // `tags` is a Collection field — use `containsTerms` for "tags intersects any of these"
+            blogPost.tags.containsTerms("kotlin", "elasticsearch", "spring")
         }
 
         filter + {
@@ -364,7 +353,7 @@ class ProductSearchService(
 
     private fun buildQuery(request: ProductSearchRequest): Query {
         return BoolQuery.of {
-            boolQueryDsl {
+            it.boolQueryDsl {
                 if (request.searchTerm != null) {
                     must + {
                         product.title match request.searchTerm

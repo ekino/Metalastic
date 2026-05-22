@@ -23,9 +23,9 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
   - **Multi-version support**: 3 artifacts based on Spring Data ES API compatibility
   - **Version format**: `{dsl-version}` (e.g., `1.0.0`)
   - **Artifacts**:
-    - `metalastic-elasticsearch-dsl:1.0.1` (Spring Data ES 6.0.x, brings 6.0.0 transitively) - **Rolling**
-    - `metalastic-elasticsearch-dsl-5.5:1.0.1` (Spring Data ES 5.4-5.5, brings 5.5.6 transitively) - **Frozen**
-    - `metalastic-elasticsearch-dsl-5.3:1.0.1` (Spring Data ES 5.0-5.3, brings 5.3.13 transitively) - **Frozen**
+    - `metalastic-elasticsearch-dsl:1.2.6` (Spring Data ES 6.0.x, brings 6.0.0 transitively) - **Rolling**
+    - `metalastic-elasticsearch-dsl-5.5:1.2.6` (Spring Data ES 5.4-5.5, brings 5.5.6 transitively) - **Frozen**
+    - `metalastic-elasticsearch-dsl-5.3:1.2.6` (Spring Data ES 5.0-5.3, brings 5.3.13 transitively) - **Frozen**
   - **Features**: BoolQueryDsl, QueryVariantDsl, type-safe query construction, runtime version warnings
   - **Implementation difference**: Only RangeQueryUtils.kt differs (~60 lines) due to elasticsearch-java API changes
 
@@ -444,7 +444,7 @@ The `elasticsearch-dsl-{version}` modules provide type-safe query builders using
 ### Query Types Supported
 
 - **Full-text**: match, multiMatch, matchPhrase, matchPhrasePrefix
-- **Term-level**: term, terms, termsSet, wildcard, prefix, regexp
+- **Term-level**: term, terms, termsSet, wildCard, prefix, regexp
 - **Boolean**: bool, shouldAtLeastOneOf, disMax
 - **Range**: range, greaterThan, lowerThan, mustBeBetween
 - **Nested**: nested
@@ -453,12 +453,13 @@ The `elasticsearch-dsl-{version}` modules provide type-safe query builders using
 ### Usage Example
 
 ```kotlin
-import com.metalastic.dsl.*
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 // Boolean query with typed occurrences
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
             product.status term Status.ACTIVE
@@ -478,14 +479,16 @@ val query = BoolQuery.of {
     }
 }
 
-// Nested query
-val nestedQuery = NestedQuery.of {
-    path(product.reviews)
-    query {
-        boolQueryDsl {
-            must + {
-                product.reviews.rating greaterThan 4.0
-                product.reviews.verified term true
+// Nested query — `nested` is an extension on Container<*> that emits a
+// NestedQuery into the surrounding QueryVariantDsl scope.
+val withReviews = BoolQuery.of {
+    it.boolQueryDsl {
+        filter + {
+            product.reviews.nested {
+                must + {
+                    product.reviews.rating greaterThan 4.0
+                    product.reviews.verified term true
+                }
             }
         }
     }
@@ -816,6 +819,5 @@ See [PROCESSOR_ARCHITECTURE.md](PROCESSOR_ARCHITECTURE.md) for complete architec
 
 - [PROCESSOR_ARCHITECTURE.md](PROCESSOR_ARCHITECTURE.md) - Comprehensive processor architecture
 - [TAG_MANAGEMENT.md](TAG_MANAGEMENT.md) - Publishing and tag management guide
-- [PUBLISHING.md](PUBLISHING.md) - Consumer usage guide
 
 - remember to create PR, do not push to main branch unless requested

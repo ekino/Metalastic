@@ -109,11 +109,12 @@ val query = QueryBuilders.boolQuery()
 ### With Optional Query DSL ✨
 
 ```kotlin
-import com.metalastic.dsl.*
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
             product.status term ProductStatus.ACTIVE

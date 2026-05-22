@@ -72,7 +72,7 @@ import com.ekino.oss.metalastic.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
             product.status term ProductStatus.ACTIVE
@@ -89,7 +89,7 @@ val query = BoolQuery.of {
         }
 
         mustNot + {
-            product.tags term "discontinued"
+            product.tags containsTerm "discontinued"
         }
 
         minimumShouldMatch(1)
@@ -112,7 +112,7 @@ import com.ekino.oss.metalastic.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         mustDsl {
             product.title match "laptop"
             product.status term ProductStatus.ACTIVE
@@ -129,7 +129,7 @@ val query = BoolQuery.of {
         }
 
         mustNotDsl {
-            product.tags term "discontinued"
+            product.tags containsTerm "discontinued"
         }
 
         minimumShouldMatch(1)
@@ -149,7 +149,7 @@ Both syntaxes are **fully interchangeable** and can be mixed in the same query:
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         // Use operator syntax for simple clauses
         must + {
             product.title match "laptop"
@@ -187,7 +187,7 @@ import com.example.MetaProduct.Companion.product
 
 // Build a simple query (operator syntax)
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
         }
@@ -196,7 +196,7 @@ val query = BoolQuery.of {
 
 // Same query (classical syntax)
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         mustDsl {
             product.title match "laptop"
         }
@@ -234,13 +234,12 @@ product.title.match("laptop") {
 Search across multiple fields:
 
 ```kotlin
-// Simple multi-match
-multiMatch("laptop", product.title, product.description, product.brand)
+// Simple multi-match — call on a Collection<Metamodel<*>>
+listOf(product.title, product.description, product.brand) multiMatch "laptop"
 
 // With type and options
-multiMatch("gaming laptop") {
-    fields(product.title, product.description)
-    type(MultiMatchQuery.Type.BestFields)
+listOf(product.title, product.description).multiMatch("gaming laptop") {
+    type(TextQueryType.BestFields)
     tieBreaker(0.3)
 }
 ```
@@ -333,7 +332,7 @@ product.publishedAt.terms(Instant.now(), Instant.now().minusSeconds(3600))
 - Building faceted search
 - "Any of" filtering
 
-#### Typed vararg vs. `Collection<FieldValue>` escape hatch
+#### Typed vararg vs FieldValue collection escape hatch
 
 `terms` ships two complementary flavors:
 
@@ -352,7 +351,7 @@ product.publishedAt.terms(Instant.now(), Instant.now().minusSeconds(3600))
 
 ### Contains Terms (Collection Field)
 
-For fields whose value is itself a collection (e.g. `KeywordField<Collection<String>>`), `containsTerms` queries whether the field's collection intersects any of the given values. Same two-flavor design as `terms` — see the [escape hatch note](#typed-vararg-vs-collectionfieldvalue-escape-hatch) above.
+For fields whose value is itself a collection (e.g. `KeywordField<Collection<String>>`), `containsTerms` queries whether the field's collection intersects any of the given values. Same two-flavor design as `terms` — see the [escape hatch note](#typed-vararg-vs-fieldvalue-collection-escape-hatch) above.
 
 ```kotlin
 // Strings, numbers, booleans — vararg form
@@ -401,13 +400,13 @@ Pattern matching with wildcards:
 
 ```kotlin
 // * matches zero or more characters
-product.sku wildcard "PROD-*-2024"
+product.sku wildCard "PROD-*-2024"
 
 // ? matches single character
-product.code wildcard "AB?-123"
+product.code wildCard "AB?-123"
 
 // Case insensitive
-product.email.wildcard("*@example.com") {
+product.email.wildCard("*@example.com") {
     caseInsensitive(true)
 }
 ```
@@ -471,7 +470,7 @@ import com.ekino.oss.metalastic.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         // must: All conditions must match (affects score)
         must + {
             product.title match "laptop"
@@ -493,7 +492,7 @@ val query = BoolQuery.of {
 
         // must_not: Must not match any
         mustNot + {
-            product.tags term "discontinued"
+            product.tags containsTerm "discontinued"
         }
 
         // Minimum should match
@@ -511,7 +510,7 @@ import com.ekino.oss.metalastic.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         // must: All conditions must match (affects score)
         mustDsl {
             product.title match "laptop"
@@ -533,7 +532,7 @@ val query = BoolQuery.of {
 
         // must_not: Must not match any
         mustNotDsl {
-            product.tags term "discontinued"
+            product.tags containsTerm "discontinued"
         }
 
         // Minimum should match
@@ -548,7 +547,7 @@ The DSL provides a built-in `bool { }` function to create nested boolean queries
 
 ```kotlin
 val complexQuery = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             // Use the built-in bool { } function for nested logic
             bool {
@@ -577,7 +576,7 @@ val complexQuery = BoolQuery.of {
 
 ```kotlin
 val advancedQuery = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             // First nested bool: title OR description contains search term
             bool {
@@ -603,7 +602,7 @@ val advancedQuery = BoolQuery.of {
 
         // Simple conditions alongside nested bools
         mustNot + {
-            product.tags term "discontinued"
+            product.tags containsTerm "discontinued"
         }
     }
 }
@@ -615,7 +614,7 @@ Use whichever syntax makes your code most readable:
 
 ```kotlin
 val mixedQuery = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         // Operator syntax for simple conditions
         must + {
             product.status term Status.ACTIVE
@@ -682,8 +681,10 @@ product.quantity greaterThan 0
 product.price lowerThan 1000.0
 product.rating lowerThan 5.0
 
-// Between (closed range)
-product.createdAt mustBeBetween (startDate to endDate)
+// "This value is between two fields" — useful for active-period checks.
+// Signature: value.mustBeBetween(from: Metamodel<T>, to: Metamodel<T>)
+val today = LocalDate.now()
+today.mustBeBetween(product.validFrom, product.validUntil)
 ```
 
 ### Mathematical Notation with Kotlin Ranges
@@ -776,7 +777,7 @@ import com.ekino.oss.metalastic.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val searchQuery = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         filter + {
             // Price between $50 and $200 (inclusive)
             product.price range 50.0.fromInclusive()..200.0
@@ -856,7 +857,7 @@ The cleanest way to query nested fields:
 
 ```kotlin
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             // Use the built-in nested { } function
             product.reviews.nested {
@@ -881,7 +882,7 @@ val query = BoolQuery.of {
 
 ```kotlin
 val searchQuery = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
         }
@@ -947,35 +948,24 @@ The DSL uses `io.github.oshai:kotlin-logging` for structured logging. To see war
 - 🛡️ **No runtime failures** - Query still executes, just without nested semantics
 - 📊 **Production monitoring** - Helps identify mapping issues in production
 
-### Traditional `NestedQuery.of` Syntax
+### Customizing the `NestedQuery.Builder`
 
-You can also use the traditional syntax for more control (e.g., custom score mode):
+For options like a custom `scoreMode`, pass a `setupBlock` as the first argument of `nested`. The `block` (the bool DSL) is the trailing lambda:
 
 ```kotlin
-val nestedQuery = NestedQuery.of {
-    // Manually specify the nested path
-    path(product.reviews)
+import co.elastic.clients.elasticsearch._types.query_dsl.ChildScoreMode
 
-    // Query within nested context
-    query {
-        boolQueryDsl {
-            must + {
-                product.reviews.rating greaterThan 4.0
-                product.reviews.verified term true
-            }
-        }
+product.reviews.nested({ scoreMode(ChildScoreMode.Avg) }) {
+    must + {
+        product.reviews.rating greaterThan 4.0
+        product.reviews.verified term true
     }
-
-    // Custom score mode
-    scoreMode(NestedQuery.ScoreMode.Avg)
 }
 ```
 
 **Use when:**
-- Need custom score mode configuration
-- Building queries dynamically
-- Prefer explicit path specification
-- Don't want automatic validation (traditional syntax doesn't validate)
+- Need a non-default `scoreMode`, `ignoreUnmapped`, or other `NestedQuery.Builder` settings
+- Path is still derived automatically from the receiver (`product.reviews`) — no manual `.path("…")` needed
 
 ### Why Use Nested Queries?
 
@@ -986,7 +976,7 @@ Nested queries are essential when you need to maintain relationships between fie
 // ❌ These would match incorrectly if reviews are flattened
 // Could match review1.rating=5 AND review2.verified=true (wrong!)
 BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.reviews.rating greaterThan 4.0
             product.reviews.verified term true
@@ -999,7 +989,7 @@ BoolQuery.of {
 ```kotlin
 // ✅ Ensures SAME review has rating > 4 AND verified = true
 BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.reviews.nested {
                 must + {
@@ -1044,14 +1034,14 @@ Check if a field has a value:
 
 ```kotlin
 // Field must exist and have a non-null value
-exist(product.description)
-exist(product.tags)
+product.description.exist()
+product.tags.exist()
 
 // In boolean query
 BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         filter + {
-            exist(product.price)
+            product.price.exist()
         }
     }
 }
@@ -1062,15 +1052,18 @@ BoolQuery.of {
 Find documents within a distance from a point:
 
 ```kotlin
-import co.elastic.clients.elasticsearch.core.search.GeoPoint
+import co.elastic.clients.elasticsearch._types.DistanceUnit
+import co.elastic.clients.elasticsearch._types.query_dsl.GeoValidationMethod
 
-// Simple geo distance
-product.location geoDistance GeoPoint.of { it.latlon(48.8566, 2.3522) } within "10km"
+// Simple geo distance — defaults to kilometers
+product.location.geoDistance(latitude = 48.8566, longitude = 2.3522, distance = 10.0)
 
-// With validation mode
+// Explicit unit + validation method
 product.storeLocation.geoDistance(
-    GeoPoint.of { it.latlon(40.7128, -74.0060) },
-    "5km"
+    latitude = 40.7128,
+    longitude = -74.0060,
+    distance = 5.0,
+    unit = DistanceUnit.Kilometers,
 ) {
     validationMethod(GeoValidationMethod.IgnoreMalformed)
 }
@@ -1081,15 +1074,13 @@ product.storeLocation.geoDistance(
 Find documents similar to given text or documents:
 
 ```kotlin
-moreLikeThis {
-    // Fields to analyze
-    fields(product.title, product.description)
-
+// Call moreLikeThis on the Collection<Metamodel<*>> of fields to analyze
+listOf(product.title, product.description).moreLikeThis {
     // Text to compare against
-    likeTexts("high performance gaming laptop")
+    like { it.text("high performance gaming laptop") }
 
     // Or compare against documents
-    // like(Document.of("product-123", "products"))
+    // like { it.document { d -> d.id("product-123").index("products") } }
 
     // Tuning parameters
     minTermFreq(1)           // minimum term frequency
@@ -1125,20 +1116,32 @@ product.eventTime greaterThan ZonedDateTime.now()       // ZonedDateTime
 ```
 
 **Collections:**
+
+For **scalar** fields, pass values via the typed vararg form:
+
 ```kotlin
-// Vararg form (typed, preferred)
-product.tags.terms("featured", "new", "sale")
-product.categories.terms("electronics", "computers")
-product.ids.terms("id1", "id2", "id3")
-
-// From a runtime collection — convert each value to FieldValue
-import co.elastic.clients.elasticsearch._types.FieldValue
-
-val tagSet: Set<String> = userInput.tags
-product.tags terms tagSet.map { FieldValue.of(it) }
+// Match any of several values on a scalar field
+product.country.terms("FR", "BE", "CH")
+product.category.terms("electronics", "computers")
+product.sku.terms("sku-1", "sku-2", "sku-3")
 ```
 
-See [Typed vararg vs. `Collection<FieldValue>` escape hatch](#typed-vararg-vs-collectionfieldvalue-escape-hatch) for the rationale.
+For **collection-typed fields** (e.g. `tags: KeywordField<Collection<String>>`), use the collection-aware counterpart `containsTerms`:
+
+```kotlin
+product.tags.containsTerms("featured", "new", "sale")
+```
+
+For either flavor, if you already hold a runtime collection of values, use the `Collection<FieldValue>` escape hatch:
+
+```kotlin
+import co.elastic.clients.elasticsearch._types.FieldValue
+
+val countrySet: Set<String> = userInput.countries
+product.country terms countrySet.map { FieldValue.of(it) }
+```
+
+See [Typed vararg vs FieldValue collection escape hatch](#typed-vararg-vs-fieldvalue-collection-escape-hatch) for the rationale.
 
 **Enums:**
 ```kotlin
@@ -1167,7 +1170,7 @@ Pick a primary syntax style for your project and use it consistently:
 ```kotlin
 // ✅ Good - Consistent operator syntax throughout
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + { product.title match "laptop" }
         filter + { product.status term Status.ACTIVE }
         should + { product.featured term true }
@@ -1176,7 +1179,7 @@ val query = BoolQuery.of {
 
 // ✅ Also good - Consistent classical syntax throughout
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         mustDsl { product.title match "laptop" }
         filterDsl { product.status term Status.ACTIVE }
         shouldDsl { product.featured term true }
@@ -1185,7 +1188,7 @@ val query = BoolQuery.of {
 
 // ⚠️ Acceptable - Mix for readability if needed
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + { product.title match "laptop" }  // Simple: operator
         filterDsl {  // Complex: classical for clarity
             product.status term Status.ACTIVE
@@ -1253,7 +1256,7 @@ The metamodels provide full IDE support:
 ```kotlin
 // ✅ Good - more efficient
 BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         filter + {
             product.category term "electronics"
             product.inStock term true
@@ -1263,7 +1266,7 @@ BoolQuery.of {
 
 // ❌ Slower - unnecessary scoring
 BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.category term "electronics"
             product.inStock term true
@@ -1278,7 +1281,7 @@ BoolQuery.of {
 
 ```kotlin
 val searchQuery = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         // Full-text search for relevance
         must + {
             product.title match searchTerm
@@ -1302,21 +1305,16 @@ val searchQuery = BoolQuery.of {
 
 ```kotlin
 // ✅ Good - maintains relationships
-NestedQuery.of {
-    path(product.reviews)
-    query {
-        boolQueryDsl {
-            must + {
-                product.reviews.rating greaterThan 4.0
-                product.reviews.verified term true
-            }
-        }
+product.reviews.nested {
+    must + {
+        product.reviews.rating greaterThan 4.0
+        product.reviews.verified term true
     }
 }
 
 // ❌ Wrong - loses relationships
 BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.reviews.rating greaterThan 4.0  // Wrong context
         }

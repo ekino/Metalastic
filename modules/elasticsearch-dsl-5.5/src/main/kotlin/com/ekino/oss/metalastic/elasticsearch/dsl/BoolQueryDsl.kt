@@ -34,7 +34,7 @@ fun BoolQuery.Builder.boolQueryDsl(block: BoolQueryDsl.() -> Unit) = apply {
  * val document = Metamodels.product
  *
  * BoolQuery.of {
- *   boolQueryDsl {
+ *   it.boolQueryDsl {
  *     // Must match: affects scoring
  *     must + {
  *       document.title match "laptop"
@@ -106,7 +106,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     mustDsl {
    *       document.title match "laptop"
    *       document.status term Status.ACTIVE
@@ -133,7 +133,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     mustNotDsl {
    *       document.category term "discontinued"
    *       document.status term Status.DELETED
@@ -160,7 +160,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     shouldDsl {
    *       document.brand term "Dell"
    *       document.tags.containsTerms("featured", "sale")
@@ -187,7 +187,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     filterDsl {
    *       document.price.range(Range.closed(100.0, 500.0))
    *       document.inStock term true
@@ -213,7 +213,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     must + {
    *       document.title match "laptop"
    *       document.status term Status.ACTIVE
@@ -237,7 +237,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     mustNot + {
    *       document.category term "discontinued"
    *     }
@@ -260,7 +260,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     should + {
    *       document.brand term "Dell"
    *     }
@@ -283,7 +283,7 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * val document = Metamodels.product
    *
    * BoolQuery.of {
-   *   boolQueryDsl {
+   *   it.boolQueryDsl {
    *     filter + {
    *       document.inStock term true
    *     }
@@ -294,4 +294,18 @@ class BoolQueryDsl(private val builder: BoolQuery.Builder) {
    * @see filterDsl
    */
   operator fun Filter.plus(block: QueryVariantDsl.() -> Unit) = filterDsl(block)
+
+  /**
+   * Sets the `minimum_should_match` parameter on the underlying [BoolQuery.Builder].
+   *
+   * Passing `null` is a no-op (so this method can be called unconditionally from snippets).
+   */
+  fun minimumShouldMatch(value: String?) {
+    value?.also { builder.minimumShouldMatch(it) }
+  }
+
+  /** Convenience overload for the common integer form of `minimum_should_match`. */
+  fun minimumShouldMatch(value: Int) {
+    builder.minimumShouldMatch(value.toString())
+  }
 }

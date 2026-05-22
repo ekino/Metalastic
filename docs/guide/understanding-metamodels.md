@@ -146,10 +146,10 @@ product.title.path() // "title"
 // Nested object
 product.category.name.path() // "category.name"
 
-// Nested field (with nested = true)
-product.tags.value.path() // "tags.value"
-product.tags.value.isNestedPath() // true
-product.tags.value.nestedPaths().toList() // ["tags"]
+// Nested object field (declared with @Field(type = Nested))
+product.reviews.author.path() // "reviews.author"
+product.reviews.author.isNestedPath() // true
+product.reviews.author.nestedPaths().toList() // ["reviews"]
 ```
 
 ## Metamodels Registry

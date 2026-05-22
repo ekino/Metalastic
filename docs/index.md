@@ -130,12 +130,13 @@ val query = QueryBuilders.boolQuery()
 For maximum type safety, add the Query DSL module:
 
 ```kotlin
-import com.metalastic.dsl.*
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 // Fluent, type-safe query building
 val query = BoolQuery.of {
-    boolQueryDsl {
+    it.boolQueryDsl {
         must + {
             product.title match "laptop"
             product.status term ProductStatus.ACTIVE
@@ -178,7 +179,7 @@ plugins {
 metalastic {
     metamodels {
         packageName = "com.example.search"
-        className = "Metamodels"
+        registryClassName = "Metamodels"
     }
 }
 ```
@@ -195,7 +196,7 @@ dependencies {
 
 ksp {
     arg("metamodels.package", "com.example.search")
-    arg("metamodels.className", "Metamodels")
+    arg("metamodels.registryClassName", "Metamodels")
 }
 ```
 

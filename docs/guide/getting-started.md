@@ -25,7 +25,7 @@ plugins {
 metalastic {
     metamodels {
         packageName = "com.example.search"
-        className = "Metamodels"
+        registryClassName = "Metamodels"
         classPrefix = "Meta"  // Default
     }
 }
@@ -43,7 +43,7 @@ dependencies {
 
 ksp {
     arg("metamodels.package", "com.example.search")
-    arg("metamodels.className", "Metamodels")
+    arg("metamodels.registryClassName", "Metamodels")
     arg("metamodels.classPrefix", "Meta")
 }
 ```
