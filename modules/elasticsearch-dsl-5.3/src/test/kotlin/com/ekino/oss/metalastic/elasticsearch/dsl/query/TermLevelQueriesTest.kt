@@ -177,6 +177,83 @@ class TermLevelQueriesTest :
       }
     }
 
+    context("terms query — Collection<String>") {
+      should("work with a Collection of String values") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl { must + { meta.country terms listOf("FR", "BE") } }
+
+        val query = Query(builder.build())
+        val json = query.toJsonString()
+
+        json should
+          jsonLenientMatcher(
+            """
+        {
+          "bool": {
+            "must": [
+              {"terms": {"country": ["FR", "BE"]}}
+            ]
+          }
+        }
+      """
+          )
+      }
+
+      should("work with a Set of String values and a block") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.country.terms(setOf("FR", "DE")) {
+                boost(1.5f)
+                queryName("country-filter")
+              }
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+
+        val json = Query(boolQuery).toJsonString()
+        json shouldContain """"terms":{"country":["""
+        json shouldContain """"boost":1.5"""
+        json shouldContain """"_name":"country-filter""""
+      }
+
+      should("skip the query when the string collection is null") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              val nullList: List<String>? = null
+              meta.country terms nullList
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
+
+      should("skip the query when the string collection is empty") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.country terms emptyList<String>()
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
+    }
+
     context("containsTerms query") {
       should("work with a Collection of Enum values") {
         val builder = BoolQuery.Builder()
@@ -247,6 +324,85 @@ class TermLevelQueriesTest :
           must +
             {
               meta.statuses containsTerms emptyList<TestStatus>()
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
+    }
+
+    context("containsTerms query — Collection<String>") {
+      should("work with a Collection of String values") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must + { meta.tags containsTerms listOf("kotlin", "elasticsearch") }
+        }
+
+        val query = Query(builder.build())
+        val json = query.toJsonString()
+
+        json should
+          jsonLenientMatcher(
+            """
+        {
+          "bool": {
+            "must": [
+              {"terms": {"tags": ["kotlin", "elasticsearch"]}}
+            ]
+          }
+        }
+      """
+          )
+      }
+
+      should("work with a Set of String values and a block") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.tags.containsTerms(setOf("kotlin", "spring")) {
+                boost(2.0f)
+                queryName("tags-filter")
+              }
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+
+        val json = Query(boolQuery).toJsonString()
+        json shouldContain """"terms":{"tags":["""
+        json shouldContain """"boost":2.0"""
+        json shouldContain """"_name":"tags-filter""""
+      }
+
+      should("skip the query when the string collection is null") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              val nullList: List<String>? = null
+              meta.tags containsTerms nullList
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
+
+      should("skip the query when the string collection is empty") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.tags containsTerms emptyList<String>()
               meta.active term true
             }
         }

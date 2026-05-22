@@ -1380,6 +1380,13 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
+  @JvmName("termsString")
+  infix fun Metamodel<String>.terms(terms: Collection<String>?) = termsUnchecked(terms) {}
+
+  /**
+   * creates
+   * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   */
   fun Metamodel<*>.terms(
     terms: Collection<FieldValue>?,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1392,6 +1399,16 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   @JvmName("termsEnumWithBlock")
   fun <T : Enum<T>> Metamodel<T>.terms(
     terms: Collection<T>?,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ) = termsUnchecked(terms, block)
+
+  /**
+   * creates
+   * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   */
+  @JvmName("termsStringWithBlock")
+  fun Metamodel<String>.terms(
+    terms: Collection<String>?,
     block: TermsQuery.Builder.() -> Unit = {},
   ) = termsUnchecked(terms, block)
 
@@ -1626,6 +1643,14 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
    */
+  @JvmName("containsTermsString")
+  infix fun Metamodel<out Collection<String>>.containsTerms(terms: Collection<String>?) =
+    termsUnchecked(terms) {}
+
+  /**
+   * creates
+   * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   */
   fun Metamodel<out Collection<*>>.containsTerms(
     terms: Collection<FieldValue>?,
     block: TermsQuery.Builder.() -> Unit = {},
@@ -1638,6 +1663,16 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   @JvmName("containsTermsEnumWithBlock")
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(
     terms: Collection<T>?,
+    block: TermsQuery.Builder.() -> Unit = {},
+  ) = termsUnchecked(terms, block)
+
+  /**
+   * creates
+   * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   */
+  @JvmName("containsTermsStringWithBlock")
+  fun Metamodel<out Collection<String>>.containsTerms(
+    terms: Collection<String>?,
     block: TermsQuery.Builder.() -> Unit = {},
   ) = termsUnchecked(terms, block)
 
