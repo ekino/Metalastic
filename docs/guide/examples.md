@@ -172,7 +172,10 @@ val query = BoolQuery.of {
             product.price.range(Range.closed(minPrice, maxPrice))
 
             if (categories.isNotEmpty()) {
-                product.category terms categories
+                // Collection<String> → FieldValue escape hatch; see the
+                // "Typed vararg vs. Collection<FieldValue>" section of the
+                // Query DSL guide.
+                product.category terms categories.map { FieldValue.of(it) }
             }
         }
 
@@ -281,7 +284,7 @@ val query = BoolQuery.of {
 val query = BoolQuery.of {
     boolQueryDsl {
         must + {
-            blogPost.tags terms listOf("kotlin", "elasticsearch", "spring")
+            blogPost.tags.terms("kotlin", "elasticsearch", "spring")
         }
 
         filter + {
