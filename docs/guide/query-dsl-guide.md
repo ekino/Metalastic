@@ -336,18 +336,25 @@ product.publishedAt.terms(Instant.now(), Instant.now().minusSeconds(3600))
 
 `terms` ships two complementary flavors:
 
-1. **Typed vararg** — one overload per supported element type (`String`, `Int`, `Long`, `Float`, `Double`, `Boolean`, every `DateField<*>` time type, and `<T : Enum<T>>`). The compiler enforces that the values match the field. **Prefer this form.** Enums additionally support the `Collection<T>` form.
+1. **Typed vararg** — one overload per supported element type (`String`, `Int`, `Long`, `Float`, `Double`, `Boolean`, every `DateField<*>` time type, and `<T : Enum<T>>`). The compiler enforces that the values match the field. **Prefer this form.**
 
-2. **`Collection<FieldValue>` escape hatch** — for when you already hold a runtime collection (e.g. user input, a precomputed list). Materialize each value into `FieldValue` yourself:
+2. **Typed `Collection<T>`** — supported directly for `String` and `<T : Enum<T>>` (the two well-defined-conversion types where there's no footgun risk):
+
+   ```kotlin
+   val ids: List<String> = userInput.parseIds()
+   product.id terms ids
+   ```
+
+3. **`Collection<FieldValue>` escape hatch** — for runtime collections of any other type, materialize each value into `FieldValue` yourself:
 
    ```kotlin
    import co.elastic.clients.elasticsearch._types.FieldValue
 
-   val ids: List<String> = userInput.parseIds()
-   product.id terms ids.map { FieldValue.of(it) }
+   val timestamps: List<Long> = userInput.parseTimestamps()
+   product.createdAt terms timestamps.map { FieldValue.of(it) }
    ```
 
-   The name signals intent: by going through `FieldValue`, **the caller takes responsibility** for the conversion. The DSL deliberately does not accept `Collection<Any>` (which would silently `toString()` arbitrary objects — a footgun).
+   The name signals intent: by going through `FieldValue`, **the caller takes responsibility** for the conversion. The DSL deliberately does not accept arbitrary `Collection<Any>` (which would silently `toString()` whatever it gets — a footgun).
 
 ### Contains Terms (Collection Field)
 
@@ -358,15 +365,16 @@ For fields whose value is itself a collection (e.g. `KeywordField<Collection<Str
 product.tags.containsTerms("kotlin", "elasticsearch", "spring")
 product.scores.containsTerms(10, 20, 30)
 
-// Enums — both vararg and Collection forms are supported
+// Strings and enums also support the Collection form directly
+product.tags containsTerms listOf("kotlin", "elasticsearch")
 product.statuses.containsTerms(Status.ACTIVE, Status.PENDING)
 product.statuses containsTerms listOf(Status.ACTIVE, Status.PENDING)
 
-// From a runtime collection — convert each value to FieldValue
+// For other types, use the FieldValue escape hatch
 import co.elastic.clients.elasticsearch._types.FieldValue
 
-val tagSet: Set<String> = userInput.tags
-product.tags containsTerms tagSet.map { FieldValue.of(it) }
+val scoreSet: Set<Int> = userInput.scores
+product.scores containsTerms scoreSet.map { FieldValue.of(it) }
 ```
 
 The receiver constraint (`Metamodel<out Collection<T>>`) means the compiler only lets you call `containsTerms` on actual collection fields — using `terms` on a collection field, or `containsTerms` on a scalar field, is a compile error.
@@ -1132,13 +1140,21 @@ For **collection-typed fields** (e.g. `tags: KeywordField<Collection<String>>`),
 product.tags.containsTerms("featured", "new", "sale")
 ```
 
-For either flavor, if you already hold a runtime collection of values, use the `Collection<FieldValue>` escape hatch:
+If you already hold a runtime collection of `String`s, you can pass it directly:
+
+```kotlin
+val countrySet: Set<String> = userInput.countries
+product.country terms countrySet
+product.tags containsTerms countrySet  // for collection-typed fields
+```
+
+For other element types, use the `Collection<FieldValue>` escape hatch:
 
 ```kotlin
 import co.elastic.clients.elasticsearch._types.FieldValue
 
-val countrySet: Set<String> = userInput.countries
-product.country terms countrySet.map { FieldValue.of(it) }
+val timestamps: List<Long> = userInput.parseTimestamps()
+product.createdAt terms timestamps.map { FieldValue.of(it) }
 ```
 
 See [Typed vararg vs FieldValue collection escape hatch](#typed-vararg-vs-fieldvalue-collection-escape-hatch) for the rationale.

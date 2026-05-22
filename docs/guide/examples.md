@@ -166,10 +166,7 @@ val query = BoolQuery.of {
             product.price.range(Range.closed(minPrice, maxPrice))
 
             if (categories.isNotEmpty()) {
-                // Collection<String> → FieldValue escape hatch; see the
-                // "Typed vararg vs. Collection<FieldValue>" section of the
-                // Query DSL guide.
-                product.category terms categories.map { FieldValue.of(it) }
+                product.category terms categories
             }
         }
 
