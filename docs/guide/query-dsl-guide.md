@@ -313,23 +313,42 @@ product.status term ProductStatus.IN_STOCK
 
 ### Terms Query
 
-Match any value from a list:
+Match any value from a list. The typed vararg form is the recommended default:
 
 ```kotlin
-// Match any category
-product.category terms listOf("electronics", "computers", "gaming")
+// Strings, numbers, booleans
+product.category.terms("electronics", "computers", "gaming")
+product.price.terms(100.0, 200.0, 500.0)
 
-// With sets
-product.tags terms setOf("featured", "new", "sale")
-
-// With enum list
+// Enums — both vararg and Collection forms are supported
+product.status.terms(Status.ACTIVE, Status.PENDING)
 product.status terms listOf(Status.ACTIVE, Status.PENDING)
+
+// Dates
+product.publishedAt.terms(Instant.now(), Instant.now().minusSeconds(3600))
 ```
 
 **Use when:**
 - Filtering by multiple values (OR logic)
 - Building faceted search
 - "Any of" filtering
+
+#### Typed vararg vs. `Collection<FieldValue>` escape hatch
+
+`terms` ships two complementary flavors:
+
+1. **Typed vararg** — one overload per supported element type (`String`, `Int`, `Long`, `Float`, `Double`, `Boolean`, every `DateField<*>` time type, and `<T : Enum<T>>`). The compiler enforces that the values match the field. **Prefer this form.** Enums additionally support the `Collection<T>` form.
+
+2. **`Collection<FieldValue>` escape hatch** — for when you already hold a runtime collection (e.g. user input, a precomputed list). Materialize each value into `FieldValue` yourself:
+
+   ```kotlin
+   import co.elastic.clients.elasticsearch._types.FieldValue
+
+   val ids: List<String> = userInput.parseIds()
+   product.id terms ids.map { FieldValue.of(it) }
+   ```
+
+   The name signals intent: by going through `FieldValue`, **the caller takes responsibility** for the conversion. The DSL deliberately does not accept `Collection<Any>` (which would silently `toString()` arbitrary objects — a footgun).
 
 ### Terms Set Query
 
@@ -1080,15 +1099,19 @@ product.eventTime greaterThan ZonedDateTime.now()       // ZonedDateTime
 
 **Collections:**
 ```kotlin
-// Lists
-product.tags terms listOf("featured", "new", "sale")
+// Vararg form (typed, preferred)
+product.tags.terms("featured", "new", "sale")
+product.categories.terms("electronics", "computers")
+product.ids.terms("id1", "id2", "id3")
 
-// Sets
-product.categories terms setOf("electronics", "computers")
+// From a runtime collection — convert each value to FieldValue
+import co.elastic.clients.elasticsearch._types.FieldValue
 
-// Arrays (converted to lists)
-product.ids terms arrayOf("id1", "id2", "id3")
+val tagSet: Set<String> = userInput.tags
+product.tags terms tagSet.map { FieldValue.of(it) }
 ```
+
+See [Typed vararg vs. `Collection<FieldValue>` escape hatch](#typed-vararg-vs-collectionfieldvalue-escape-hatch) for the rationale.
 
 **Enums:**
 ```kotlin
@@ -1098,6 +1121,9 @@ enum class ProductStatus {
 
 // Automatic enum name conversion
 product.status term ProductStatus.ACTIVE  // converts to "ACTIVE"
+
+// Both vararg and Collection forms are supported for enums
+product.status.terms(ProductStatus.ACTIVE, ProductStatus.INACTIVE)
 product.status terms listOf(ProductStatus.ACTIVE, ProductStatus.INACTIVE)
 ```
 

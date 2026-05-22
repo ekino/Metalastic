@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.6] - 2026-05-22
+
+### Added
+
+- **elasticsearch-dsl:** New `Metamodel<T>.terms(Collection<T>)` overload for `T : Enum<T>`. Complements the existing vararg enum overload and the `Collection<FieldValue>` escape hatch. Mirrored across `elasticsearch-dsl`, `-5.5`, and `-5.3`. Uses `@JvmName` to dodge the JVM erasure clash with the `Collection<FieldValue>` overload (#95).
+
+### Changed
+
+- **Dependencies:** KSP 2.3.7 → 2.3.8 (#92)
+- **Dependencies:** Gradle Wrapper 9.4.1 → 9.5.1 (#90, #94)
+- **Dependencies:** Spotless 8.4.0 → 8.5.1 (#93)
+- **Dependencies:** kotlin-logging-jvm 8.0.01 → 8.0.02 (#89)
+- **Tests:** Migrated processor unit tests from `tschuchortdev/kotlin-compile-testing` to `dev.zacsweers.kctfork` 0.12.1 (KSP2-native). Three Java-record collecting-phase specs are temporarily skipped at the unit level (still validated end-to-end via the real Gradle KSP2 pipeline) (#91).
+
+### Fixed
+
+- **Documentation:** Several `terms` query snippets in the DSL guide and examples advertised forms that did not compile. Replaced with the actual supported API (typed vararg, or `Collection<FieldValue>` with explicit `FieldValue.of` mapping) and added a new subsection explaining the design intent (#96).
+
 ## [1.2.5] - 2026-04-30
 
 ### Changed
@@ -139,7 +157,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.5...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.6...HEAD
+[1.2.6]: https://github.com/ekino/Metalastic/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/ekino/Metalastic/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/ekino/Metalastic/compare/v1.2.3...v1.2.4
 [1.2.3]: https://github.com/ekino/Metalastic/compare/v1.2.2...v1.2.3
