@@ -350,6 +350,33 @@ product.publishedAt.terms(Instant.now(), Instant.now().minusSeconds(3600))
 
    The name signals intent: by going through `FieldValue`, **the caller takes responsibility** for the conversion. The DSL deliberately does not accept `Collection<Any>` (which would silently `toString()` arbitrary objects — a footgun).
 
+### Contains Terms (Collection Field)
+
+For fields whose value is itself a collection (e.g. `KeywordField<Collection<String>>`), `containsTerms` queries whether the field's collection intersects any of the given values. Same two-flavor design as `terms` — see the [escape hatch note](#typed-vararg-vs-collectionfieldvalue-escape-hatch) above.
+
+```kotlin
+// Strings, numbers, booleans — vararg form
+product.tags.containsTerms("kotlin", "elasticsearch", "spring")
+product.scores.containsTerms(10, 20, 30)
+
+// Enums — both vararg and Collection forms are supported
+product.statuses.containsTerms(Status.ACTIVE, Status.PENDING)
+product.statuses containsTerms listOf(Status.ACTIVE, Status.PENDING)
+
+// From a runtime collection — convert each value to FieldValue
+import co.elastic.clients.elasticsearch._types.FieldValue
+
+val tagSet: Set<String> = userInput.tags
+product.tags containsTerms tagSet.map { FieldValue.of(it) }
+```
+
+The receiver constraint (`Metamodel<out Collection<T>>`) means the compiler only lets you call `containsTerms` on actual collection fields — using `terms` on a collection field, or `containsTerms` on a scalar field, is a compile error.
+
+**Use when:**
+- The field is a multi-value array in your Elasticsearch mapping (e.g. `tags`, `categories`)
+- You want "the field's array intersects the given values" semantics
+- "Any of" filtering against a multi-value field
+
 ### Terms Set Query
 
 Match a minimum number of terms:
