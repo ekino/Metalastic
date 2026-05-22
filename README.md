@@ -44,8 +44,8 @@ Metalastic is a **compile-time code generator** that transforms your Spring Data
 // build.gradle.kts
 plugins {
     kotlin("jvm") version "2.3.21"
-    id("com.google.devtools.ksp") version "2.3.7"
-    id("com.ekino.oss.metalastic") version "1.2.5"
+    id("com.google.devtools.ksp") version "2.3.8"
+    id("com.ekino.oss.metalastic") version "1.2.6"
 }
 
 repositories {
@@ -150,8 +150,8 @@ val query = BoolQuery.of {
 
 ```kotlin
 plugins {
-    id("com.google.devtools.ksp") version "2.3.7"
-    id("com.ekino.oss.metalastic") version "1.2.5"
+    id("com.google.devtools.ksp") version "2.3.8"
+    id("com.ekino.oss.metalastic") version "1.2.6"
 }
 ```
 
@@ -159,11 +159,11 @@ plugins {
 
 ```kotlin
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.2.5")
-    ksp("com.ekino.oss:metalastic-processor:1.2.5")
+    implementation("com.ekino.oss:metalastic-core:1.2.6")
+    ksp("com.ekino.oss:metalastic-processor:1.2.6")
 
     // Optional: Query DSL module
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.2.5")
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.2.6")
 }
 ```
 
@@ -173,9 +173,9 @@ dependencies {
 
 | Spring Data ES | Elasticsearch | Metalastic Core | Query DSL Artifact |
 |----------------|---------------|-----------------|-------------------|
-| 6.0.x | 8.18.x | ✅ 1.2.5 | `metalastic-elasticsearch-dsl:1.2.5` |
-| 5.4.x - 5.5.x | 8.15.x - 8.18.x | ✅ 1.2.5 | `metalastic-elasticsearch-dsl-5.5:1.2.5` |
-| 5.0.x - 5.3.x | 8.5.x - 8.13.x | ✅ 1.2.5 | `metalastic-elasticsearch-dsl-5.3:1.2.5` |
+| 6.0.x | 8.18.x | ✅ 1.2.6 | `metalastic-elasticsearch-dsl:1.2.6` |
+| 5.4.x - 5.5.x | 8.15.x - 8.18.x | ✅ 1.2.6 | `metalastic-elasticsearch-dsl-5.5:1.2.6` |
+| 5.0.x - 5.3.x | 8.5.x - 8.13.x | ✅ 1.2.6 | `metalastic-elasticsearch-dsl-5.3:1.2.6` |
 
 **[Full compatibility matrix →](https://ekino.github.io/Metalastic/#compatibility)**
 
