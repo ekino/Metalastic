@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.7] - 2026-05-22
+
+### Added
+
+- **elasticsearch-dsl:** `Metamodel<out Collection<T>>.containsTerms(Collection<T>)` overload for `T : Enum<T>` — the symmetric counterpart to v1.2.6's `terms(Collection<Enum<T>>)`. Closes the same JVM-erasure gap for collection-field-side enum queries. Mirrored across all three DSL modules (#97).
+- **elasticsearch-dsl:** `Metamodel<String>.terms(Collection<String>)` and `Metamodel<out Collection<String>>.containsTerms(Collection<String>)` overloads (plus block variants). `String` is the most common runtime case where the `Collection<FieldValue>` escape hatch was previously the only option. Uses `@JvmName` to dodge the JVM signature clash with `Collection<FieldValue>`.
+- **elasticsearch-dsl:** `BoolQueryDsl.minimumShouldMatch(String?)` and `minimumShouldMatch(Int)` — the docs heavily reference this idiom but no DSL surface existed previously.
+
+### Fixed
+
+- **Documentation:** Major sweep across `README.md`, `CLAUDE.md`, `docs/index.md`, and `docs/guide/*.md`. Two background agents probe-compiled every Kotlin snippet against the real API. Fixed `BoolQuery.of { boolQueryDsl { … } }` (~30 occurrences — needs `it.boolQueryDsl`), wrong import package, `wildcard` → `wildCard`, `exist(field)` → `field.exist()`, `multiMatch` / `moreLikeThis` / `shouldAtLeastOneOf` signature mismatches, broken `NestedQuery.of` / `geoDistance` / `mustBeBetween` snippets, `term/terms` on collection fields → `containsTerm/containsTerms`, stale `1.0.1` artifact versions in CLAUDE.md, plugin DSL property `className` → `registryClassName`, dead `PUBLISHING.md` link, and a VitePress anchor slug that broke a cross-reference. The same `BoolQuery.of { boolQueryDsl { … } }` pattern in the kdoc of `BoolQueryDsl.kt` was also fixed (mirrored across the three DSL modules).
+- **Documentation:** Added a new "Contains Terms (Collection Field)" subsection to the Query DSL guide — `containsTerms` was previously undocumented despite being a public API.
+
 ## [1.2.6] - 2026-05-22
 
 ### Added
@@ -157,7 +170,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.6...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.7...HEAD
+[1.2.7]: https://github.com/ekino/Metalastic/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/ekino/Metalastic/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/ekino/Metalastic/compare/v1.2.4...v1.2.5
 [1.2.4]: https://github.com/ekino/Metalastic/compare/v1.2.3...v1.2.4
