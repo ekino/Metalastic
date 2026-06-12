@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.8] - 2026-06-12
+
+### Changed
+
+- **Dependencies:** Kotlin 2.3.21 → 2.4.0 (#106)
+- **Dependencies:** KSP 2.3.8 → 2.3.9 (#106)
+- **Dependencies:** Spotless 8.5.1 → 8.6.0 (#102)
+- **Dependencies:** kotlin-logging-jvm 8.0.02 → 8.0.4 (#100, #104)
+- **Dependencies:** kotlin-compile-testing (`dev.zacsweers.kctfork`) 0.12.1 → 0.13.0 (#105)
+- **Dependencies:** MockK 1.14.9 → 1.14.11 (#103)
+- **Dependencies:** JUnit Jupiter 6.0.3 → 6.1.0 (#99)
+
 ## [1.2.7] - 2026-05-22
 
 ### Added
@@ -170,7 +182,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.7...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.8...HEAD
+[1.2.8]: https://github.com/ekino/Metalastic/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/ekino/Metalastic/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/ekino/Metalastic/compare/v1.2.5...v1.2.6
 [1.2.5]: https://github.com/ekino/Metalastic/compare/v1.2.4...v1.2.5
