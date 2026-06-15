@@ -14,7 +14,7 @@ jakarta-annotation-api = "3.0.0"
 
 # Code Quality
 spotless = "8.6.0"
-detekt = "2.0.0-alpha.3"
+detekt = "2.0.0-alpha.4"
 
 # Publishing
 gradle-maven-publish-plugin = "0.36.0"
