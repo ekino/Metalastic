@@ -66,8 +66,9 @@ private fun formatTemporal(
 ): String {
   // When no formats are configured, use Elasticsearch's default format chain:
   // strict_date_optional_time||epoch_millis (mapped to date_optional_time in Spring Data)
-  val formatsToTry =
-    formats.ifEmpty { listOf(DateFormat.date_optional_time, DateFormat.epoch_millis) }
+  val formatsToTry = formats.ifEmpty {
+    listOf(DateFormat.date_optional_time, DateFormat.epoch_millis)
+  }
   val epochMillis = value.toEpochMilli()
   return formatsToTry
     .asSequence()
