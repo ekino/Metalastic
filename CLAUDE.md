@@ -23,9 +23,9 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
   - **Multi-version support**: 3 artifacts based on Spring Data ES API compatibility
   - **Version format**: `{dsl-version}` (e.g., `1.0.0`)
   - **Artifacts**:
-    - `metalastic-elasticsearch-dsl:1.2.8` (Spring Data ES 6.0.x, brings 6.0.0 transitively) - **Rolling**
-    - `metalastic-elasticsearch-dsl-5.5:1.2.8` (Spring Data ES 5.4-5.5, brings 5.5.6 transitively) - **Frozen**
-    - `metalastic-elasticsearch-dsl-5.3:1.2.8` (Spring Data ES 5.0-5.3, brings 5.3.13 transitively) - **Frozen**
+    - `metalastic-elasticsearch-dsl:1.2.9` (Spring Data ES 6.0.x, brings 6.0.0 transitively) - **Rolling**
+    - `metalastic-elasticsearch-dsl-5.5:1.2.9` (Spring Data ES 5.4-5.5, brings 5.5.6 transitively) - **Frozen**
+    - `metalastic-elasticsearch-dsl-5.3:1.2.9` (Spring Data ES 5.0-5.3, brings 5.3.13 transitively) - **Frozen**
   - **Features**: BoolQueryDsl, QueryVariantDsl, type-safe query construction, runtime version warnings
   - **Implementation difference**: Only RangeQueryUtils.kt differs (~60 lines) due to elasticsearch-java API changes
 
@@ -34,7 +34,7 @@ Metalastic is a multi-module Kotlin project that automatically generates type-sa
 - **bom**: Bill of Materials for version alignment
   - Provides dependency management for all Metalastic artifacts
   - Simplifies version management for consumers
-  - Use with `implementation(platform("com.ekino.oss:metalastic-bom:1.2.8"))`
+  - Use with `implementation(platform("com.ekino.oss:metalastic-bom:1.2.9"))`
 
 ## Goals
 
@@ -435,9 +435,9 @@ The `elasticsearch-dsl-{version}` modules provide type-safe query builders using
 
 | Artifact | Strategy | Supported Spring Data ES | Brings Transitively | Maven Coordinate |
 |----------|----------|-------------------------|---------------------|------------------|
-| elasticsearch-dsl | Rolling | 6.0.x (currently) | 6.0.0 | `metalastic-elasticsearch-dsl:1.2.8` |
-| elasticsearch-dsl-5.5 | Frozen | 5.4.x - 5.5.x | 5.5.6 | `metalastic-elasticsearch-dsl-5.5:1.2.8` |
-| elasticsearch-dsl-5.3 | Frozen | 5.0.x - 5.3.x | 5.3.13 | `metalastic-elasticsearch-dsl-5.3:1.2.8` |
+| elasticsearch-dsl | Rolling | 6.0.x (currently) | 6.0.0 | `metalastic-elasticsearch-dsl:1.2.9` |
+| elasticsearch-dsl-5.5 | Frozen | 5.4.x - 5.5.x | 5.5.6 | `metalastic-elasticsearch-dsl-5.5:1.2.9` |
+| elasticsearch-dsl-5.3 | Frozen | 5.0.x - 5.3.x | 5.3.13 | `metalastic-elasticsearch-dsl-5.3:1.2.9` |
 
 **Rolling Release Strategy**: The base artifact (`elasticsearch-dsl`) tracks the latest Spring Data ES versions. When breaking changes occur (like the 6.0 release), we freeze the previous version and update the rolling artifact.
 
@@ -511,7 +511,7 @@ The DSL module includes type-safe value converters for:
 ```kotlin
 plugins {
     id("com.google.devtools.ksp") version "2.3.9"
-    id("com.ekino.oss.metalastic") version "1.2.8"
+    id("com.ekino.oss.metalastic") version "1.2.9"
 }
 
 repositories {
@@ -579,8 +579,8 @@ repositories {
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.2.8")
-    ksp("com.ekino.oss:metalastic-processor:1.2.8")
+    implementation("com.ekino.oss:metalastic-core:1.2.9")
+    ksp("com.ekino.oss:metalastic-processor:1.2.9")
 }
 
 ksp {
@@ -628,13 +628,13 @@ repositories {
 }
 
 dependencies {
-    implementation("com.ekino.oss:metalastic-core:1.2.8")
-    ksp("com.ekino.oss:metalastic-processor:1.2.8")
+    implementation("com.ekino.oss:metalastic-core:1.2.9")
+    ksp("com.ekino.oss:metalastic-processor:1.2.9")
 
     // Optional: Query DSL module
-    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.2.8")  // Rolling (6.0.x currently)
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.2.8")  // Frozen (5.4-5.5)
-    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.2.8")  // Frozen (5.0-5.3)
+    implementation("com.ekino.oss:metalastic-elasticsearch-dsl:1.2.9")  // Rolling (6.0.x currently)
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.5:1.2.9")  // Frozen (5.4-5.5)
+    // OR implementation("com.ekino.oss:metalastic-elasticsearch-dsl-5.3:1.2.9")  // Frozen (5.0-5.3)
 }
 ```
 
@@ -642,7 +642,7 @@ dependencies {
 ```kotlin
 plugins {
     id("com.google.devtools.ksp") version "2.3.9"
-    id("com.ekino.oss.metalastic") version "1.2.8"
+    id("com.ekino.oss.metalastic") version "1.2.9"
 }
 ```
 
