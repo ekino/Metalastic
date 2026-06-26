@@ -20,13 +20,12 @@ class MetalasticGraph {
 
   fun rootModels() = models.asSequence().filterNot { it.isNested }
 
-  fun getModel(classDeclaration: KSClassDeclaration?): MetaClassModel? =
-    classDeclaration?.let {
-      models.find { model ->
-        model.sourceClassDeclaration.qualifiedName?.asString() ==
-          classDeclaration.qualifiedName?.asString()
-      }
+  fun getModel(classDeclaration: KSClassDeclaration?): MetaClassModel? = classDeclaration?.let {
+    models.find { model ->
+      model.sourceClassDeclaration.qualifiedName?.asString() ==
+        classDeclaration.qualifiedName?.asString()
     }
+  }
 
   open inner class GraphMember {
     val graph

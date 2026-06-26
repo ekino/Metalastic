@@ -55,16 +55,15 @@ fun KSType.toSafeTypeName(typeParameterResolver: TypeParameterResolver): TypeNam
       // Handle generic types with private class arguments directly
       val rawType = replace(emptyList())
       val baseTypeName = rawType.toTypeName(typeParameterResolver)
-      val safeArguments =
-        arguments.map { arg ->
-          val argType = arg.type?.resolve()
-          when {
-            argType?.declaration?.getVisibility() == Visibility.PRIVATE ->
-              UnExposablePrivateClass::class.asTypeName()
-            argType?.declaration is KSTypeParameter -> com.squareup.kotlinpoet.STAR
-            else -> argType?.toSafeTypeName(typeParameterResolver) ?: com.squareup.kotlinpoet.STAR
-          }
+      val safeArguments = arguments.map { arg ->
+        val argType = arg.type?.resolve()
+        when {
+          argType?.declaration?.getVisibility() == Visibility.PRIVATE ->
+            UnExposablePrivateClass::class.asTypeName()
+          argType?.declaration is KSTypeParameter -> com.squareup.kotlinpoet.STAR
+          else -> argType?.toSafeTypeName(typeParameterResolver) ?: com.squareup.kotlinpoet.STAR
         }
+      }
 
       when (baseTypeName) {
         is ClassName -> baseTypeName.parameterizedBy(safeArguments)

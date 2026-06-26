@@ -27,21 +27,21 @@ internal fun <T> Metamodel<*>.toRangeQuery(range: Range<out Comparable<T>>) =
 internal fun Range<*>.toLowerOperator(): (RangeQuery.Builder, JsonData) -> RangeQuery.Builder =
   when (lowerBoundType()) {
     BoundType.CLOSED -> { builder: RangeQuery.Builder, value: JsonData ->
-        builder.apply { gte(value) }
-      }
+      builder.apply { gte(value) }
+    }
     BoundType.OPEN -> { builder: RangeQuery.Builder, value: JsonData ->
-        builder.apply { gt(value) }
-      }
+      builder.apply { gt(value) }
+    }
   }
 
 internal fun Range<*>.toUpperOperator(): (RangeQuery.Builder, JsonData) -> RangeQuery.Builder =
   when (upperBoundType()) {
     BoundType.CLOSED -> { builder: RangeQuery.Builder, value: JsonData ->
-        builder.apply { lte(value) }
-      }
+      builder.apply { lte(value) }
+    }
     BoundType.OPEN -> { builder: RangeQuery.Builder, value: JsonData ->
-        builder.apply { lt(value) }
-      }
+      builder.apply { lt(value) }
+    }
   }
 
 internal fun <T> RangeQuery.Builder.withBound(

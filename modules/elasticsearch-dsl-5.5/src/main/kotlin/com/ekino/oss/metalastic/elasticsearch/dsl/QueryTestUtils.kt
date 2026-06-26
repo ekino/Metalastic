@@ -25,13 +25,12 @@ fun NativeQuery.toJsonSearchRequest(): String =
   JsonpUtils.toString(toSearchRequest()).removePrefix("${SearchRequest::class.simpleName}:")
 
 /** Converts a NativeQuery to a SearchRequest for JSON serialization. */
-private fun NativeQuery.toSearchRequest(): SearchRequest =
-  SearchRequest.of {
-    it.postFilter(filter)
-    it.query(query)
-    it.aggregations(aggregations)
-    it.sort(sortOptions)
-  }
+private fun NativeQuery.toSearchRequest(): SearchRequest = SearchRequest.of {
+  it.postFilter(filter)
+  it.query(query)
+  it.aggregations(aggregations)
+  it.sort(sortOptions)
+}
 
 /**
  * Converts a Query to its JSON representation for testing purposes. Removes the class name prefix
