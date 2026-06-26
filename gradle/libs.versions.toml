@@ -17,7 +17,7 @@ spotless = "8.7.0"
 detekt = "2.0.0-alpha.4"
 
 # Publishing
-gradle-maven-publish-plugin = "0.36.0"
+gradle-maven-publish-plugin = "0.37.0"
 gradle-plugin-publish = "2.1.1"
 
 # Testing
