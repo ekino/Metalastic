@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.9] - 2026-06-26
+
+### Changed
+
+- **Dependencies:** Spotless 8.6.0 → 8.7.0 (#109)
+- **Dependencies:** detekt 2.0.0-alpha.3 → 2.0.0-alpha.5 (#108, #111)
+- **Dependencies:** Gradle Wrapper 9.5.1 → 9.6.0 (#113)
+- **Dependencies:** Maven Publish plugin (`com.vanniktech.maven.publish`) 0.36.0 → 0.37.0 (#110)
+- **Dependencies:** PostCSS (docs) 8.5.6 → 8.5.15 (#114)
+- **CI:** actions/checkout 6 → 7 (#112)
+
 ## [1.2.8] - 2026-06-12
 
 ### Changed
@@ -182,7 +193,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.8...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.9...HEAD
+[1.2.9]: https://github.com/ekino/Metalastic/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/ekino/Metalastic/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/ekino/Metalastic/compare/v1.2.6...v1.2.7
 [1.2.6]: https://github.com/ekino/Metalastic/compare/v1.2.5...v1.2.6
