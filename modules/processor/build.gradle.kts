@@ -4,6 +4,21 @@ kotlin {
   compilerOptions { freeCompilerArgs.add("-opt-in=com.google.devtools.ksp.KspExperimental") }
 }
 
+// kctfork pulls the KSP2 implementation (symbol-processing-aa-embeddable, symbol-processing)
+// transitively at its own KSP version, while the version catalog only declares the KSP API
+// artifacts. Without this, bumping the catalog `ksp` version leaves the implementation behind the
+// API and it breaks at runtime (NoSuchMethodError: KSPConfig.getIncrementalLog). Force every KSP
+// artifact to the catalog `ksp` version so the API and its implementation always resolve together.
+configurations
+  .matching { it.name.startsWith("test") }
+  .configureEach {
+    resolutionStrategy.eachDependency {
+      if (requested.group == "com.google.devtools.ksp") {
+        useVersion(libs.versions.ksp.get())
+      }
+    }
+  }
+
 dependencies {
   // DSL runtime dependency
   implementation(project(":modules:core"))
