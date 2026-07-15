@@ -9,7 +9,11 @@ plugins {
 dependencies {
   // Dependencies need to be added manually since we can't use the plugin within the same project
   implementation(project(":modules:core"))
+  // The catch-all ksp(...) configuration no longer fans out to every source set (deprecated, see
+  // google/ksp#3032 and the ksp-multiplatform docs). Register the processor per source set so both
+  // main and test @Document classes are processed.
   ksp(project(":modules:processor"))
+  kspTest(project(":modules:processor"))
 
   // Spring Data Elasticsearch for real document classes
   implementation(libs.spring.data.elasticsearch)
