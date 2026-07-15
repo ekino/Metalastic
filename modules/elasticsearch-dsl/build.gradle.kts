@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 // Elasticsearch DSL module - Rolling Release (Latest Spring Data ES 6.x)
 // This artifact tracks the latest Spring Data ES 6.x versions.
 // Currently, supports: Spring Data ES 6.0.x
@@ -45,8 +43,4 @@ tasks.test { systemProperty("kotest.framework.classpath.scanning.autoscan.disabl
 
 tasks.register("showVersion") {
   doLast { println("elasticsearch-dsl version: ${project.version}") }
-}
-
-tasks.withType<KotlinCompile> {
-  compilerOptions { freeCompilerArgs.addAll(listOf("-Xcontext-parameters")) }
 }

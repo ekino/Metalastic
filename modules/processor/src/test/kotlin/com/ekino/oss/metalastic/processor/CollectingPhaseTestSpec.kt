@@ -273,7 +273,7 @@ class CollectingPhaseTestSpec :
       val codeField = fieldsByName.getValue("code")
       codeField.shouldBeInstanceOf<MultiFieldModel>()
       codeField.fieldType shouldBe FieldType.Keyword
-      (codeField as MultiFieldModel).innerFields.map { it.suffix } shouldBe listOf("search")
+      codeField.innerFields.map { it.suffix } shouldBe listOf("search")
 
       val addressModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordAddress" }
       addressModel.shouldNotBeNull()
