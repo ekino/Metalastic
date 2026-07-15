@@ -1,5 +1,3 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 // Elasticsearch DSL module for Spring Data ES 5.4-5.5 (Frozen)
 // This artifact supports Spring Data ES 5.4.x through 5.5.x and will not change its compatibility
 // range.
@@ -45,8 +43,4 @@ tasks.test { systemProperty("kotest.framework.classpath.scanning.autoscan.disabl
 
 tasks.register("showVersion") {
   doLast { println("elasticsearch-dsl version: ${project.version}") }
-}
-
-tasks.withType<KotlinCompile> {
-  compilerOptions { freeCompilerArgs.addAll(listOf("-Xcontext-parameters")) }
 }
