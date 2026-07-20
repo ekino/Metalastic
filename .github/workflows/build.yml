@@ -23,7 +23,7 @@ jobs:
           java-version: '21'
 
       - name: Setup Node.js (for prettier)
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: '18'
 
