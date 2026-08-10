@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.10] - 2026-08-10
+
+### Changed
+
+- **Dependencies:** Kotlin 2.4.0 → 2.4.10 (#122, #126)
+- **Dependencies:** KSP 2.3.9 → 2.3.11 (#122, #126)
+- **Dependencies:** Spotless 8.7.0 → 8.9.0 (#125)
+- **Dependencies:** detekt 2.0.0-alpha.5 → 2.0.0-alpha.6 (#128)
+- **Dependencies:** Gradle Wrapper 9.6.0 → 9.7.0 (#127)
+- **Dependencies:** JUnit Jupiter 6.1.0 → 6.1.2 (#116, #121)
+- **CI:** actions/setup-node 6 → 7 (#124)
+- **Build:** Dropped the redundant `-Xcontext-parameters` compiler flag (#123)
+
 ## [1.2.9] - 2026-06-26
 
 ### Changed
@@ -193,7 +206,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.9...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.10...HEAD
+[1.2.10]: https://github.com/ekino/Metalastic/compare/v1.2.9...v1.2.10
 [1.2.9]: https://github.com/ekino/Metalastic/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/ekino/Metalastic/compare/v1.2.7...v1.2.8
 [1.2.7]: https://github.com/ekino/Metalastic/compare/v1.2.6...v1.2.7
