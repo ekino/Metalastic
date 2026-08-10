@@ -13,7 +13,7 @@ import org.gradle.api.provider.Property
  * Configuration for metamodel generation, including package names and class names for different
  * source sets.
  */
-abstract class MetamodelsConfiguration @Inject constructor(private val objects: ObjectFactory) {
+abstract class MetamodelsConfiguration @Inject constructor(objects: ObjectFactory) {
 
   /**
    * Global default package for metamodels (default: [PluginConstants.Metamodels.DEFAULT_PACKAGE])

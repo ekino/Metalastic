@@ -2,15 +2,15 @@ export default {
   load() {
     return {
       // Core versions
-      metalastic: '1.2.9',
-      ksp: '2.3.9',
-      kotlin: '2.4.0',
+      metalastic: '1.2.10',
+      ksp: '2.3.11',
+      kotlin: '2.4.10',
 
       // DSL versions
       dsl: {
-        rolling: '1.2.9',      // Base artifact (6.0.x currently)
-        frozen55: '1.2.9',     // 5.4-5.5 frozen
-        frozen53: '1.2.9'      // 5.0-5.3 frozen
+        rolling: '1.2.10',     // Base artifact (6.0.x currently)
+        frozen55: '1.2.10',    // 5.4-5.5 frozen
+        frozen53: '1.2.10'     // 5.0-5.3 frozen
       },
 
       // Spring Data ES versions (brought transitively by DSL artifacts)
