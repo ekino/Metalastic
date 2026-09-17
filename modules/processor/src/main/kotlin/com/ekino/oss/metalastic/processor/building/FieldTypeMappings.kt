@@ -23,6 +23,7 @@ import com.ekino.oss.metalastic.core.HalfFloatField
 import com.ekino.oss.metalastic.core.IntegerField
 import com.ekino.oss.metalastic.core.IntegerRangeField
 import com.ekino.oss.metalastic.core.IpField
+import com.ekino.oss.metalastic.core.IpRangeField
 import com.ekino.oss.metalastic.core.KeywordField
 import com.ekino.oss.metalastic.core.LongField
 import com.ekino.oss.metalastic.core.LongRangeField
@@ -32,6 +33,7 @@ import com.ekino.oss.metalastic.core.Murmur3Field
 import com.ekino.oss.metalastic.core.ObjectField
 import com.ekino.oss.metalastic.core.PercolatorField
 import com.ekino.oss.metalastic.core.RankFeatureField
+import com.ekino.oss.metalastic.core.RankFeaturesField
 import com.ekino.oss.metalastic.core.ScaledFloatField
 import com.ekino.oss.metalastic.core.SearchAsYouTypeField
 import com.ekino.oss.metalastic.core.ShortField
@@ -91,7 +93,7 @@ object FieldTypeMappings {
     mappings.safeAddMapping("Long_Range", LongRangeField::class)
     mappings.safeAddMapping("Double_Range", DoubleRangeField::class)
     mappings.safeAddMapping("Date_Range", DateRangeField::class)
-    mappings.safeAddMapping("Ip_Range", MatchOnlyTextField::class)
+    mappings.safeAddMapping("Ip_Range", IpRangeField::class)
 
     // Specialized field types
     mappings.safeAddMapping("Object", ObjectField::class)
@@ -105,7 +107,7 @@ object FieldTypeMappings {
     // Advanced field types
     mappings.safeAddMapping("Auto", AutoField::class)
     mappings.safeAddMapping("Rank_Feature", RankFeatureField::class)
-    mappings.safeAddMapping("Rank_Features", RankFeatureField::class)
+    mappings.safeAddMapping("Rank_Features", RankFeaturesField::class)
     mappings.safeAddMapping("Wildcard", WildcardField::class)
     mappings.safeAddMapping("Dense_Vector", DenseVectorField::class)
     mappings.safeAddMapping("Constant_Keyword", ConstantKeywordField::class)

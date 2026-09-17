@@ -206,13 +206,9 @@ abstract class Container<T : Any?>(
   inline fun <reified T : Any?> dateRange(fieldName: String): DateRangeField<T> =
     DateRangeField(this, fieldName, typeOf<T>())
 
-  /**
-   * Declares a child field named [fieldName] for the `ip_range` field type. Note: this helper
-   * currently returns a [MatchOnlyTextField] rather than an [IpRangeField], matching the
-   * processor's `FieldType.Ip_Range` mapping.
-   */
-  inline fun <reified T : Any?> ipRange(fieldName: String): MatchOnlyTextField<T> =
-    MatchOnlyTextField(this, fieldName, typeOf<T>())
+  /** Declares a child [IpRangeField] named [fieldName], modeling the `ip_range` field type. */
+  inline fun <reified T : Any?> ipRange(fieldName: String): IpRangeField<T> =
+    IpRangeField(this, fieldName, typeOf<T>())
 
   // Advanced field helpers
   /**
