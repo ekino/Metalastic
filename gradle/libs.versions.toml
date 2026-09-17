@@ -4,7 +4,7 @@ kotlin = "2.4.20"
 
 # KSP and Code Generation
 ksp = "2.3.12"
-kotlinpoet = "2.3.0"
+kotlinpoet = "2.4.0"
 
 # Spring Data Elasticsearch
 spring-data-elasticsearch = "6.0.1"
@@ -13,12 +13,12 @@ spring-data-elasticsearch = "6.0.1"
 jakarta-annotation-api = "3.0.0"
 
 # Code Quality
-spotless = "8.10.0"
+spotless = "8.10.2"
 detekt = "2.0.0-alpha.6"
 
 # Publishing
 gradle-maven-publish-plugin = "0.37.0"
-gradle-plugin-publish = "2.1.1"
+gradle-plugin-publish = "2.2.1"
 
 # Testing
 mockk = "1.14.11"
