@@ -18,7 +18,16 @@ dependencies {
     }
 }
 
+// The API reference is published from main, so it shows the latest released version
+// (last v* tag) rather than the git-describe SNAPSHOT used for artifacts.
+val apiReferenceVersion: Provider<String> =
+    providers.exec { commandLine("git", "describe", "--tags", "--abbrev=0", "--match", "v*") }
+        .standardOutput.asText
+        .map { it.trim().removePrefix("v") }
+        .orElse(provider { project.version.toString() })
+
 dokka {
+    moduleVersion.set(apiReferenceVersion)
     dokkaPublications.html {
         outputDirectory.set(rootProject.layout.projectDirectory.dir("docs/public/api"))
     }
