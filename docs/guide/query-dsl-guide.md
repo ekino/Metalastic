@@ -68,7 +68,7 @@ The Metalastic Query DSL offers **two equivalent syntaxes** for building queries
 Clean, operator-overloaded syntax using the `+` operator:
 
 ```kotlin
-import com.ekino.oss.metalastic.dsl.*
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
@@ -108,7 +108,7 @@ val query = BoolQuery.of {
 Traditional method-based syntax with explicit names:
 
 ```kotlin
-import com.ekino.oss.metalastic.dsl.*
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
@@ -182,7 +182,7 @@ val query = BoolQuery.of {
 Import the metamodel from its companion object:
 
 ```kotlin
-import com.ekino.oss.metalastic.dsl.*
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 // Build a simple query (operator syntax)
@@ -203,6 +203,74 @@ val query = BoolQuery.of {
     }
 }
 ```
+
+### Adding a Raw Query
+
+Every `QueryVariantDsl` scope exposes a unary `+` operator on any `QueryVariant`, so you can drop in a query the DSL doesn't (yet) wrap without leaving the DSL block:
+
+```kotlin
+import co.elastic.clients.elasticsearch._types.query_dsl.WrapperQuery
+
+val query = BoolQuery.of {
+    it.boolQueryDsl {
+        filter + {
+            // The DSL has no helper for wrapper queries — add the raw QueryVariant directly.
+            +WrapperQuery.of { it.query(base64EncodedQuery) }
+        }
+    }
+}
+```
+
+**Use when:**
+- A query type has no dedicated DSL function yet
+- You already built a `QueryVariant` (or a `Query.Builder` lambda result) some other way
+
+## Null and Empty Handling
+
+Every DSL function accepts nullable arguments and is a **no-op** when the argument is "empty" in the relevant sense:
+
+| Input | Result |
+|-------|--------|
+| `null` value | No query added |
+| Blank `String` (`""`, `"   "`) | No query added |
+| Empty or `null` collection | No query added |
+| Collection whose values all convert to `null` (e.g. all-blank strings) | No query added |
+| `null` `Range` | No query added |
+| `Range.all()` (no bounds) | `match_none` query added — see [Range Queries](#range-queries) |
+
+This also applies at the composition level:
+- `bool { }` and `disMax { }` omit themselves entirely (no clause is added to the parent) when the block didn't add any clause.
+- `minimumShouldMatch(null)` is a no-op — call it unconditionally.
+
+Because of this contract, a redundant null-guard around a DSL call is unnecessary:
+
+```kotlin
+// ❌ Redundant — the guard duplicates what the DSL already does
+if (searchTerm != null) {
+    must + {
+        product.title match searchTerm
+    }
+}
+
+// ✅ Just pass the (possibly null) value directly
+must + {
+    product.title match searchTerm
+}
+```
+
+::: warning Empty collections are "no constraint," not "match nothing"
+Elasticsearch itself treats `terms: []` (and `ids: []`) as **matching no document**. This DSL instead treats an empty collection as "no constraint" — the function is simply skipped, and the surrounding query behaves as if the clause weren't there.
+
+This matters for allow-lists computed at runtime: if `allowedTenants` is unexpectedly empty, `doc.tenantId terms allowedTenants` does **not** restrict the query — it silently exposes every tenant instead of none.
+
+Use the explicit escape hatch when an empty collection should mean "match nothing":
+
+```kotlin
+must + {
+    if (allowedTenants.isEmpty()) matchNone() else doc.tenantId terms allowedTenants
+}
+```
+:::
 
 ## Full-text Queries
 
@@ -287,6 +355,48 @@ product.title.matchPhrasePrefix("gam") {
 - Need prefix matching on phrases
 - Want fuzzy completion
 
+### Contains Match (Collection Field)
+
+For fields whose value is itself a collection (e.g. a `KeywordField<Collection<String>>`), `containsMatch` runs a [match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query) against the field, the same way `match` does for scalar fields:
+
+```kotlin
+product.tags containsMatch "kotlin"
+
+// With options
+product.tags.containsMatch("kotlin") {
+    fuzziness("AUTO")
+}
+```
+
+**Use when:**
+- The field is a multi-value array in your mapping and you want analyzed text matching against it (as opposed to the exact-value semantics of `containsTerm`)
+
+### Combined Fields Query
+
+Search across multiple text fields as if their contents were indexed into one combined field — see the [combined fields query documentation](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-combined-fields-query). Call it on a `Collection<Metamodel<*>>`:
+
+```kotlin
+listOf(product.title, product.description).combinedFields("gaming laptop") {
+    operator(CombinedFieldsOperator.And)
+}
+```
+
+**Use when:**
+- The fields share the same analyzer and you want relevance scoring based on the combined term frequency across them (unlike `multiMatch`, which scores each field independently)
+
+### Common Terms Query
+
+`commonTerms` builds a `Common terms query`. This query type was deprecated by Elasticsearch in favor of the standard [match query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-query) with its modern term-frequency-aware scoring, and has been removed from recent Elasticsearch server versions — treat this DSL function as legacy support for older clusters rather than a first choice for new code:
+
+```kotlin
+product.title.commonTerms("the quick brown fox") {
+    cutoffFrequency(0.001)
+}
+```
+
+**Use when:**
+- You must integrate with an older Elasticsearch cluster that still supports `common` queries; prefer `match` otherwise
+
 ## Term-level Queries
 
 Term-level queries match exact values without analysis. Use these for structured data like IDs, statuses, numbers, and dates.
@@ -355,6 +465,20 @@ product.publishedAt.terms(Instant.now(), Instant.now().minusSeconds(3600))
    ```
 
    The name signals intent: by going through `FieldValue`, **the caller takes responsibility** for the conversion. The DSL deliberately does not accept arbitrary `Collection<Any>` (which would silently `toString()` whatever it gets — a footgun).
+
+### Contains Term (Collection Field)
+
+For fields whose value is itself a collection (e.g. `KeywordField<Collection<String>>`), `containsTerm` queries whether the field's collection contains a single given value — the singular analog of `containsTerms` below:
+
+```kotlin
+product.tags containsTerm "discontinued"
+
+// With enums
+product.statuses containsTerm Status.ACTIVE
+```
+
+**Use when:**
+- The field is a multi-value array in your Elasticsearch mapping and you're filtering on a single exact value
 
 ### Contains Terms (Collection Field)
 
@@ -465,6 +589,19 @@ product.code.regexp("[A-Z]{3}-[0-9]+") {
 - Validation-style queries
 - Advanced filtering logic
 
+### IDs Query
+
+Match documents by their `_id`, via the [IDs query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-ids-query). Unlike the field-based functions above, `idsQuery` is a top-level function (it doesn't take a `Metamodel` receiver):
+
+```kotlin
+idsQuery(listOf("PROD-1", "PROD-2", "PROD-3"))
+```
+
+If `ids` is null or empty, no query is added — see [Null and Empty Handling](#null-and-empty-handling) (note the same "empty means no constraint" caveat applies here as for `terms`).
+
+**Use when:**
+- You already resolved a specific set of document IDs (e.g. from a first search pass) and want to fetch or filter on exactly those documents
+
 ## Boolean Queries
 
 Boolean queries combine multiple queries using boolean logic (must, should, filter, must_not). Remember, you can use **either operator syntax** (`must +`) **or classical syntax** (`mustDsl`) - or mix both!
@@ -474,7 +611,7 @@ Boolean queries combine multiple queries using boolean logic (must, should, filt
 Using the modern `+` operator for clause additions:
 
 ```kotlin
-import com.ekino.oss.metalastic.dsl.*
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
@@ -514,7 +651,7 @@ val query = BoolQuery.of {
 Same query using explicit method names:
 
 ```kotlin
-import com.ekino.oss.metalastic.dsl.*
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val query = BoolQuery.of {
@@ -652,6 +789,39 @@ val mixedQuery = BoolQuery.of {
 
 **Performance Tip:** Use `filter` instead of `must` for conditions that don't need relevance scoring - it's more efficient!
 
+### shouldAtLeastOneOf
+
+Builds a nested `bool` query with one `should` clause per distinct value, requiring at least one of them to match — see [minimum_should_match](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-bool-query#bool-min-should-match). It's skipped entirely when `values` is null or empty:
+
+```kotlin
+filter + {
+    shouldAtLeastOneOf(listOf("premium", "enterprise")) { tier ->
+        product.tier term tier
+    }
+}
+```
+
+**Use when:**
+- You have a runtime collection of values and want an "any of" match built from a per-value block, rather than a single `terms` query — e.g. when each value needs its own multi-clause logic
+
+### Dis Max Query
+
+Creates a [Disjunction max query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-dis-max-query), which takes the highest matching score among its clauses rather than summing them:
+
+```kotlin
+must + {
+    disMax({ tieBreaker(0.3) }) {
+        product.title.match(searchTerm) { boost(3.0f) }
+        product.description.match(searchTerm) { boost(1.0f) }
+    }
+}
+```
+
+`disMax` is omitted entirely when its block doesn't add any query (see [Null and Empty Handling](#null-and-empty-handling)).
+
+**Use when:**
+- Several fields can independently match the same query and you want the best single match to drive scoring, instead of combining scores additively (as `bool` / `should` would)
+
 ## Range Queries
 
 Query numeric, date, or string fields with range constraints.
@@ -676,6 +846,30 @@ product.price.range(Range.atLeast(500.0))   // >= 500
 product.price.range(Range.atMost(1000.0))   // <= 1000
 product.price.range(Range.greaterThan(100.0))  // > 100
 product.price.range(Range.lessThan(1000.0))    // < 1000
+```
+
+### Null, Empty, and Inverted Ranges
+
+`range` follows the same [null/empty contract](#null-and-empty-handling) as the rest of the DSL, with two range-specific behaviors worth calling out:
+
+- A **null `Range`** is skipped entirely — no query is added.
+- A **`Range.all()`** (no lower bound and no upper bound) produces a `match_none` query instead of an unbounded range query, since an unconstrained range would otherwise match every document with a value for the field:
+
+  ```kotlin
+  product.price range Range.all<Double>()  // → match_none
+  ```
+
+- With the mathematical (`StartBound`) notation, when the lower bound is greater than the upper bound (e.g. `10.fromInclusive()..5`), the resulting range collapses to `Range.all()` — and therefore also produces `match_none`:
+
+  ```kotlin
+  product.price range 10.0.fromInclusive()..5.0  // → Range.all() → match_none
+  ```
+
+Because nullable bounds already fold into `Range.all()` when both sides are absent, `minPrice.fromInclusive()..maxPrice` (with `minPrice`/`maxPrice` both nullable) is the idiomatic way to express "optional bounds" — no manual null-checking required:
+
+```kotlin
+// minPrice: Double?, maxPrice: Double?
+product.price range minPrice.fromInclusive()..maxPrice
 ```
 
 ### Convenience Methods
@@ -781,7 +975,7 @@ product.price range null.fromInclusive()..<100.0
 #### Complete Example
 
 ```kotlin
-import com.ekino.oss.metalastic.dsl.*
+import com.ekino.oss.metalastic.elasticsearch.dsl.*
 import com.example.MetaProduct.Companion.product
 
 val searchQuery = BoolQuery.of {
@@ -1097,6 +1291,24 @@ listOf(product.title, product.description).moreLikeThis {
     minWordLength(3)         // minimum word length
 }
 ```
+
+### Match All and Match None
+
+`matchAll()` and `matchNone()` add the corresponding [match-all / match-none query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-match-all-query) unconditionally — unlike every other function in this DSL, they take no arguments and are never skipped:
+
+```kotlin
+filter + {
+    matchAll()   // matches every document
+}
+
+must + {
+    if (allowedTenants.isEmpty()) matchNone() else doc.tenantId terms allowedTenants
+}
+```
+
+**Use when:**
+- `matchAll()`: as a deliberate default/fallback clause
+- `matchNone()`: as the explicit "match nothing" escape hatch described in [Null and Empty Handling](#null-and-empty-handling) — the same query `range` falls back to when given `Range.all()`
 
 ## Value Conversion
 

@@ -21,8 +21,10 @@ fun BoolQuery.Builder.boolQueryDsl(block: BoolQueryDsl.() -> Unit) = apply {
  * API for composing queries within the four typed occurrences of a bool query: [must], [mustNot],
  * [should], and [filter].
  *
- * ##
- * [Query Occurrences](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-bool-query)
+ * ## Query Occurrences
+ *
+ * See the
+ * [bool query documentation](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-bool-query).
  * - **[must]**: Documents `MUST` match these queries (affects scoring)
  * - **[mustNot]**: Documents `MUST NOT` match these queries (filters only)
  * - **[should]**: Documents `SHOULD` match these queries (affects scoring, optional)

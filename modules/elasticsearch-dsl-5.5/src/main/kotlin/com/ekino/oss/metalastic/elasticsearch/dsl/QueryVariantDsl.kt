@@ -210,6 +210,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [IDs query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-ids-query)
+   *
+   * If [ids] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty ids list as matching no
+   * document; this DSL treats it as "no constraint" instead.
    */
   fun idsQuery(ids: List<String>?) {
     ids?.takeUnless { it.isEmpty() }?.also { +IdsQuery.of { b -> b.values(ids) } }
@@ -1188,12 +1192,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<String>.terms(vararg terms: String) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<String>.terms(vararg terms: String, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1201,12 +1213,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Int>.terms(vararg terms: Int) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Int>.terms(vararg terms: Int, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1214,12 +1234,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Long>.terms(vararg terms: Long) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Long>.terms(vararg terms: Long, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1227,6 +1255,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Float>.terms(vararg terms: Float) = termsUnchecked(terms.toList()) {}
 
@@ -1236,12 +1268,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Double>.terms(vararg terms: Double) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Double>.terms(vararg terms: Double, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1249,12 +1289,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Boolean>.terms(vararg terms: Boolean) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<Boolean>.terms(vararg terms: Boolean, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1262,12 +1310,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun <T : Enum<T>> Metamodel<T>.terms(vararg terms: T) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun <T : Enum<T>> Metamodel<T>.terms(vararg terms: T, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1275,12 +1331,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<Instant>.terms(vararg terms: Instant) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<Instant>.terms(vararg terms: Instant, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1288,12 +1352,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<LocalDate>.terms(vararg terms: LocalDate) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<LocalDate>.terms(
     vararg terms: LocalDate,
@@ -1303,6 +1375,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<LocalDateTime>.terms(vararg terms: LocalDateTime) =
     termsUnchecked(terms.toList()) {}
@@ -1310,6 +1386,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<LocalDateTime>.terms(
     vararg terms: LocalDateTime,
@@ -1319,6 +1399,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<ZonedDateTime>.terms(vararg terms: ZonedDateTime) =
     termsUnchecked(terms.toList()) {}
@@ -1326,6 +1410,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<ZonedDateTime>.terms(
     vararg terms: ZonedDateTime,
@@ -1335,6 +1423,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<OffsetDateTime>.terms(vararg terms: OffsetDateTime) =
     termsUnchecked(terms.toList()) {}
@@ -1342,6 +1434,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<OffsetDateTime>.terms(
     vararg terms: OffsetDateTime,
@@ -1351,12 +1447,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<Date>.terms(vararg terms: Date) = termsUnchecked(terms.toList()) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<Date>.terms(vararg terms: Date, block: TermsQuery.Builder.() -> Unit = {}) =
     termsUnchecked(terms.toList(), block)
@@ -1366,12 +1470,20 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   infix fun Metamodel<*>.terms(terms: Collection<FieldValue>?) = termsUnchecked(terms) {}
 
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("termsEnum")
   infix fun <T : Enum<T>> Metamodel<T>.terms(terms: Collection<T>?) = termsUnchecked(terms) {}
@@ -1379,6 +1491,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("termsString")
   infix fun Metamodel<String>.terms(terms: Collection<String>?) = termsUnchecked(terms) {}
@@ -1386,6 +1502,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<*>.terms(
     terms: Collection<FieldValue>?,
@@ -1395,6 +1515,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("termsEnumWithBlock")
   fun <T : Enum<T>> Metamodel<T>.terms(
@@ -1405,6 +1529,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("termsStringWithBlock")
   fun Metamodel<String>.terms(
@@ -1417,6 +1545,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<String>>.containsTerms(vararg terms: String) =
     termsUnchecked(terms.toList()) {}
@@ -1424,6 +1556,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<String>>.containsTerms(
     vararg terms: String,
@@ -1433,6 +1569,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Int>>.containsTerms(vararg terms: Int) =
     termsUnchecked(terms.toList()) {}
@@ -1440,6 +1580,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Int>>.containsTerms(
     vararg terms: Int,
@@ -1449,6 +1593,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Long>>.containsTerms(vararg terms: Long) =
     termsUnchecked(terms.toList()) {}
@@ -1456,6 +1604,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Long>>.containsTerms(
     vararg terms: Long,
@@ -1465,6 +1617,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Float>>.containsTerms(vararg terms: Float) =
     termsUnchecked(terms.toList()) {}
@@ -1472,6 +1628,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Float>>.containsTerms(
     vararg terms: Float,
@@ -1481,6 +1641,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Double>>.containsTerms(vararg terms: Double) =
     termsUnchecked(terms.toList()) {}
@@ -1488,6 +1652,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Double>>.containsTerms(
     vararg terms: Double,
@@ -1497,6 +1665,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Boolean>>.containsTerms(vararg terms: Boolean) =
     termsUnchecked(terms.toList()) {}
@@ -1504,6 +1676,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<Boolean>>.containsTerms(
     vararg terms: Boolean,
@@ -1513,6 +1689,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(vararg terms: T) =
     termsUnchecked(terms.toList()) {}
@@ -1520,6 +1700,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(
     vararg terms: T,
@@ -1529,6 +1713,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<Instant>>.containsTerms(vararg terms: Instant) =
     termsUnchecked(terms.toList()) {}
@@ -1536,6 +1724,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<Instant>>.containsTerms(
     vararg terms: Instant,
@@ -1545,6 +1737,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<LocalDate>>.containsTerms(vararg terms: LocalDate) =
     termsUnchecked(terms.toList()) {}
@@ -1552,6 +1748,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<LocalDate>>.containsTerms(
     vararg terms: LocalDate,
@@ -1561,6 +1761,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<LocalDateTime>>.containsTerms(vararg terms: LocalDateTime) =
     termsUnchecked(terms.toList()) {}
@@ -1568,6 +1772,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<LocalDateTime>>.containsTerms(
     vararg terms: LocalDateTime,
@@ -1577,6 +1785,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<ZonedDateTime>>.containsTerms(vararg terms: ZonedDateTime) =
     termsUnchecked(terms.toList()) {}
@@ -1584,6 +1796,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<ZonedDateTime>>.containsTerms(
     vararg terms: ZonedDateTime,
@@ -1593,6 +1809,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<OffsetDateTime>>.containsTerms(vararg terms: OffsetDateTime) =
     termsUnchecked(terms.toList()) {}
@@ -1600,6 +1820,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<OffsetDateTime>>.containsTerms(
     vararg terms: OffsetDateTime,
@@ -1609,6 +1833,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<Date>>.containsTerms(vararg terms: Date) =
     termsUnchecked(terms.toList()) {}
@@ -1616,6 +1844,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun DateField<out Collection<Date>>.containsTerms(
     vararg terms: Date,
@@ -1627,6 +1859,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   infix fun Metamodel<out Collection<*>>.containsTerms(terms: Collection<FieldValue>?) =
     termsUnchecked(terms) {}
@@ -1634,6 +1870,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("containsTermsEnum")
   infix fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(terms: Collection<T>?) =
@@ -1642,6 +1882,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("containsTermsString")
   infix fun Metamodel<out Collection<String>>.containsTerms(terms: Collection<String>?) =
@@ -1650,6 +1894,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<out Collection<*>>.containsTerms(
     terms: Collection<FieldValue>?,
@@ -1659,6 +1907,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("containsTermsEnumWithBlock")
   fun <T : Enum<T>> Metamodel<out Collection<T>>.containsTerms(
@@ -1669,6 +1921,10 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
   /**
    * creates
    * [Terms query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   @JvmName("containsTermsStringWithBlock")
   fun Metamodel<out Collection<String>>.containsTerms(
@@ -1681,25 +1937,30 @@ class QueryVariantDsl(private val add: (queryVariant: QueryVariant) -> Unit) {
     block: TermsQuery.Builder.() -> Unit = {},
   ) {
     terms
+      ?.mapNotNull { term -> toFieldValue(term) }
       ?.takeUnless { it.isEmpty() }
-      ?.also {
-        +TermsQuery.of { b ->
-          b.field(path())
-            .terms { tb -> tb.value(terms.mapNotNull { term -> toFieldValue(term) }) }
-            .apply(block)
-        }
+      ?.also { values ->
+        +TermsQuery.of { b -> b.field(path()).terms { tb -> tb.value(values) }.apply(block) }
       }
   }
 
   /**
    * creates
    * [Terms set query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-set-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   infix fun Metamodel<*>.termsSet(terms: Collection<String>?) = termsSet(terms) {}
 
   /**
    * creates
    * [Terms set query](https://www.elastic.co/docs/reference/query-languages/query-dsl/query-dsl-terms-set-query)
+   *
+   * If [terms] is null or empty (or no value can be converted), no query is added and the enclosing
+   * query is left unchanged. Note that Elasticsearch itself treats an empty terms list as matching
+   * no document; this DSL treats it as "no constraint" instead.
    */
   fun Metamodel<*>.termsSet(
     terms: Collection<String>?,

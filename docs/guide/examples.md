@@ -165,9 +165,9 @@ val query = BoolQuery.of {
             product.status term ProductStatus.ACTIVE
             product.price.range(Range.closed(minPrice, maxPrice))
 
-            if (categories.isNotEmpty()) {
-                product.category terms categories
-            }
+            // `terms` is a no-op on an empty collection — see "Null and Empty Handling"
+            // in the Query DSL guide.
+            product.category terms categories
         }
 
         should + {
@@ -348,28 +348,20 @@ class ProductSearchService(
             .toList()
     }
 
+    // request.searchTerm, request.category: String?
+    // request.minPrice, request.maxPrice: Double?
     private fun buildQuery(request: ProductSearchRequest): Query {
         return BoolQuery.of {
             it.boolQueryDsl {
-                if (request.searchTerm != null) {
-                    must + {
-                        product.title match request.searchTerm
-                    }
+                // Every DSL call below is a no-op when its argument is null — see
+                // "Null and Empty Handling" in the Query DSL guide. No manual guards needed.
+                must + {
+                    product.title match request.searchTerm
                 }
 
                 filter + {
-                    if (request.category != null) {
-                        product.category term request.category
-                    }
-
-                    if (request.minPrice != null || request.maxPrice != null) {
-                        product.price.range(
-                            Range.closed(
-                                request.minPrice ?: 0.0,
-                                request.maxPrice ?: Double.MAX_VALUE
-                            )
-                        )
-                    }
+                    product.category term request.category
+                    product.price range request.minPrice.fromInclusive()..request.maxPrice
                 }
             }
         }

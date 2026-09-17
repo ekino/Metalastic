@@ -16,6 +16,9 @@ jakarta-annotation-api = "3.0.0"
 spotless = "8.10.2"
 detekt = "2.0.0-alpha.6"
 
+# Documentation
+dokka = "2.2.0"
+
 # Publishing
 gradle-maven-publish-plugin = "0.37.0"
 gradle-plugin-publish = "2.2.1"
@@ -73,3 +76,4 @@ spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 detekt = { id = "dev.detekt", version.ref = "detekt" }
 gradle-maven-publish-plugin = { id = "com.vanniktech.maven.publish", version.ref = "gradle-maven-publish-plugin" }
 gradle-plugin-publish = { id = "com.gradle.plugin-publish", version.ref = "gradle-plugin-publish" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
