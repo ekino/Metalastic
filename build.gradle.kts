@@ -9,8 +9,9 @@ plugins {
 
 // Modules aggregated into the generated API reference (docs/public/api).
 // elasticsearch-dsl-5.5/5.3 share packages with elasticsearch-dsl and would collide,
-// so only the rolling elasticsearch-dsl module is aggregated.
-val dokkaAggregatedModules = setOf("core", "elasticsearch-dsl", "gradle-plugin")
+// so only the rolling elasticsearch-dsl module is aggregated. The Gradle plugin is
+// left out: its configuration DSL is covered by the Configuration guide.
+val dokkaAggregatedModules = setOf("core", "elasticsearch-dsl")
 
 dependencies {
     dokkaAggregatedModules.forEach { moduleName ->
