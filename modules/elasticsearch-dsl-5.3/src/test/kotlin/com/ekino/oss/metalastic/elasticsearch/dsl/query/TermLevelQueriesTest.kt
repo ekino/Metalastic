@@ -252,6 +252,21 @@ class TermLevelQueriesTest :
         val boolQuery = builder.build()
         boolQuery.shouldHaveStructure(mustCount = 1)
       }
+
+      should("skip the query when no value can be converted (blank strings only)") {
+        val builder = BoolQuery.Builder()
+
+        builder.boolQueryDsl {
+          must +
+            {
+              meta.country terms listOf("", "   ")
+              meta.active term true
+            }
+        }
+
+        val boolQuery = builder.build()
+        boolQuery.shouldHaveStructure(mustCount = 1)
+      }
     }
 
     context("containsTerms query") {

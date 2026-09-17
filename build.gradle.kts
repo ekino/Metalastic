@@ -4,6 +4,27 @@ plugins {
     alias(libs.plugins.spotless) apply false
     alias(libs.plugins.detekt) apply false
     alias(libs.plugins.gradle.maven.publish.plugin) apply false
+    alias(libs.plugins.dokka)
+}
+
+// Modules aggregated into the generated API reference (docs/public/api).
+// elasticsearch-dsl-5.5/5.3 share packages with elasticsearch-dsl and would collide,
+// so only the rolling elasticsearch-dsl module is aggregated.
+val dokkaAggregatedModules = setOf("core", "elasticsearch-dsl", "gradle-plugin")
+
+dependencies {
+    dokkaAggregatedModules.forEach { moduleName ->
+        dokka(project(":modules:$moduleName"))
+    }
+}
+
+dokka {
+    dokkaPublications.html {
+        outputDirectory.set(rootProject.layout.projectDirectory.dir("docs/public/api"))
+    }
+    pluginsConfiguration.html {
+        footerMessage.set("© ekino - Metalastic")
+    }
 }
 
 allprojects {
@@ -67,6 +88,13 @@ subprojects {
 
     if (shouldPublish) {
         apply(plugin = "com.vanniktech.maven.publish")
+    }
+
+    if (project.name in dokkaAggregatedModules) {
+        apply(plugin = "org.jetbrains.dokka")
+        configure<org.jetbrains.dokka.gradle.DokkaExtension> {
+            moduleName.set(project.name)
+        }
     }
 
     configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {

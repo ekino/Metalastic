@@ -31,8 +31,20 @@ jobs:
           cache: npm
           cache-dependency-path: docs/package-lock.json
 
+      - name: Set up Java 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
       - name: Setup Pages
         uses: actions/configure-pages@v6
+
+      - name: Generate API reference (Dokka)
+        run: ./gradlew dokkaGenerate --no-daemon
 
       - name: Install dependencies
         run: npm ci

@@ -18,6 +18,7 @@ export default defineConfig({
     nav: [
       { text: 'Home', link: '/' },
       { text: 'Guide', link: '/guide/getting-started' },
+      { text: 'API Reference', link: '/api/', target: '_self' },
       { text: 'GitHub', link: 'https://github.com/ekino/Metalastic' }
     ],
 
@@ -35,7 +36,8 @@ export default defineConfig({
         collapsed: false,
         items: [
           { text: 'Field Types', link: '/guide/field-types-reference' },
-          { text: 'Query DSL', link: '/guide/query-dsl-guide' }
+          { text: 'Query DSL', link: '/guide/query-dsl-guide' },
+          { text: 'API Reference', link: '/api/', target: '_self' }
         ]
       },
       {

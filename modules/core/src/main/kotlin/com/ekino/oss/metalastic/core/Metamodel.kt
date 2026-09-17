@@ -75,16 +75,22 @@ sealed class Metamodel<T : Any?>(private val name: String, private val fieldType
       ?.let { "$it.$name" } ?: name
   }
 
+  /** Returns the dot-separated Elasticsearch path of this field, built from its ancestor chain. */
   fun path(): String = path
 
+  /** Returns the local Elasticsearch field name, without any parent path segments. */
   fun name(): String = name
 
+  /** Returns the direct parent container in the metamodel hierarchy, or `null` for a root. */
   abstract fun parent(): Container<*>?
 
+  /** Returns the sequence of ancestor containers, starting with the direct parent. */
   fun parents() = generateSequence(parent()) { it.parent() }
 
+  /** Returns `true` if any ancestor container is marked as `nested` in Elasticsearch. */
   fun isNestedPath(): Boolean = parents().any { it.isNested() }
 
+  /** Returns the paths of the ancestor containers that are marked as `nested`, closest first. */
   fun nestedPaths(): Sequence<String> =
     parents().mapNotNull {
       if (it.isNested()) {
@@ -94,6 +100,7 @@ sealed class Metamodel<T : Any?>(private val name: String, private val fieldType
       }
     }
 
+  /** Returns the Kotlin [KType] carried by this field, as captured at generation time. */
   fun fieldType(): KType = fieldType
 
   /**
