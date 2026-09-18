@@ -36,8 +36,9 @@ export default defineConfig({
         collapsed: false,
         items: [
           { text: 'Field Types', link: '/guide/field-types-reference' },
-          { text: 'Query DSL', link: '/guide/query-dsl-guide' },
-          { text: 'API Reference', link: '/api/', target: '_self' }
+          { text: 'Query DSL', link: '/guide/query-dsl-guide' }
+          // The Dokka reference (/api/) is linked from the nav bar only: sidebar entries feed the
+          // prev/next footer, whose links go through the SPA router and 404 on static pages.
         ]
       },
       {
