@@ -25,7 +25,7 @@ gradle-plugin-publish = "2.2.1"
 
 # Testing
 mockk = "1.14.11"
-kotlin-compile-testing = "0.13.0"
+kotlin-compile-testing = "0.14.0"
 kotest = "5.9.1"
 junit-jupiter = "6.1.3"
 
