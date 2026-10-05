@@ -34,30 +34,32 @@ class MetalasticSymbolProcessor(
   override fun process(resolver: Resolver): List<KSAnnotated> {
     logger.info("🔍 MetalasticSymbolProcessor.process() called")
     measureTimedValue {
-        runCatching {
-          reporter.debug { "Starting $PRODUCT_NAME annotation processing" }
+      runCatching {
+        reporter.debug { "Starting $PRODUCT_NAME annotation processing" }
 
-          // Phase 1: COLLECTING - Discover and analyze all @Document classes
-          val elasticsearchModels =
-            measureTimedValue { GraphBuilder(resolver, options).build() }
-              .let { (graph, duration) ->
-                reporter.debug { "🔬 COLLECTING phase completed in $duration 📊" }
-                graph
-              }
-
-          // Phase 2: BUILDING - Generate KotlinPoet specifications
-          val buildingResult =
-            measureTimedValue { BuildingOrchestrator(elasticsearchModels, options).build() }
-              .let { (generationResult, duration) ->
-                reporter.debug { "👷️ BUILDING phase completed in $duration 📊" }
-                generationResult
-              }
-
-          // Phase 3: WRITING - Write files to filesystem and generate reports
-          measureTime { codeGenerator.writeGeneratedFiles(buildingResult, elasticsearchModels) }
-            .also { duration -> reporter.debug { "📝 WRITING phase completed in $duration 📊" } }
+        // Phase 1: COLLECTING - Discover and analyze all @Document classes
+        val elasticsearchModels = measureTimedValue {
+          GraphBuilder(resolver, options).build()
         }
+          .let { (graph, duration) ->
+            reporter.debug { "🔬 COLLECTING phase completed in $duration 📊" }
+            graph
+          }
+
+        // Phase 2: BUILDING - Generate KotlinPoet specifications
+        val buildingResult = measureTimedValue {
+          BuildingOrchestrator(elasticsearchModels, options).build()
+        }
+          .let { (generationResult, duration) ->
+            reporter.debug { "👷️ BUILDING phase completed in $duration 📊" }
+            generationResult
+          }
+
+        // Phase 3: WRITING - Write files to filesystem and generate reports
+        measureTime { codeGenerator.writeGeneratedFiles(buildingResult, elasticsearchModels) }
+          .also { duration -> reporter.debug { "📝 WRITING phase completed in $duration 📊" } }
       }
+    }
       .also { (result, duration) ->
         result
           .onSuccess {

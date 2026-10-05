@@ -92,14 +92,14 @@ private fun HamcrestMatcher<String>.toKotestMatcher(expectedJson: String? = null
 /** Formats JSON for display in error messages with basic indentation. */
 private fun formatJsonForDisplay(json: String): String {
   return runCatching {
-      // Simple formatting - add line breaks for better readability
-      json
-        .replace(",", ",\n  ")
-        .replace("{", "{\n  ")
-        .replace("}", "\n}")
-        .replace("[", "[\n    ")
-        .replace("]", "\n  ]")
-    }
+    // Simple formatting - add line breaks for better readability
+    json
+      .replace(",", ",\n  ")
+      .replace("{", "{\n  ")
+      .replace("}", "\n}")
+      .replace("[", "[\n    ")
+      .replace("]", "\n  ]")
+  }
     .getOrElse { json }
 }
 
@@ -133,13 +133,13 @@ private fun isValidJsonStructure(json: String): Boolean =
 
 private fun formatJsonSafely(json: String): String {
   return runCatching {
-      json
-        .replace(",", ",\n  ")
-        .replace("{", "{\n  ")
-        .replace("}", "\n}")
-        .replace("[", "[\n    ")
-        .replace("]", "\n  ]")
-    }
+    json
+      .replace(",", ",\n  ")
+      .replace("{", "{\n  ")
+      .replace("}", "\n}")
+      .replace("[", "[\n    ")
+      .replace("]", "\n  ]")
+  }
     .getOrElse { json }
 }
 

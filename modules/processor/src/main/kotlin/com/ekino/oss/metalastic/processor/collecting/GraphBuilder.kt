@@ -121,14 +121,14 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
     val modelsByNestingOrder = filter { it.parentDeclaration == null }.toMutableList()
 
     generateSequence {
-        modelsByNestingOrder.removeFirstOrNull()?.also { next ->
-          modelsByNestingOrder.addAll(
-            filter {
-              it.parentDeclaration?.qualifiedName?.asString() == next.qualifiedName?.asString()
-            }
-          )
-        }
+      modelsByNestingOrder.removeFirstOrNull()?.also { next ->
+        modelsByNestingOrder.addAll(
+          filter {
+            it.parentDeclaration?.qualifiedName?.asString() == next.qualifiedName?.asString()
+          }
+        )
       }
+    }
       .forEach { qClass ->
         when {
           qClass.isAnnotationPresent(Document::class) -> {
@@ -176,10 +176,10 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
 
     val finalGraph = MetalasticGraph()
     generateSequence {
-        modelsByNestingOrder.removeFirstOrNull()?.also {
-          modelsByNestingOrder.addAll(it.nestedClasses())
-        }
+      modelsByNestingOrder.removeFirstOrNull()?.also {
+        modelsByNestingOrder.addAll(it.nestedClasses())
       }
+    }
       .forEach { model ->
         val fields = model.collectFields()
         when (model) {

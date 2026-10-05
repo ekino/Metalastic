@@ -122,19 +122,19 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
     if (reportWritten || reportPath == null) return null
 
     return runCatching {
-        // Create parent directories if they don't exist
-        Files.createDirectories(requireNotNull(reportPath).parent)
+      // Create parent directories if they don't exist
+      Files.createDirectories(requireNotNull(reportPath).parent)
 
-        // Generate new report content
-        val newReportContent = generateCurrentReport()
+      // Generate new report content
+      val newReportContent = generateCurrentReport()
 
-        // Append to existing file or create new one with TOC
-        appendToReport(reportPath, newReportContent)
+      // Append to existing file or create new one with TOC
+      appendToReport(reportPath, newReportContent)
 
-        reportWritten = true // Mark as written to prevent duplicates
-        kspLogger.warn("📄 Report appended to: $reportPath")
-        reportPath
-      }
+      reportWritten = true // Mark as written to prevent duplicates
+      kspLogger.warn("📄 Report appended to: $reportPath")
+      reportPath
+    }
       .onFailure { exception ->
         kspLogger.warn("Failed to write report to $reportPath: ${exception.message}")
         kspLogger.exception(exception)
@@ -203,11 +203,11 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
     if (!Files.exists(filePath)) return false
 
     return runCatching {
-        val lastModified = Files.getLastModifiedTime(filePath)
-        val now = FileTime.from(Instant.now())
-        val timeDifference = java.time.Duration.between(lastModified.toInstant(), now.toInstant())
-        timeDifference.toMinutes() >= ReportConstants.CLEANUP_THRESHOLD_MINUTES
-      }
+      val lastModified = Files.getLastModifiedTime(filePath)
+      val now = FileTime.from(Instant.now())
+      val timeDifference = java.time.Duration.between(lastModified.toInstant(), now.toInstant())
+      timeDifference.toMinutes() >= ReportConstants.CLEANUP_THRESHOLD_MINUTES
+    }
       .getOrElse { false } // If we can't determine file time, don't clear
   }
 
@@ -243,8 +243,8 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
     val timestampStr = timestampMatch.groupValues[1]
 
     return runCatching {
-        LocalDateTime.parse(timestampStr, DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss"))
-      }
+      LocalDateTime.parse(timestampStr, DateTimeFormatter.ofPattern("yyyy-MM-dd-HHmmss"))
+    }
       .getOrNull()
   }
 
@@ -292,12 +292,11 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
 
             when {
               phaseName == ParsingConstants.TOTAL_KEYWORD || phaseName.isBlank() -> null
-              else ->
-                runCatching {
-                    val phase = ProcessingPhase.valueOf(phaseName)
-                    val phaseDuration = durationStr.toLongOrNull()
-                    phaseDuration?.let { phase to it }
-                  }
+              else -> runCatching {
+                  val phase = ProcessingPhase.valueOf(phaseName)
+                  val phaseDuration = durationStr.toLongOrNull()
+                  phaseDuration?.let { phase to it }
+                }
                   .getOrNull()
             }
           }
@@ -311,44 +310,43 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
     return when {
       !this.startsWith(ParsingConstants.LOG_PREFIX) ||
         !this.contains(ParsingConstants.LOG_SEPARATOR) -> null
-      else ->
-        runCatching {
-            // Try DEBUG pattern first
-            val debugRegex = """\[(\d{2}:\d{2}:\d{2}\.\d{3})].*?🔍 DEBUG: (.*)""".toRegex()
-            val debugMatch = debugRegex.find(this)
+      else -> runCatching {
+          // Try DEBUG pattern first
+          val debugRegex = """\[(\d{2}:\d{2}:\d{2}\.\d{3})].*?🔍 DEBUG: (.*)""".toRegex()
+          val debugMatch = debugRegex.find(this)
 
-            if (debugMatch != null) {
-              val timeStr = debugMatch.groupValues[1]
-              val message = debugMatch.groupValues[2]
+          if (debugMatch != null) {
+            val timeStr = debugMatch.groupValues[1]
+            val message = debugMatch.groupValues[2]
+            val logTime =
+              LocalDateTime.of(
+                baseDate.toLocalDate(),
+                java.time.LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
+              )
+
+            LoggedMessage(level = ReporterLevel.DEBUG, message = message, timestamp = logTime)
+          } else {
+            // Try EXCEPTION pattern
+            val exceptionRegex = """\[(\d{2}:\d{2}:\d{2}\.\d{3})].*?❌ EXCEPTION: (.*)""".toRegex()
+            val exceptionMatch = exceptionRegex.find(this)
+
+            exceptionMatch?.let {
+              val timeStr = it.groupValues[1]
+              val message = it.groupValues[2]
               val logTime =
                 LocalDateTime.of(
                   baseDate.toLocalDate(),
                   java.time.LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
                 )
 
-              LoggedMessage(level = ReporterLevel.DEBUG, message = message, timestamp = logTime)
-            } else {
-              // Try EXCEPTION pattern
-              val exceptionRegex = """\[(\d{2}:\d{2}:\d{2}\.\d{3})].*?❌ EXCEPTION: (.*)""".toRegex()
-              val exceptionMatch = exceptionRegex.find(this)
-
-              exceptionMatch?.let {
-                val timeStr = it.groupValues[1]
-                val message = it.groupValues[2]
-                val logTime =
-                  LocalDateTime.of(
-                    baseDate.toLocalDate(),
-                    java.time.LocalTime.parse(timeStr, DateTimeFormatter.ofPattern("HH:mm:ss.SSS")),
-                  )
-
-                LoggedMessage(
-                  level = ReporterLevel.EXCEPTION,
-                  message = message,
-                  timestamp = logTime,
-                )
-              }
+              LoggedMessage(
+                level = ReporterLevel.EXCEPTION,
+                message = message,
+                timestamp = logTime,
+              )
             }
           }
+        }
           .getOrNull()
     }
   }

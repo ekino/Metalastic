@@ -306,55 +306,55 @@ class MetalasticPlugin : Plugin<Project> {
     project.logger.info("Metalastic: Configuring KSP arguments")
 
     runCatching {
-        // Access KSP extension through reflection to avoid direct dependency
-        val kspExtension = project.extensions.findByName("ksp")
-        if (kspExtension == null) {
-          project.logger.warn("Metalastic: KSP extension not found")
-          return
-        }
-
-        // Get the arg method through reflection
-        val argMethod =
-          kspExtension::class.java.getMethod("arg", String::class.java, String::class.java)
-
-        // Metamodels configuration
-        configureMetamodels(argMethod, kspExtension, project, extension.metamodels)
-
-        // Features configuration
-        val features = extension.features
-        if (features.generateJavaCompatibility.isPresent) {
-          argMethod.invoke(
-            kspExtension,
-            PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY,
-            features.generateJavaCompatibility.get().toString(),
-          )
-          project.logger.info(
-            "Metalastic: Set KSP arg ${PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY} = ${features.generateJavaCompatibility.get()}"
-          )
-        }
-        if (features.generatePrivateClassMetamodels.isPresent) {
-          argMethod.invoke(
-            kspExtension,
-            PluginConstants.Features.KSP_ARG_PRIVATE_CLASS_METAMODELS,
-            features.generatePrivateClassMetamodels.get().toString(),
-          )
-        }
-
-        // Reporting configuration
-        val reporting = extension.reporting
-        if (reporting.enabled.get()) {
-          argMethod.invoke(
-            kspExtension,
-            PluginConstants.Reporting.KSP_ARG_REPORTING_PATH,
-            reporting.outputPath.get(),
-          )
-          project.logger.info(
-            "Metalastic: Set KSP arg ${PluginConstants.Reporting.KSP_ARG_REPORTING_PATH} = ${reporting.outputPath.get()}"
-          )
-        }
-
-        project.logger.info("Metalastic: KSP configuration complete")
+      // Access KSP extension through reflection to avoid direct dependency
+      val kspExtension = project.extensions.findByName("ksp")
+      if (kspExtension == null) {
+        project.logger.warn("Metalastic: KSP extension not found")
+        return
       }
+
+      // Get the arg method through reflection
+      val argMethod =
+        kspExtension::class.java.getMethod("arg", String::class.java, String::class.java)
+
+      // Metamodels configuration
+      configureMetamodels(argMethod, kspExtension, project, extension.metamodels)
+
+      // Features configuration
+      val features = extension.features
+      if (features.generateJavaCompatibility.isPresent) {
+        argMethod.invoke(
+          kspExtension,
+          PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY,
+          features.generateJavaCompatibility.get().toString(),
+        )
+        project.logger.info(
+          "Metalastic: Set KSP arg ${PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY} = ${features.generateJavaCompatibility.get()}"
+        )
+      }
+      if (features.generatePrivateClassMetamodels.isPresent) {
+        argMethod.invoke(
+          kspExtension,
+          PluginConstants.Features.KSP_ARG_PRIVATE_CLASS_METAMODELS,
+          features.generatePrivateClassMetamodels.get().toString(),
+        )
+      }
+
+      // Reporting configuration
+      val reporting = extension.reporting
+      if (reporting.enabled.get()) {
+        argMethod.invoke(
+          kspExtension,
+          PluginConstants.Reporting.KSP_ARG_REPORTING_PATH,
+          reporting.outputPath.get(),
+        )
+        project.logger.info(
+          "Metalastic: Set KSP arg ${PluginConstants.Reporting.KSP_ARG_REPORTING_PATH} = ${reporting.outputPath.get()}"
+        )
+      }
+
+      project.logger.info("Metalastic: KSP configuration complete")
+    }
       .onFailure { error ->
         project.logger.error("Metalastic: Failed to configure KSP args: ${error.message}")
       }
