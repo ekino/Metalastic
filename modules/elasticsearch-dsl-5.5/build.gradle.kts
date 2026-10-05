@@ -16,7 +16,7 @@ dependencies {
   api("org.springframework.data:spring-data-elasticsearch:$springDataEsVersion")
 
   // Google Guava for Range support
-  api("com.google.guava:guava:33.7.1-jre")
+  api("com.google.guava:guava:33.7.2-jre")
 
   // Kotlin reflection for type checking
   implementation("org.jetbrains.kotlin:kotlin-reflect")
