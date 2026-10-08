@@ -60,28 +60,29 @@ private fun CodeGenerator.writeQClassFile(
   val dependencies = Dependencies(aggregating = false, sources = sources)
 
   runCatching {
-      val outputFile =
-        createNewFile(
-          dependencies = dependencies,
-          packageName = qClassFile.packageName,
-          fileName = qClassFile.name,
-        )
+    val outputFile =
+      createNewFile(
+        dependencies = dependencies,
+        packageName = qClassFile.packageName,
+        fileName = qClassFile.name,
+      )
 
-      // Replacing redundant 'public' modifiers for cleaner output to match V1
-      outputFile.bufferedWriter().use { writer ->
-        val fileContent =
-          runCatching { qClassFile.toString() }
-            .getOrElse { e ->
-              reporter.exception(e) {
-                "Failed to convert FileSpec to string for ${qClassFile.name}: ${e.message}"
-              }
-              throw e
-            }
-        writer.write(fileContent.replace("public ", ""))
+    // Replacing redundant 'public' modifiers for cleaner output to match V1
+    outputFile.bufferedWriter().use { writer ->
+      val fileContent = runCatching {
+        qClassFile.toString()
       }
-
-      reporter.debug { "Generated Meta-class: ${qClassFile.packageName}.${qClassFile.name}" }
+        .getOrElse { e ->
+          reporter.exception(e) {
+            "Failed to convert FileSpec to string for ${qClassFile.name}: ${e.message}"
+          }
+          throw e
+        }
+      writer.write(fileContent.replace("public ", ""))
     }
+
+    reporter.debug { "Generated Meta-class: ${qClassFile.packageName}.${qClassFile.name}" }
+  }
     .onFailure { e ->
       reporter.exception(e) { "Failed to write Meta-class ${qClassFile.name}: ${e.message}" }
       throw e
@@ -104,22 +105,22 @@ private fun CodeGenerator.writeMetamodelsFile(
     )
 
   runCatching {
-      val outputFile =
-        createNewFile(
-          dependencies = dependencies,
-          packageName = metamodelsFile.packageName,
-          fileName = metamodelsFile.name,
-        )
+    val outputFile =
+      createNewFile(
+        dependencies = dependencies,
+        packageName = metamodelsFile.packageName,
+        fileName = metamodelsFile.name,
+      )
 
-      // Replacing redundant 'public' modifiers for cleaner output to match V1
-      outputFile.bufferedWriter().use { writer ->
-        writer.write(metamodelsFile.toString().replace("public ", ""))
-      }
-
-      reporter.debug {
-        "Generated Metamodels: ${metamodelsFile.packageName}.${metamodelsFile.name}"
-      }
+    // Replacing redundant 'public' modifiers for cleaner output to match V1
+    outputFile.bufferedWriter().use { writer ->
+      writer.write(metamodelsFile.toString().replace("public ", ""))
     }
+
+    reporter.debug {
+      "Generated Metamodels: ${metamodelsFile.packageName}.${metamodelsFile.name}"
+    }
+  }
     .onFailure { e ->
       reporter.exception(e) { "Failed to write Metamodels ${metamodelsFile.name}: ${e.message}" }
       throw e
