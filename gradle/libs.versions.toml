@@ -17,7 +17,7 @@ spotless = "8.10.4"
 detekt = "2.0.0-alpha.6"
 
 # Documentation
-dokka = "2.2.0"
+dokka = "2.3.0"
 
 # Publishing
 gradle-maven-publish-plugin = "0.37.0"
