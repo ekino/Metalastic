@@ -13,41 +13,44 @@ import io.kotest.matchers.shouldNotBe
  * nested classes with the same simple name generate different Meta-classes.
  */
 class NestedClassCollisionSpec :
-  ShouldSpec({
-    should("generate separate Meta-classes for external and nested classes with same name") {
-      // External JavaTag class should generate MetaJavaTag
-      val externalTagField = MetaJavaTestDocument.javaTestDocument.tags
-      externalTagField shouldNotBe null
+  ShouldSpec(
+    {
+      should("generate separate Meta-classes for external and nested classes with same name") {
+        // External JavaTag class should generate MetaJavaTag
+        val externalTagField = MetaJavaTestDocument.javaTestDocument.tags
+        externalTagField shouldNotBe null
 
-      // Should have fields from external JavaTag class
-      externalTagField.name.path() shouldBe "tags.name"
-      externalTagField.weight.path() shouldBe "tags.weight"
-      externalTagField.description.path() shouldBe "tags.description"
+        // Should have fields from external JavaTag class
+        externalTagField.name.path() shouldBe "tags.name"
+        externalTagField.weight.path() shouldBe "tags.weight"
+        externalTagField.description.path() shouldBe "tags.description"
 
-      // Nested JavaTag class should generate nested object within
-      // MetaJavaTestDocument.javaTestDocument
-      val nestedTagField = MetaJavaTestDocument.javaTestDocument.tags2
-      nestedTagField shouldNotBe null
+        // Nested JavaTag class should generate nested object within
+        // MetaJavaTestDocument.javaTestDocument
+        val nestedTagField = MetaJavaTestDocument.javaTestDocument.tags2
+        nestedTagField shouldNotBe null
 
-      // Nested class has different field names: tagName and size (not name, weight, description)
-      nestedTagField.tagName.path() shouldBe "tags2.tagName"
-      nestedTagField.size.path() shouldBe "tags2.size"
+        // Nested class has different field names: tagName and size (not name, weight, description)
+        nestedTagField.tagName.path() shouldBe "tags2.tagName"
+        nestedTagField.size.path() shouldBe "tags2.size"
 
-      // Verify they are different Meta-class types
-      externalTagField::class.simpleName shouldBe "MetaJavaTag"
-      nestedTagField::class.simpleName shouldBe "JavaTag" // Meta prefix removed for nested classes
-    }
+        // Verify they are different Meta-class types
+        externalTagField::class.simpleName shouldBe "MetaJavaTag"
+        nestedTagField::class.simpleName shouldBe
+          "JavaTag" // Meta prefix removed for nested classes
+      }
 
-    should("correctly resolve field paths for both external and nested classes") {
-      // External class field paths
-      MetaJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
-      MetaJavaTestDocument.javaTestDocument.tags.weight.path() shouldBe "tags.weight"
-      MetaJavaTestDocument.javaTestDocument.tags.description.path() shouldBe "tags.description"
+      should("correctly resolve field paths for both external and nested classes") {
+        // External class field paths
+        MetaJavaTestDocument.javaTestDocument.tags.name.path() shouldBe "tags.name"
+        MetaJavaTestDocument.javaTestDocument.tags.weight.path() shouldBe "tags.weight"
+        MetaJavaTestDocument.javaTestDocument.tags.description.path() shouldBe "tags.description"
 
-      // Nested class field paths (different field names)
-      MetaJavaTestDocument.javaTestDocument.tags2.tagName.path() shouldBe "tags2.tagName"
-      MetaJavaTestDocument.javaTestDocument.tags2.size.path() shouldBe "tags2.size"
+        // Nested class field paths (different field names)
+        MetaJavaTestDocument.javaTestDocument.tags2.tagName.path() shouldBe "tags2.tagName"
+        MetaJavaTestDocument.javaTestDocument.tags2.size.path() shouldBe "tags2.size"
 
-      // Field paths verified above
-    }
-  })
+        // Field paths verified above
+      }
+    },
+  )

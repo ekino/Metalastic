@@ -39,7 +39,7 @@ class MetalasticPlugin : Plugin<Project> {
         configureKspArgs(project, extension)
       } else {
         project.logger.warn(
-          "Metalastic: KSP plugin not found. Please add it to your plugins block: id(\"com.google.devtools.ksp\") version \"<version>\""
+          "Metalastic: KSP plugin not found. Please add it to your plugins block: id(\"com.google.devtools.ksp\") version \"<version>\"",
         )
       }
     }
@@ -54,13 +54,13 @@ class MetalasticPlugin : Plugin<Project> {
         // Add core implementation dependency
         add("implementation", "${PluginConstants.Dependencies.CORE_ARTIFACT}:$version")
         project.logger.info(
-          "Metalastic: Added core dependency: ${PluginConstants.Dependencies.CORE_ARTIFACT}:$version"
+          "Metalastic: Added core dependency: ${PluginConstants.Dependencies.CORE_ARTIFACT}:$version",
         )
 
         // Add processor KSP dependency (now safe without version conflicts)
         add("ksp", "${PluginConstants.Dependencies.PROCESSOR_ARTIFACT}:$version")
         project.logger.info(
-          "Metalastic: Added processor dependency: ksp(\"${PluginConstants.Dependencies.PROCESSOR_ARTIFACT}:$version\")"
+          "Metalastic: Added processor dependency: ksp(\"${PluginConstants.Dependencies.PROCESSOR_ARTIFACT}:$version\")",
         )
       }
     } else {
@@ -329,7 +329,7 @@ class MetalasticPlugin : Plugin<Project> {
           features.generateJavaCompatibility.get().toString(),
         )
         project.logger.info(
-          "Metalastic: Set KSP arg ${PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY} = ${features.generateJavaCompatibility.get()}"
+          "Metalastic: Set KSP arg ${PluginConstants.Features.KSP_ARG_JAVA_COMPATIBILITY} = ${features.generateJavaCompatibility.get()}",
         )
       }
       if (features.generatePrivateClassMetamodels.isPresent) {
@@ -349,7 +349,7 @@ class MetalasticPlugin : Plugin<Project> {
           reporting.outputPath.get(),
         )
         project.logger.info(
-          "Metalastic: Set KSP arg ${PluginConstants.Reporting.KSP_ARG_REPORTING_PATH} = ${reporting.outputPath.get()}"
+          "Metalastic: Set KSP arg ${PluginConstants.Reporting.KSP_ARG_REPORTING_PATH} = ${reporting.outputPath.get()}",
         )
       }
 

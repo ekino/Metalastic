@@ -14,6 +14,6 @@ fun TypeSpec.Builder.addGeneratedAnnotation() = apply {
   addAnnotation(
     AnnotationSpec.builder(Generated::class)
       .addMember("%S, date=%S", QClassGenerator.SYMBOL_PROCESSOR_FQN, currentTime)
-      .build()
+      .build(),
   )
 }

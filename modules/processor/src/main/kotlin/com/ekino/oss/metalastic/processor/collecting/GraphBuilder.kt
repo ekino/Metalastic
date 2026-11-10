@@ -114,7 +114,7 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
 
   /** Second pass: Build QClass models with parent-child relationships, but without fields. */
   private fun Collection<KSClassDeclaration>.toGraphWithoutFields(
-    classPrefix: String
+    classPrefix: String,
   ): MetalasticGraph {
     val graphWithoutFields = MetalasticGraph()
 
@@ -125,7 +125,7 @@ class GraphBuilder(val resolver: Resolver, val options: ProcessorOptions) {
         modelsByNestingOrder.addAll(
           filter {
             it.parentDeclaration?.qualifiedName?.asString() == next.qualifiedName?.asString()
-          }
+          },
         )
       }
     }

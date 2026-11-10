@@ -23,10 +23,10 @@ abstract class FeaturesConfiguration {
   init {
     // Set up defaults to match existing processor behavior
     generateJavaCompatibility.convention(
-      PluginConstants.Features.DEFAULT_GENERATE_JAVA_COMPATIBILITY
+      PluginConstants.Features.DEFAULT_GENERATE_JAVA_COMPATIBILITY,
     )
     generatePrivateClassMetamodels.convention(
-      PluginConstants.Features.DEFAULT_GENERATE_PRIVATE_CLASS_METAMODELS
+      PluginConstants.Features.DEFAULT_GENERATE_PRIVATE_CLASS_METAMODELS,
     )
   }
 }

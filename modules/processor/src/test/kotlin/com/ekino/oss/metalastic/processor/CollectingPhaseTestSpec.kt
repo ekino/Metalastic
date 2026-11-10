@@ -32,348 +32,351 @@ import org.springframework.data.elasticsearch.annotations.FieldType
  * - Nested Class Handling: Proper handling of Object/Nested field types
  */
 class CollectingPhaseTestSpec :
-  ShouldSpec({
-    should("successfully collect simple document with all fields") {
-      val graph =
-        ProcessorTestBuilder.withSource(
-            TestDataSources.simpleDocumentWithAllFieldTypeExceptObjectAndNested()
-          )
-          .testMetalasticGraph()
+  ShouldSpec(
+    {
+      should("successfully collect simple document with all fields") {
+        val graph =
+          ProcessorTestBuilder.withSource(
+              TestDataSources.simpleDocumentWithAllFieldTypeExceptObjectAndNested(),
+            )
+            .testMetalasticGraph()
 
-      graph.documentModels().shouldHaveSize(1)
+        graph.documentModels().shouldHaveSize(1)
 
-      val documentModel = graph.documentModels().first()
-      documentModel.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
-        it.qClassName shouldBe "MetaSimpleDocument"
-        it.fullyQualifiedName shouldBe "com.example.test.MetaSimpleDocument"
+        val documentModel = graph.documentModels().first()
+        documentModel.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
+          it.qClassName shouldBe "MetaSimpleDocument"
+          it.fullyQualifiedName shouldBe "com.example.test.MetaSimpleDocument"
+        }
+
+        documentModel.fields shouldHaveSize
+          FieldType.entries.filterNot { it == FieldType.Object || it == FieldType.Nested }.size
+
+        fun FieldType.toFieldName() = "field${this.name}"
+
+        documentModel.fields
+          .associateBy { fieldModel ->
+            FieldType.entries.first { it.toFieldName() == fieldModel.name }
+          }
+          .onEach { (fieldType, fieldModel) ->
+            fieldModel.name shouldBe fieldType.toFieldName()
+            fieldModel.fieldType shouldBe fieldType
+          }
       }
 
-      documentModel.fields shouldHaveSize
-        FieldType.entries.filterNot { it == FieldType.Object || it == FieldType.Nested }.size
+      should("successfully collect complex document with multiple nesting levels") {
+        val graph =
+          ProcessorTestBuilder.withSource(TestDataSources.complexDocument()).testMetalasticGraph()
 
-      fun FieldType.toFieldName() = "field${this.name}"
+        graph.documentModels().shouldHaveSize(1)
+        graph.nestedModels() shouldHaveSize 5
 
-      documentModel.fields
-        .associateBy { fieldModel ->
-          FieldType.entries.first { it.toFieldName() == fieldModel.name }
+        val documentModel = graph.documentModels().first()
+
+        documentModel.qClassName shouldBe "MetaComplexDocument"
+        documentModel.fields shouldHaveSize 3 // id, person, orders
+
+        // Verify deep nested class structure is discovered
+        documentModel.nestedClasses().size shouldBe 2
+        documentModel
+          .nestedClasses()
+          .map { it.sourceClassDeclaration.simpleName.asString() }
+          .shouldContainInOrder("Person", "Order")
+
+        val person =
+          documentModel.nestedClasses().firstOrNull {
+            it.sourceClassDeclaration.simpleName.asString() == "Person"
+          }
+
+        val order =
+          documentModel.nestedClasses().firstOrNull {
+            it.sourceClassDeclaration.simpleName.asString() == "Order"
+          }
+
+        person.shouldNotBeNull {
+          nestedClasses().size shouldBe 1
+          nestedClasses().first().should { contact ->
+            contact.sourceClassDeclaration.simpleName.asString() shouldBe "Contact"
+            contact.nestedClasses().size shouldBe 1
+            contact.nestedClasses().first().should { address ->
+              address.sourceClassDeclaration.simpleName.asString() shouldBe "Address"
+              address.nestedClasses().shouldBeEmpty()
+            }
+          }
         }
-        .onEach { (fieldType, fieldModel) ->
-          fieldModel.name shouldBe fieldType.toFieldName()
-          fieldModel.fieldType shouldBe fieldType
-        }
-    }
-
-    should("successfully collect complex document with multiple nesting levels") {
-      val graph =
-        ProcessorTestBuilder.withSource(TestDataSources.complexDocument()).testMetalasticGraph()
-
-      graph.documentModels().shouldHaveSize(1)
-      graph.nestedModels() shouldHaveSize 5
-
-      val documentModel = graph.documentModels().first()
-
-      documentModel.qClassName shouldBe "MetaComplexDocument"
-      documentModel.fields shouldHaveSize 3 // id, person, orders
-
-      // Verify deep nested class structure is discovered
-      documentModel.nestedClasses().size shouldBe 2
-      documentModel
-        .nestedClasses()
-        .map { it.sourceClassDeclaration.simpleName.asString() }
-        .shouldContainInOrder("Person", "Order")
-
-      val person =
-        documentModel.nestedClasses().firstOrNull {
-          it.sourceClassDeclaration.simpleName.asString() == "Person"
-        }
-
-      val order =
-        documentModel.nestedClasses().firstOrNull {
-          it.sourceClassDeclaration.simpleName.asString() == "Order"
-        }
-
-      person.shouldNotBeNull {
-        nestedClasses().size shouldBe 1
-        nestedClasses().first().should { contact ->
-          contact.sourceClassDeclaration.simpleName.asString() shouldBe "Contact"
-          contact.nestedClasses().size shouldBe 1
-          contact.nestedClasses().first().should { address ->
-            address.sourceClassDeclaration.simpleName.asString() shouldBe "Address"
-            address.nestedClasses().shouldBeEmpty()
+        order.shouldNotBeNull {
+          nestedClasses().size shouldBe 1
+          nestedClasses().first().should { orderItem ->
+            orderItem.sourceClassDeclaration.simpleName.asString() shouldBe "OrderItem"
+            orderItem.nestedClasses().shouldBeEmpty()
           }
         }
       }
-      order.shouldNotBeNull {
-        nestedClasses().size shouldBe 1
-        nestedClasses().first().should { orderItem ->
-          orderItem.sourceClassDeclaration.simpleName.asString() shouldBe "OrderItem"
-          orderItem.nestedClasses().shouldBeEmpty()
+
+      should("handle MultiField annotations correctly with enhanced field models") {
+        val graph =
+          ProcessorTestBuilder.withSource(TestDataSources.multiFieldDocument())
+            .testMetalasticGraph()
+
+        graph.documentModels() shouldHaveSize 1
+        val documentModel = graph.documentModels().first()
+
+        documentModel.qClassName shouldBe "MetaMultiFieldDocument"
+        documentModel.fields shouldHaveSize 3 // id, multiName, multiCode
+
+        // Find MultiField
+        val multiNameField = documentModel.fields.find { it.name == "multiName" }
+        multiNameField.shouldNotBeNull {
+          this should beInstanceOf<MultiFieldModel>()
+          this.sourceDeclaration.simpleName.asString() shouldBe "multiName"
         }
       }
-    }
 
-    should("handle MultiField annotations correctly with enhanced field models") {
-      val graph =
-        ProcessorTestBuilder.withSource(TestDataSources.multiFieldDocument()).testMetalasticGraph()
+      should("handle inner class annotated with @Document correctly") {
+        val graph =
+          ProcessorTestBuilder.withSource(TestDataSources.outerDocument()).testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
-      val documentModel = graph.documentModels().first()
+        graph.documentModels() shouldHaveSize 2
 
-      documentModel.qClassName shouldBe "MetaMultiFieldDocument"
-      documentModel.fields shouldHaveSize 3 // id, multiName, multiCode
+        val outerDocumentModel =
+          graph.documentModels().find {
+            it.fullyQualifiedName == "com.example.dataset.MetaOuterDocument"
+          }
+        val innerDocumentModel =
+          graph.documentModels().find {
+            it.fullyQualifiedName == "com.example.dataset.MetaOuterDocument.MetaInnerDocument"
+          }
 
-      // Find MultiField
-      val multiNameField = documentModel.fields.find { it.name == "multiName" }
-      multiNameField.shouldNotBeNull {
-        this should beInstanceOf<MultiFieldModel>()
-        this.sourceDeclaration.simpleName.asString() shouldBe "multiName"
-      }
-    }
-
-    should("handle inner class annotated with @Document correctly") {
-      val graph =
-        ProcessorTestBuilder.withSource(TestDataSources.outerDocument()).testMetalasticGraph()
-
-      graph.documentModels() shouldHaveSize 2
-
-      val outerDocumentModel =
-        graph.documentModels().find {
-          it.fullyQualifiedName == "com.example.dataset.MetaOuterDocument"
+        outerDocumentModel.shouldNotBeNull {
+          this.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
+            it.qClassName shouldBe "MetaOuterDocument"
+            it.fields shouldHaveSize 1 //
+          }
         }
-      val innerDocumentModel =
-        graph.documentModels().find {
-          it.fullyQualifiedName == "com.example.dataset.MetaOuterDocument.MetaInnerDocument"
-        }
-
-      outerDocumentModel.shouldNotBeNull {
-        this.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
-          it.qClassName shouldBe "MetaOuterDocument"
-          it.fields shouldHaveSize 1 //
-        }
-      }
-      innerDocumentModel.shouldNotBeNull {
-        this.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
-          it.qClassName shouldBe "MetaInnerDocument" // Nested classes use simple names
-          it.fields shouldHaveSize 2
-          // Test that the inner document has a parent class (is nested)
-          it.sourceParentClass.shouldNotBeNull().qualifiedName?.asString() shouldBe
-            outerDocumentModel!!.sourceClassDeclaration.qualifiedName?.asString()
-          it.isNested shouldBe true
-          it.nestedClasses().singleOrNull() shouldNotBeNull
-            {
-              shouldBeInstanceOf<MetalasticGraph.ObjectClass> { nestedObject ->
-                nestedObject.fields.shouldHaveSize(1)
-                nestedObject.sourceParentClass.shouldNotBeNull()
-                nestedObject.sourceParentClass!!.simpleName.asString() shouldBe "InnerDocument"
-                nestedObject.qClassName shouldBe "NestedObject"
-                nestedObject.isNested shouldBe true
+        innerDocumentModel.shouldNotBeNull {
+          this.shouldBeInstanceOf<MetalasticGraph.DocumentClass> {
+            it.qClassName shouldBe "MetaInnerDocument" // Nested classes use simple names
+            it.fields shouldHaveSize 2
+            // Test that the inner document has a parent class (is nested)
+            it.sourceParentClass.shouldNotBeNull().qualifiedName?.asString() shouldBe
+              outerDocumentModel!!.sourceClassDeclaration.qualifiedName?.asString()
+            it.isNested shouldBe true
+            it.nestedClasses().singleOrNull() shouldNotBeNull
+              {
+                shouldBeInstanceOf<MetalasticGraph.ObjectClass> { nestedObject ->
+                  nestedObject.fields.shouldHaveSize(1)
+                  nestedObject.sourceParentClass.shouldNotBeNull()
+                  nestedObject.sourceParentClass!!.simpleName.asString() shouldBe "InnerDocument"
+                  nestedObject.qClassName shouldBe "NestedObject"
+                  nestedObject.isNested shouldBe true
+                }
               }
-            }
+          }
         }
       }
-    }
 
-    should("test SimpleDocument field collecting") {
-      val graph =
-        ProcessorTestBuilder.withSources(
-            TestDataSources.simpleDocument(),
-            TestDataSources.objectClass(),
-            TestDataSources.otherObjectClass(),
-          )
-          .testMetalasticGraph()
+      should("test SimpleDocument field collecting") {
+        val graph =
+          ProcessorTestBuilder.withSources(
+              TestDataSources.simpleDocument(),
+              TestDataSources.objectClass(),
+              TestDataSources.otherObjectClass(),
+            )
+            .testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
-    }
+        graph.documentModels() shouldHaveSize 1
+      }
 
-    should("test ExempleDocument field collecting") {
-      val graph =
-        ProcessorTestBuilder.withSources(
-            TestDataSources.exampleDocument(),
-            TestDataSources.nameCollision(),
-          )
-          .testMetalasticGraph()
+      should("test ExempleDocument field collecting") {
+        val graph =
+          ProcessorTestBuilder.withSources(
+              TestDataSources.exampleDocument(),
+              TestDataSources.nameCollision(),
+            )
+            .testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 2
-    }
+        graph.documentModels() shouldHaveSize 2
+      }
 
-    should("test TestDocument field collecting") {
-      val graph =
-        ProcessorTestBuilder.withSources(TestDataSources.testDocument()).testMetalasticGraph()
+      should("test TestDocument field collecting") {
+        val graph =
+          ProcessorTestBuilder.withSources(TestDataSources.testDocument()).testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
-    }
+        graph.documentModels() shouldHaveSize 1
+      }
 
-    should("test IndexPerson field collecting") {
-      val graph =
-        ProcessorTestBuilder.withSources(TestDataSources.indexPerson()).testMetalasticGraph()
+      should("test IndexPerson field collecting") {
+        val graph =
+          ProcessorTestBuilder.withSources(TestDataSources.indexPerson()).testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
-    }
+        graph.documentModels() shouldHaveSize 1
+      }
 
-    // Disabled: kctfork's bundled KSP2 does not surface Java field/record-component annotations
-    // (e.g. `@Field`) on the canonical-constructor parameters or accessor functions of Java
-    // sources, so the processor's record/Java-class field collection cannot run inside this test
-    // harness. The same scenarios are covered against real Gradle KSP2 in `:modules:test`
-    // (e.g. `JavaRecordDocumentSpec`), which exercises the actual KSP2 pipeline and passes.
-    xshould("test JavaTestDocument field collecting") {
-      val graph =
-        ProcessorTestBuilder.withSources(TestDataSources.javaTestDocument()).testMetalasticGraph()
+      // Disabled: kctfork's bundled KSP2 does not surface Java field/record-component annotations
+      // (e.g. `@Field`) on the canonical-constructor parameters or accessor functions of Java
+      // sources, so the processor's record/Java-class field collection cannot run inside this test
+      // harness. The same scenarios are covered against real Gradle KSP2 in `:modules:test`
+      // (e.g. `JavaRecordDocumentSpec`), which exercises the actual KSP2 pipeline and passes.
+      xshould("test JavaTestDocument field collecting") {
+        val graph =
+          ProcessorTestBuilder.withSources(TestDataSources.javaTestDocument()).testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
+        graph.documentModels() shouldHaveSize 1
 
-      val javaTestDocument = graph.documentModels().first()
-      javaTestDocument.qClassName shouldBe "MetaJavaTestDocument"
-      // JavaTestDocument should have only 1 inner class: JavaTag
-      val trueInnerClasses =
-        javaTestDocument.nestedClasses().filter {
-          it.sourceParentClass == javaTestDocument.sourceClassDeclaration
-        }
+        val javaTestDocument = graph.documentModels().first()
+        javaTestDocument.qClassName shouldBe "MetaJavaTestDocument"
+        // JavaTestDocument should have only 1 inner class: JavaTag
+        val trueInnerClasses =
+          javaTestDocument.nestedClasses().filter {
+            it.sourceParentClass == javaTestDocument.sourceClassDeclaration
+          }
 
-      trueInnerClasses shouldHaveSize 1 // Only JavaTag
-      trueInnerClasses.first().qClassName shouldBe "JavaTag"
+        trueInnerClasses shouldHaveSize 1 // Only JavaTag
+        trueInnerClasses.first().qClassName shouldBe "JavaTag"
 
-      // WithoutAnnotatedField and SomeInnerClass are inner classes of JavaAddress (external
-      // class)
-      // They should be in objectFields as they get their own Meta-class files
-      val withoutAnnotatedFieldModel =
-        graph.objectModels().find { it.qClassName == "WithoutAnnotatedField" }
-      withoutAnnotatedFieldModel.shouldNotBeNull()
+        // WithoutAnnotatedField and SomeInnerClass are inner classes of JavaAddress (external
+        // class)
+        // They should be in objectFields as they get their own Meta-class files
+        val withoutAnnotatedFieldModel =
+          graph.objectModels().find { it.qClassName == "WithoutAnnotatedField" }
+        withoutAnnotatedFieldModel.shouldNotBeNull()
 
-      val someInnerClassModel = graph.objectModels().find { it.qClassName == "SomeInnerClass" }
-      someInnerClassModel.shouldNotBeNull()
+        val someInnerClassModel = graph.objectModels().find { it.qClassName == "SomeInnerClass" }
+        someInnerClassModel.shouldNotBeNull()
 
-      // JavaAddress should also be in objectFields
-      val javaAddressModel = graph.objectModels().find { it.qClassName == "MetaJavaAddress" }
-      javaAddressModel.shouldNotBeNull()
-    }
+        // JavaAddress should also be in objectFields
+        val javaAddressModel = graph.objectModels().find { it.qClassName == "MetaJavaAddress" }
+        javaAddressModel.shouldNotBeNull()
+      }
 
-    // Disabled: see note above on kctfork KSP2 + Java record components. Real-KSP2 coverage in
-    // `:modules:test` (`JavaRecordDocumentSpec`).
-    xshould("collect record components as fields for Java record @Document") {
-      val graph =
-        ProcessorTestBuilder.withSources(
-            TestDataSources.javaRecordDocument(),
-            TestDataSources.javaRecordAddress(),
-            TestDataSources.javaRecordTag(),
-          )
-          .testMetalasticGraph()
+      // Disabled: see note above on kctfork KSP2 + Java record components. Real-KSP2 coverage in
+      // `:modules:test` (`JavaRecordDocumentSpec`).
+      xshould("collect record components as fields for Java record @Document") {
+        val graph =
+          ProcessorTestBuilder.withSources(
+              TestDataSources.javaRecordDocument(),
+              TestDataSources.javaRecordAddress(),
+              TestDataSources.javaRecordTag(),
+            )
+            .testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
-      val recordDocument = graph.documentModels().first()
-      recordDocument.qClassName shouldBe "MetaJavaRecordDocument"
+        graph.documentModels() shouldHaveSize 1
+        val recordDocument = graph.documentModels().first()
+        recordDocument.qClassName shouldBe "MetaJavaRecordDocument"
 
-      val fieldsByName = recordDocument.fields.associateBy { it.name }
-      // `noField` has no @Field/@MultiField — must not become a field
-      fieldsByName.keys shouldBe setOf("id", "title", "code", "address", "tags")
-      fieldsByName.getValue("id").fieldType shouldBe FieldType.Keyword
-      fieldsByName.getValue("title").fieldType shouldBe FieldType.Text
-      fieldsByName.getValue("address").fieldType shouldBe FieldType.Object
-      fieldsByName.getValue("tags").fieldType shouldBe FieldType.Nested
+        val fieldsByName = recordDocument.fields.associateBy { it.name }
+        // `noField` has no @Field/@MultiField — must not become a field
+        fieldsByName.keys shouldBe setOf("id", "title", "code", "address", "tags")
+        fieldsByName.getValue("id").fieldType shouldBe FieldType.Keyword
+        fieldsByName.getValue("title").fieldType shouldBe FieldType.Text
+        fieldsByName.getValue("address").fieldType shouldBe FieldType.Object
+        fieldsByName.getValue("tags").fieldType shouldBe FieldType.Nested
 
-      val codeField = fieldsByName.getValue("code")
-      codeField.shouldBeInstanceOf<MultiFieldModel>()
-      codeField.fieldType shouldBe FieldType.Keyword
-      codeField.innerFields.map { it.suffix } shouldBe listOf("search")
+        val codeField = fieldsByName.getValue("code")
+        codeField.shouldBeInstanceOf<MultiFieldModel>()
+        codeField.fieldType shouldBe FieldType.Keyword
+        codeField.innerFields.map { it.suffix } shouldBe listOf("search")
 
-      val addressModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordAddress" }
-      addressModel.shouldNotBeNull()
-      addressModel.fields.map { it.name }.toSet() shouldBe setOf("street", "city")
+        val addressModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordAddress" }
+        addressModel.shouldNotBeNull()
+        addressModel.fields.map { it.name }.toSet() shouldBe setOf("street", "city")
 
-      val tagModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordTag" }
-      tagModel.shouldNotBeNull()
-      tagModel.fields.map { it.name }.toSet() shouldBe setOf("name", "weight")
-    }
+        val tagModel = graph.objectModels().find { it.qClassName == "MetaJavaRecordTag" }
+        tagModel.shouldNotBeNull()
+        tagModel.fields.map { it.name }.toSet() shouldBe setOf("name", "weight")
+      }
 
-    // Disabled: see note above on kctfork KSP2 + Java record components. Real-KSP2 coverage in
-    // `:modules:test` (`JavaRecordDocumentSpec`).
-    xshould("collect record components and interface-getter fields together") {
-      val graph =
-        ProcessorTestBuilder.withSources(
-            TestDataSources.recordWithInterface(),
-            TestDataSources.identifiableInterface(),
-          )
-          .testMetalasticGraph()
+      // Disabled: see note above on kctfork KSP2 + Java record components. Real-KSP2 coverage in
+      // `:modules:test` (`JavaRecordDocumentSpec`).
+      xshould("collect record components and interface-getter fields together") {
+        val graph =
+          ProcessorTestBuilder.withSources(
+              TestDataSources.recordWithInterface(),
+              TestDataSources.identifiableInterface(),
+            )
+            .testMetalasticGraph()
 
-      graph.documentModels() shouldHaveSize 1
-      val recordDocument = graph.documentModels().first()
-      recordDocument.qClassName shouldBe "MetaRecordWithInterface"
+        graph.documentModels() shouldHaveSize 1
+        val recordDocument = graph.documentModels().first()
+        recordDocument.qClassName shouldBe "MetaRecordWithInterface"
 
-      // id + description from the record header, displayName from the interface getter
-      val fieldsByName = recordDocument.fields.associateBy { it.name }
-      fieldsByName.keys shouldBe setOf("id", "description", "displayName")
-      fieldsByName.getValue("id").fieldType shouldBe FieldType.Keyword
-      fieldsByName.getValue("description").fieldType shouldBe FieldType.Text
-      fieldsByName.getValue("displayName").fieldType shouldBe FieldType.Keyword
-    }
+        // id + description from the record header, displayName from the interface getter
+        val fieldsByName = recordDocument.fields.associateBy { it.name }
+        fieldsByName.keys shouldBe setOf("id", "description", "displayName")
+        fieldsByName.getValue("id").fieldType shouldBe FieldType.Keyword
+        fieldsByName.getValue("description").fieldType shouldBe FieldType.Text
+        fieldsByName.getValue("displayName").fieldType shouldBe FieldType.Keyword
+      }
 
-    should("exclude private classes by default") {
-      val graph =
-        ProcessorTestBuilder.withKotlinSource(
-            "TestPrivateClass.kt",
-            """
-            package com.example.test
-            import org.springframework.data.elasticsearch.annotations.Document
-            import org.springframework.data.elasticsearch.annotations.Field
-            import org.springframework.data.elasticsearch.annotations.FieldType
+      should("exclude private classes by default") {
+        val graph =
+          ProcessorTestBuilder.withKotlinSource(
+              "TestPrivateClass.kt",
+              """
+              package com.example.test
+              import org.springframework.data.elasticsearch.annotations.Document
+              import org.springframework.data.elasticsearch.annotations.Field
+              import org.springframework.data.elasticsearch.annotations.FieldType
 
-            @Document(indexName = "public_doc")
-            class PublicDocument {
-                @Field(type = FieldType.Keyword)
-                val id: String = ""
-            }
+              @Document(indexName = "public_doc")
+              class PublicDocument {
+                  @Field(type = FieldType.Keyword)
+                  val id: String = ""
+              }
 
-            @Document(indexName = "private_doc")
-            private class PrivateDocument {
-                @Field(type = FieldType.Keyword)
-                val id: String = ""
-            }
-            """
-              .trimIndent(),
-          )
-          .testMetalasticGraph()
+              @Document(indexName = "private_doc")
+              private class PrivateDocument {
+                  @Field(type = FieldType.Keyword)
+                  val id: String = ""
+              }
+              """
+                .trimIndent(),
+            )
+            .testMetalasticGraph()
 
-      // Should only have the public document, private document should be excluded
-      graph.documentModels() shouldHaveSize 1
-      graph.documentModels().first().qClassName shouldBe "MetaPublicDocument"
+        // Should only have the public document, private document should be excluded
+        graph.documentModels() shouldHaveSize 1
+        graph.documentModels().first().qClassName shouldBe "MetaPublicDocument"
 
-      // Verify private document is not present
-      graph.models().find { it.qClassName == "MetaPrivateDocument" } shouldBe null
-    }
+        // Verify private document is not present
+        graph.models().find { it.qClassName == "MetaPrivateDocument" } shouldBe null
+      }
 
-    should("include private classes when option is enabled") {
-      val graph =
-        ProcessorTestBuilder.withKotlinSource(
-            "TestPrivateClass.kt",
-            """
-            package com.example.test
-            import org.springframework.data.elasticsearch.annotations.Document
-            import org.springframework.data.elasticsearch.annotations.Field
-            import org.springframework.data.elasticsearch.annotations.FieldType
+      should("include private classes when option is enabled") {
+        val graph =
+          ProcessorTestBuilder.withKotlinSource(
+              "TestPrivateClass.kt",
+              """
+              package com.example.test
+              import org.springframework.data.elasticsearch.annotations.Document
+              import org.springframework.data.elasticsearch.annotations.Field
+              import org.springframework.data.elasticsearch.annotations.FieldType
 
-            @Document(indexName = "public_doc")
-            class PublicDocument {
-                @Field(type = FieldType.Keyword)
-                val id: String = ""
-            }
+              @Document(indexName = "public_doc")
+              class PublicDocument {
+                  @Field(type = FieldType.Keyword)
+                  val id: String = ""
+              }
 
-            @Document(indexName = "private_doc")
-            private class PrivateDocument {
-                @Field(type = FieldType.Keyword)
-                val id: String = ""
-            }
-            """
-              .trimIndent(),
-          )
-          .withOption("metalastic.generatePrivateClassMetamodels", "true")
-          .testMetalasticGraph()
+              @Document(indexName = "private_doc")
+              private class PrivateDocument {
+                  @Field(type = FieldType.Keyword)
+                  val id: String = ""
+              }
+              """
+                .trimIndent(),
+            )
+            .withOption("metalastic.generatePrivateClassMetamodels", "true")
+            .testMetalasticGraph()
 
-      // Should have both documents when option is enabled
-      graph.documentModels() shouldHaveSize 2
+        // Should have both documents when option is enabled
+        graph.documentModels() shouldHaveSize 2
 
-      val publicDoc = graph.documentModels().find { it.qClassName == "MetaPublicDocument" }
-      publicDoc.shouldNotBeNull()
+        val publicDoc = graph.documentModels().find { it.qClassName == "MetaPublicDocument" }
+        publicDoc.shouldNotBeNull()
 
-      val privateDoc = graph.documentModels().find { it.qClassName == "MetaPrivateDocument" }
-      privateDoc.shouldNotBeNull()
-    }
-  })
+        val privateDoc = graph.documentModels().find { it.qClassName == "MetaPrivateDocument" }
+        privateDoc.shouldNotBeNull()
+      }
+    },
+  )
