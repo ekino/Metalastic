@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.11] - 2026-11-10
+
+### Fixed
+
+- **Processor:** `Ip_Range` and `Rank_Features` fields now map to their dedicated field classes (#141)
+- **Docs:** Keep the API reference out of the sidebar to avoid a SPA 404 (#146)
+- **Docs:** Show the latest release tag as the API reference version (#144)
+- **Docs:** Override vite to 6.4.3 to clear npm security alerts (#142)
+
+### Added
+
+- **Docs:** Dokka-generated API reference and documented null/empty DSL semantics (#140)
+
+### Changed
+
+- **Dependencies:** Kotlin 2.4.10 → 2.4.21 (#136, #158)
+- **Dependencies:** KSP 2.3.11 → 2.3.13 (#136, #158)
+- **Dependencies:** KotlinPoet 2.3.0 → 2.4.0 (#137, #158)
+- **Dependencies:** Spotless 8.9.0 → 8.10.4 (#132, #138, #149, #152)
+- **Dependencies:** Dokka 2.3.0 (#157)
+- **Dependencies:** Gradle Plugin Publish 2.1.1 → 2.2.1 (#139)
+- **Dependencies:** Gradle Wrapper 9.7.0 → 9.9.0 (#134, #148, #155)
+- **Dependencies:** Guava 33.6.0-jre → 33.8.0-jre (#133, #150, #156)
+- **Dependencies:** kotlin-compile-testing 0.13.0 → 0.14.0 (#147)
+- **Dependencies:** JUnit Jupiter 6.1.2 → 6.1.3 (#131)
+- **Dependencies:** PostCSS (docs) 8.5.15 → 8.5.26 (#130)
+- **Docs:** Dropped the Gradle plugin from the API reference (#145)
+- **CI:** actions/setup-java v5 → v6 (#135)
+- **CI:** gradle/actions/setup-gradle v5 → v6 (#143)
+
 ## [1.2.10] - 2026-08-10
 
 ### Changed
@@ -206,7 +236,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.10...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.11...HEAD
+[1.2.11]: https://github.com/ekino/Metalastic/compare/v1.2.10...v1.2.11
 [1.2.10]: https://github.com/ekino/Metalastic/compare/v1.2.9...v1.2.10
 [1.2.9]: https://github.com/ekino/Metalastic/compare/v1.2.8...v1.2.9
 [1.2.8]: https://github.com/ekino/Metalastic/compare/v1.2.7...v1.2.8
