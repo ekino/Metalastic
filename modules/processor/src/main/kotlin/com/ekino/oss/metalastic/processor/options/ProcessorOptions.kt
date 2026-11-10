@@ -36,7 +36,7 @@ data class ProcessorOptions(
 
 /** Creates MetamodelsConfiguration with options parsed from KSP options. */
 private fun createMetamodelsConfiguration(
-  kspOptions: Map<String, String>
+  kspOptions: Map<String, String>,
 ): MetamodelsConfiguration {
   return MetamodelsConfiguration(
     packageOverride = kspOptions[Metamodels.PACKAGE_OVERRIDE],
@@ -65,7 +65,7 @@ private fun extractSourceSetPackageOverrides(kspOptions: Map<String, String>): M
 
 /** Extract source set specific className overrides from KSP options. */
 private fun extractSourceSetClassNameOverrides(
-  kspOptions: Map<String, String>
+  kspOptions: Map<String, String>,
 ): Map<String, String> {
   return kspOptions
     .filterKeys {
@@ -82,7 +82,7 @@ private fun extractSourceSetClassNameOverrides(
 
 /** Extract source set specific classPrefix overrides from KSP options. */
 private fun extractSourceSetClassPrefixOverrides(
-  kspOptions: Map<String, String>
+  kspOptions: Map<String, String>,
 ): Map<String, String> {
   return kspOptions
     .filterKeys {

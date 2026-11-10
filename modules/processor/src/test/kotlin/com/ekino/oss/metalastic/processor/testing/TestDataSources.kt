@@ -55,7 +55,7 @@ object TestDataSources {
           @Document(indexName = "simple")
           data class SimpleDocument(
           """
-            .trimIndent()
+            .trimIndent(),
         )
         FieldType.entries
           .filterNot { it == FieldType.Object || it == FieldType.Nested }

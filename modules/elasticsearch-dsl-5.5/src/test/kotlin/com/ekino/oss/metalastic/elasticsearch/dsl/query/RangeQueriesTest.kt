@@ -18,21 +18,22 @@ import io.kotest.core.spec.style.ShouldSpec
  * Migrated from EnhancedDslCompositionTest.kt
  */
 class RangeQueriesTest :
-  ShouldSpec({
-    val meta = ComprehensiveTestMetamodel
+  ShouldSpec(
+    {
+      val meta = ComprehensiveTestMetamodel
 
-    context("greaterThanEqualTo query") {
-      should("create range query with gte") {
-        val builder = BoolQuery.Builder()
+      context("greaterThanEqualTo query") {
+        should("create range query with gte") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl { must + { meta.age greaterThanEqualTo 5 } }
+          builder.boolQueryDsl { must + { meta.age greaterThanEqualTo 5 } }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -40,39 +41,39 @@ class RangeQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
-
-      should("filter null values") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl {
-          must +
-            {
-              val nullInt: Int? = null
-              meta.age greaterThanEqualTo nullInt
-              meta.country term "France"
-            }
+      """,
+            )
         }
 
-        val boolQuery = builder.build()
-        boolQuery.shouldHaveStructure(mustCount = 1)
+        should("filter null values") {
+          val builder = BoolQuery.Builder()
+
+          builder.boolQueryDsl {
+            must +
+              {
+                val nullInt: Int? = null
+                meta.age greaterThanEqualTo nullInt
+                meta.country term "France"
+              }
+          }
+
+          val boolQuery = builder.build()
+          boolQuery.shouldHaveStructure(mustCount = 1)
+        }
       }
-    }
 
-    context("lowerThanEqualTo query") {
-      should("create range query with lte") {
-        val builder = BoolQuery.Builder()
+      context("lowerThanEqualTo query") {
+        should("create range query with lte") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl { must + { meta.age lowerThanEqualTo 10 } }
+          builder.boolQueryDsl { must + { meta.age lowerThanEqualTo 10 } }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -80,39 +81,39 @@ class RangeQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
-
-      should("filter null values") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl {
-          must +
-            {
-              val nullInt: Int? = null
-              meta.age lowerThanEqualTo nullInt
-              meta.country term "France"
-            }
+      """,
+            )
         }
 
-        val boolQuery = builder.build()
-        boolQuery.shouldHaveStructure(mustCount = 1)
+        should("filter null values") {
+          val builder = BoolQuery.Builder()
+
+          builder.boolQueryDsl {
+            must +
+              {
+                val nullInt: Int? = null
+                meta.age lowerThanEqualTo nullInt
+                meta.country term "France"
+              }
+          }
+
+          val boolQuery = builder.build()
+          boolQuery.shouldHaveStructure(mustCount = 1)
+        }
       }
-    }
 
-    context("range with Range object") {
-      should("work with closedOpen range") {
-        val builder = BoolQuery.Builder()
+      context("range with Range object") {
+        should("work with closedOpen range") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl { must + { meta.age range Range.closedOpen(1, 100) } }
+          builder.boolQueryDsl { must + { meta.age range Range.closedOpen(1, 100) } }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -120,21 +121,21 @@ class RangeQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
+      """,
+            )
+        }
 
-      should("work with closed range") {
-        val builder = BoolQuery.Builder()
+        should("work with closed range") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl { must + { meta.age range Range.closed(5, 10) } }
+          builder.boolQueryDsl { must + { meta.age range Range.closed(5, 10) } }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -142,29 +143,29 @@ class RangeQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
-    }
-
-    context("combined range queries") {
-      should("support multiple range conditions") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl {
-          must +
-            {
-              meta.age.greaterThanEqualTo(5)
-              meta.age.lowerThanEqualTo(10)
-            }
+      """,
+            )
         }
+      }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+      context("combined range queries") {
+        should("support multiple range conditions") {
+          val builder = BoolQuery.Builder()
 
-        json should
-          jsonLenientMatcher(
-            """
+          builder.boolQueryDsl {
+            must +
+              {
+                meta.age.greaterThanEqualTo(5)
+                meta.age.lowerThanEqualTo(10)
+              }
+          }
+
+          val query = Query(builder.build())
+          val json = query.toJsonString()
+
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -173,8 +174,9 @@ class RangeQueriesTest :
             ]
           }
         }
-      """
-          )
+      """,
+            )
+        }
       }
-    }
-  })
+    },
+  )

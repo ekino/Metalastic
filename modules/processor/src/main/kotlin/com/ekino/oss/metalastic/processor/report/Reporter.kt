@@ -106,7 +106,7 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
       appendLine("# ${CoreConstants.PRODUCT_NAME} Processor Report")
       appendLine()
       appendLine(
-        "Generated: ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}"
+        "Generated: ${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))}",
       )
       appendLine()
 
@@ -144,7 +144,7 @@ class DefaultReporter(options: ProcessorOptions, private val kspLogger: KSPLogge
 
   private fun logMessage(level: ReporterLevel, message: String) {
     loggedMessages.add(
-      LoggedMessage(level = level, message = message, timestamp = LocalDateTime.now())
+      LoggedMessage(level = level, message = message, timestamp = LocalDateTime.now()),
     )
   }
 

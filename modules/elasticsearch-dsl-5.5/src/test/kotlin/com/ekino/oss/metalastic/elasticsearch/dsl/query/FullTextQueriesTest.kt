@@ -19,21 +19,22 @@ import io.kotest.matchers.string.shouldContain
  * BasicEnhancedDslTest.kt and DslJsonOutputTest.kt
  */
 class FullTextQueriesTest :
-  ShouldSpec({
-    val meta = ComprehensiveTestMetamodel
+  ShouldSpec(
+    {
+      val meta = ComprehensiveTestMetamodel
 
-    context("match query") {
-      should("work with String infix operator") {
-        val builder = BoolQuery.Builder()
+      context("match query") {
+        should("work with String infix operator") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl { must + { meta.name match "test" } }
+          builder.boolQueryDsl { must + { meta.name match "test" } }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -41,71 +42,71 @@ class FullTextQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
-
-      should("work with String function syntax") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl { must + { meta.name.match("John Doe") } }
-
-        val boolQuery = builder.build()
-        boolQuery.shouldHaveStructure(mustCount = 1)
-
-        val json = Query(boolQuery).toJsonString()
-        json shouldContain """"match":{"name":{"query":"John Doe"}}"""
-      }
-
-      should("filter null values") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl {
-          must +
-            {
-              val nullString: String? = null
-              meta.name match nullString
-              meta.country term "France"
-            }
+      """,
+            )
         }
 
-        val boolQuery = builder.build()
-        boolQuery.shouldHaveStructure(mustCount = 1)
+        should("work with String function syntax") {
+          val builder = BoolQuery.Builder()
 
-        val json = Query(boolQuery).toJsonString()
-        json shouldContain """"term":{"country":{"value":"France"}}"""
-        json.contains(""""match":{"name"""") shouldBe false
-      }
+          builder.boolQueryDsl { must + { meta.name.match("John Doe") } }
 
-      should("filter blank values") {
-        val builder = BoolQuery.Builder()
+          val boolQuery = builder.build()
+          boolQuery.shouldHaveStructure(mustCount = 1)
 
-        builder.boolQueryDsl {
-          must +
-            {
-              meta.name match ""
-              meta.name match "   "
-              meta.country term "France"
-            }
+          val json = Query(boolQuery).toJsonString()
+          json shouldContain """"match":{"name":{"query":"John Doe"}}"""
         }
 
-        val boolQuery = builder.build()
-        boolQuery.shouldHaveStructure(mustCount = 1)
+        should("filter null values") {
+          val builder = BoolQuery.Builder()
+
+          builder.boolQueryDsl {
+            must +
+              {
+                val nullString: String? = null
+                meta.name match nullString
+                meta.country term "France"
+              }
+          }
+
+          val boolQuery = builder.build()
+          boolQuery.shouldHaveStructure(mustCount = 1)
+
+          val json = Query(boolQuery).toJsonString()
+          json shouldContain """"term":{"country":{"value":"France"}}"""
+          json.contains(""""match":{"name"""") shouldBe false
+        }
+
+        should("filter blank values") {
+          val builder = BoolQuery.Builder()
+
+          builder.boolQueryDsl {
+            must +
+              {
+                meta.name match ""
+                meta.name match "   "
+                meta.country term "France"
+              }
+          }
+
+          val boolQuery = builder.build()
+          boolQuery.shouldHaveStructure(mustCount = 1)
+        }
       }
-    }
 
-    context("matchPhrase query") {
-      should("work with String infix operator") {
-        val builder = BoolQuery.Builder()
+      context("matchPhrase query") {
+        should("work with String infix operator") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl { must + { meta.name matchPhrase "John Doe Smith" } }
+          builder.boolQueryDsl { must + { meta.name matchPhrase "John Doe Smith" } }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -113,25 +114,26 @@ class FullTextQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
-
-      should("filter null and blank values") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl {
-          must +
-            {
-              val nullString: String? = null
-              meta.name matchPhrase nullString
-              meta.name matchPhrase ""
-              meta.country term "France"
-            }
+      """,
+            )
         }
 
-        val boolQuery = builder.build()
-        boolQuery.shouldHaveStructure(mustCount = 1)
+        should("filter null and blank values") {
+          val builder = BoolQuery.Builder()
+
+          builder.boolQueryDsl {
+            must +
+              {
+                val nullString: String? = null
+                meta.name matchPhrase nullString
+                meta.name matchPhrase ""
+                meta.country term "France"
+              }
+          }
+
+          val boolQuery = builder.build()
+          boolQuery.shouldHaveStructure(mustCount = 1)
+        }
       }
-    }
-  })
+    },
+  )

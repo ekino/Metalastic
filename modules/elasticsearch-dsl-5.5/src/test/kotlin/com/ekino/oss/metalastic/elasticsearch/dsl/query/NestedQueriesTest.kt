@@ -13,32 +13,33 @@ import io.kotest.core.spec.style.ShouldSpec
 
 /** Tests for nested queries Migrated from EnhancedDslCompositionTest.kt */
 class NestedQueriesTest :
-  ShouldSpec({
-    val meta = ComprehensiveTestMetamodel
+  ShouldSpec(
+    {
+      val meta = ComprehensiveTestMetamodel
 
-    context("nested query") {
-      should("create nested query with bool composition") {
-        val builder = BoolQuery.Builder()
+      context("nested query") {
+        should("create nested query with bool composition") {
+          val builder = BoolQuery.Builder()
 
-        builder.boolQueryDsl {
-          must +
-            {
-              meta.reviews.nested {
-                must +
-                  {
-                    meta.reviews.author term "John"
-                    meta.reviews.score greaterThanEqualTo 4.0
-                  }
+          builder.boolQueryDsl {
+            must +
+              {
+                meta.reviews.nested {
+                  must +
+                    {
+                      meta.reviews.author term "John"
+                      meta.reviews.score greaterThanEqualTo 4.0
+                    }
+                }
               }
-            }
-        }
+          }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+          val query = Query(builder.build())
+          val json = query.toJsonString()
 
-        json should
-          jsonLenientMatcher(
-            """
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -58,28 +59,28 @@ class NestedQueriesTest :
             ]
           }
         }
-      """
-          )
-      }
-
-      should("support nested query within complex bool") {
-        val builder = BoolQuery.Builder()
-
-        builder.boolQueryDsl {
-          must +
-            {
-              meta.name match "test"
-              meta.reviews.nested { must + { meta.reviews.verified term true } }
-            }
-          mustNot + { meta.country term "deleted" }
+      """,
+            )
         }
 
-        val query = Query(builder.build())
-        val json = query.toJsonString()
+        should("support nested query within complex bool") {
+          val builder = BoolQuery.Builder()
 
-        json should
-          jsonLenientMatcher(
-            """
+          builder.boolQueryDsl {
+            must +
+              {
+                meta.name match "test"
+                meta.reviews.nested { must + { meta.reviews.verified term true } }
+              }
+            mustNot + { meta.country term "deleted" }
+          }
+
+          val query = Query(builder.build())
+          val json = query.toJsonString()
+
+          json should
+            jsonLenientMatcher(
+              """
         {
           "bool": {
             "must": [
@@ -102,8 +103,9 @@ class NestedQueriesTest :
             ]
           }
         }
-      """
-          )
+      """,
+            )
+        }
       }
-    }
-  })
+    },
+  )
