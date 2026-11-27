@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.12] - 2026-11-27
+
+### Changed
+
+- **Dependencies:** KSP 2.3.13 → 2.3.14 (#164)
+- **Dependencies:** Spotless 8.10.4 → 8.11.0 (#160)
+- **Dependencies:** Gradle Wrapper 9.9.0 → 9.9.2 (#163, #165)
+- **Dependencies:** kotlin-logging 8.0.4 → 8.0.7 (#162)
+- **Dependencies:** MockK 1.14.11 → 1.14.12 (#161)
+
 ## [1.2.11] - 2026-11-10
 
 ### Fixed
@@ -236,7 +246,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Aggregation support
     - Type-safe DSL API
 
-[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.11...HEAD
+[Unreleased]: https://github.com/ekino/Metalastic/compare/v1.2.12...HEAD
+[1.2.12]: https://github.com/ekino/Metalastic/compare/v1.2.11...v1.2.12
 [1.2.11]: https://github.com/ekino/Metalastic/compare/v1.2.10...v1.2.11
 [1.2.10]: https://github.com/ekino/Metalastic/compare/v1.2.9...v1.2.10
 [1.2.9]: https://github.com/ekino/Metalastic/compare/v1.2.8...v1.2.9
